@@ -60,14 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await firebaseSignOut(auth);
       
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = 'https://accounts.google.com/logout';
-      document.body.appendChild(iframe);
+      localStorage.removeItem('firebase:authUser');
+      sessionStorage.removeItem('firebase:authUser');
       
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }
