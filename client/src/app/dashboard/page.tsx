@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import SignOutButton from '@/components/auth/SignOutButton';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 
 export default function Dashboard() {
@@ -26,9 +25,6 @@ export default function Dashboard() {
               Welcome <span className="font-semibold">{user.displayName}</span>
             </p>
             <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
-          </div>
-          <div className="flex justify-center">
-            <SignOutButton />
           </div>
         </div>
       </div>
