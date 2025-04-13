@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import AuthenticatedLayout from '../../../components/navigation/AuthenticatedLayout';
+import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 
 export default function ProcessVideo() {
   const handleUpload = () => {

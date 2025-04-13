@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import SignOutButton from '@/components/auth/SignOutButton';
-import AuthenticatedLayout from '../../../components/navigation/AuthenticatedLayout';
+import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
