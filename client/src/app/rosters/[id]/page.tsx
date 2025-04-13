@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -18,10 +18,6 @@ interface Roster {
   name: string;
   userUID: string;
   students: Student[];
-}
-
-export async function generateStaticParams() {
-  return [];
 }
 
 export default function RosterDetail() {
