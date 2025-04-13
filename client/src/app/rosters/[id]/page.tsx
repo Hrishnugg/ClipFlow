@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
@@ -28,13 +28,7 @@ export default function RosterDetail() {
   const params = useParams();
   const rosterId = params.id as string;
 
-  useEffect(() => {
-    if (user && rosterId) {
-      fetchRosterDetails();
-    }
-  }, [user, rosterId]);
-
-  const fetchRosterDetails = async () => {
+  const fetchRosterDetails = useCallback(async () => {
     if (!user || !rosterId) return;
     
     try {
@@ -66,7 +60,13 @@ export default function RosterDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, rosterId, router]);
+  
+  useEffect(() => {
+    if (user && rosterId) {
+      fetchRosterDetails();
+    }
+  }, [user, rosterId, fetchRosterDetails]);
 
   return (
     <AuthenticatedLayout>

@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
@@ -27,15 +26,8 @@ export default function Rosters() {
   const [rosters, setRosters] = useState<Roster[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      fetchRosters();
-    }
-  }, [user]);
-
-  const fetchRosters = async () => {
+  const fetchRosters = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -61,7 +53,13 @@ export default function Rosters() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+  
+  useEffect(() => {
+    if (user) {
+      fetchRosters();
+    }
+  }, [user, fetchRosters]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
