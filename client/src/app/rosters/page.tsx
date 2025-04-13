@@ -1,11 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
+import UploadRosterModal from '@/components/modals/UploadRosterModal';
 
 export default function Rosters() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleUpload = () => {
-    console.log('Upload roster clicked');
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleFileUpload = (file: File) => {
+    console.log('File selected:', file.name);
   };
 
   return (
@@ -23,6 +34,12 @@ export default function Rosters() {
           </div>
         </div>
       </div>
+      
+      <UploadRosterModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        onUpload={handleFileUpload} 
+      />
     </AuthenticatedLayout>
   );
 }
