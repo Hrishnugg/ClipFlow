@@ -35,4 +35,3 @@ export async function identifyStudentFromTranscript(
     return { identifiedStudent: '', confidence: 0 };
   }
 }
-c
