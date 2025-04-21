@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase/config';
+import { AssemblyAI } from 'assemblyai';
 
 interface Video {
   id: string;
@@ -18,6 +19,8 @@ interface Video {
   createdAt: string;
   size: number;
   type: string;
+  transcript?: string | null;
+  transcriptionStatus?: 'pending' | 'completed' | 'failed';
 }
 
 export default function ProcessVideo() {
@@ -27,6 +30,10 @@ export default function ProcessVideo() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
+  
+  const assemblyClient = new AssemblyAI({
+    apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
+  });
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -98,25 +105,57 @@ export default function ProcessVideo() {
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           
-          const videoData = {
+          const videoData: Omit<Video, 'id'> = {
             title: file.name,
             url: downloadURL,
             rosterId,
             userUID: user.uid,
             createdAt: new Date().toISOString(),
             size: file.size,
-            type: file.type
+            type: file.type,
+            transcriptionStatus: 'pending'
           };
           
           const docRef = await addDoc(collection(db, 'videos'), videoData);
           console.log('Video added with ID:', docRef.id);
           
-          const newVideo = {
+          const newVideo: Video = {
             id: docRef.id,
             ...videoData
           };
           
           setVideos(prevVideos => [newVideo, ...prevVideos]);
+          
+          try {
+            console.log('Starting transcription for video:', docRef.id);
+            const transcriptionData = {
+              audio: downloadURL
+            };
+            
+            assemblyClient.transcripts.transcribe(transcriptionData)
+              .then(async (transcript) => {
+                if (transcript.text) {
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    transcript: transcript.text,
+                    transcriptionStatus: 'completed'
+                  });
+                  console.log('Transcription completed for video:', docRef.id);
+                } else {
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    transcriptionStatus: 'failed'
+                  });
+                  console.error('Transcription failed: No text returned');
+                }
+              })
+              .catch(async (error) => {
+                console.error('Error transcribing video:', error);
+                await updateDoc(doc(db, 'videos', docRef.id), {
+                  transcriptionStatus: 'failed'
+                });
+              });
+          } catch (error) {
+            console.error('Error starting transcription:', error);
+          }
           
           router.push(`/view_video/${docRef.id}`);
         }

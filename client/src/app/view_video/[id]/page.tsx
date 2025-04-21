@@ -38,21 +38,21 @@ export default function VideoDetail() {
 
   const fetchVideoDetails = useCallback(async () => {
     if (!user || !videoId) return;
-    
+
     try {
       setLoading(true);
       const videoRef = doc(db, 'videos', videoId);
       const videoSnap = await getDoc(videoRef);
-      
+
       if (videoSnap.exists()) {
         const data = videoSnap.data();
-        
+
         if (data.userUID !== user.uid) {
           console.error('Unauthorized access to video');
           router.push('/process_video');
           return;
         }
-        
+
         setVideo({
           id: videoSnap.id,
           title: data.title,
@@ -65,10 +65,10 @@ export default function VideoDetail() {
           transcript: data.transcript,
           transcriptionStatus: data.transcriptionStatus
         });
-        
+
         const rosterRef = doc(db, 'rosters', data.rosterId);
         const rosterSnap = await getDoc(rosterRef);
-        
+
         if (rosterSnap.exists()) {
           setRosterName(rosterSnap.data().name);
         }
@@ -82,36 +82,36 @@ export default function VideoDetail() {
       setLoading(false);
     }
   }, [user, videoId, router]);
-  
+
   const transcribeVideo = async () => {
     if (!video || !video.url || video.transcriptionStatus === 'completed') return;
-    
+
     try {
       setTranscribing(true);
       setTranscriptionError(null);
-      
+
       const videoRef = doc(db, 'videos', videoId);
       await updateDoc(videoRef, {
         transcriptionStatus: 'pending'
       });
-      
+
       setVideo(prev => prev ? {
         ...prev,
         transcriptionStatus: 'pending'
       } : null);
-      
+
       const transcriptionData = {
         audio: video.url
       };
-      
+
       const transcript = await assemblyClient.transcripts.transcribe(transcriptionData);
-      
+
       if (transcript.text) {
         await updateDoc(videoRef, {
           transcript: transcript.text,
           transcriptionStatus: 'completed'
         });
-        
+
         setVideo(prev => prev ? {
           ...prev,
           transcript: transcript.text,
@@ -123,12 +123,12 @@ export default function VideoDetail() {
     } catch (error) {
       console.error('Error transcribing video:', error);
       setTranscriptionError('Failed to transcribe video. Please try again later.');
-      
+
       const videoRef = doc(db, 'videos', videoId);
       await updateDoc(videoRef, {
         transcriptionStatus: 'failed'
       });
-      
+
       setVideo(prev => prev ? {
         ...prev,
         transcriptionStatus: 'failed'
@@ -164,7 +164,7 @@ export default function VideoDetail() {
           </button>
           <h1 className="text-2xl font-bold">{video?.title || 'Video Details'}</h1>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center py-8">
             <p>Loading video details...</p>
@@ -186,37 +186,28 @@ export default function VideoDetail() {
                 <span className="font-medium">Uploaded:</span> {new Date(video.createdAt).toLocaleString()}
               </p>
             </div>
-            
+
             <div className="aspect-video bg-black rounded-lg overflow-hidden mb-6">
-              <video 
-                className="w-full h-full" 
-                controls 
+              <video
+                className="w-full h-full"
+                controls
                 src={video.url}
               >
                 Your browser does not support the video tag.
               </video>
             </div>
-            
+
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Transcript</h2>
-                {!video.transcript && !transcribing && video.transcriptionStatus !== 'pending' && (
-                  <button
-                    onClick={transcribeVideo}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                    disabled={transcribing}
-                  >
-                    Generate Transcript
-                  </button>
-                )}
               </div>
-              
+
               {transcriptionError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                   {transcriptionError}
                 </div>
               )}
-              
+
               {(transcribing || video.transcriptionStatus === 'pending') && (
                 <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -226,16 +217,16 @@ export default function VideoDetail() {
                   <p>Transcribing video...</p>
                 </div>
               )}
-              
+
               {video.transcript && (
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded max-h-96 overflow-y-auto">
                   <p className="whitespace-pre-wrap">{video.transcript}</p>
                 </div>
               )}
-              
+
               {!video.transcript && !transcribing && video.transcriptionStatus !== 'pending' && !transcriptionError && (
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
-                  <p>No transcript available. Click "Generate Transcript" to create one.</p>
+                  <p>No transcript available. Transcription is automatically initiated when videos are uploaded.</p>
                 </div>
               )}
             </div>
