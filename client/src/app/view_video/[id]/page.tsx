@@ -33,7 +33,7 @@ export default function VideoDetail() {
   const videoId = params.id as string;
 
   const assemblyClient = new AssemblyAI({
-    apiKey: "6aa2b79a24c741088a5563a8280e4573",
+    apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
 
   const fetchVideoDetails = useCallback(async () => {
