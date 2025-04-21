@@ -7,6 +7,14 @@ import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
+import StudentIdentification from '@/components/student/StudentIdentification';
+import { identifyStudentFromTranscript } from '@/utils/claude';
+
+interface Student {
+  name: string;
+  email: string;
+  parentEmail: string;
+}
 
 interface Video {
   id: string;
@@ -25,6 +33,10 @@ export default function VideoDetail() {
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [rosterName, setRosterName] = useState<string>('');
+  const [rosterStudents, setRosterStudents] = useState<Student[]>([]);
+  const [identifiedStudent, setIdentifiedStudent] = useState<string>('');
+  const [confidence, setConfidence] = useState<number>(0);
+  const [processingIdentification, setProcessingIdentification] = useState<boolean>(false);
   // transcribing state removed as it's handled by transcriptionStatus
   const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -36,6 +48,37 @@ export default function VideoDetail() {
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
 
+  useEffect(() => {
+    const processTranscript = async () => {
+      if (
+        !video?.transcript || 
+        processingIdentification || 
+        rosterStudents.length === 0 || 
+        identifiedStudent
+      ) {
+        return;
+      }
+
+      try {
+        setProcessingIdentification(true);
+        
+        const studentNames = rosterStudents.map(student => student.name);
+        
+        const result = await identifyStudentFromTranscript(video.transcript, studentNames);
+        
+        if (result.confidence >= 70) {  // Only set if confidence meets threshold
+          setIdentifiedStudent(result.identifiedStudent);
+          setConfidence(result.confidence);
+        }
+      } catch (error) {
+        console.error('Error identifying student:', error);
+      } finally {
+        setProcessingIdentification(false);
+      }
+    };
+
+    processTranscript();
+  }, [video?.transcript, rosterStudents, processingIdentification, identifiedStudent]);
 
 
   useEffect(() => {
@@ -67,12 +110,14 @@ export default function VideoDetail() {
           transcriptionStatus: data.transcriptionStatus
         });
         
-        if (!rosterName) {
+        if (data.rosterId) {
           const rosterRef = doc(db, 'rosters', data.rosterId);
           const rosterSnap = await getDoc(rosterRef);
           
           if (rosterSnap.exists()) {
-            setRosterName(rosterSnap.data().name);
+            const rosterData = rosterSnap.data();
+            setRosterName(rosterData.name);
+            setRosterStudents(rosterData.students || []);
           }
         }
         
@@ -87,7 +132,7 @@ export default function VideoDetail() {
     });
     
     return () => unsubscribe();
-  }, [user, videoId, router, rosterName]);
+  }, [user, videoId, router]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -95,6 +140,11 @@ export default function VideoDetail() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+  
+  const handleStudentIdentified = (studentName: string, studentConfidence: number) => {
+    setIdentifiedStudent(studentName);
+    setConfidence(studentConfidence);
   };
 
   return (
@@ -119,59 +169,87 @@ export default function VideoDetail() {
             <p className="mb-4">Video not found.</p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-            <div className="mb-4">
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Roster:</span> {rosterName}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Size:</span> {formatFileSize(video.size)}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Uploaded:</span> {new Date(video.createdAt).toLocaleString()}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+                <div className="mb-4">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Roster:</span> {rosterName}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Size:</span> {formatFileSize(video.size)}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Uploaded:</span> {new Date(video.createdAt).toLocaleString()}
+                  </p>
+                </div>
 
-            <div className="aspect-video bg-black rounded-lg overflow-hidden mb-6">
-              <video
-                className="w-full h-full"
-                controls
-                src={video.url}
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
+                <div className="aspect-video bg-black rounded-lg overflow-hidden mb-6">
+                  <video
+                    className="w-full h-full"
+                    controls
+                    src={video.url}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
 
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Transcript</h2>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Transcript</h2>
+                  </div>
+
+                  {transcriptionError && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                      {transcriptionError}
+                    </div>
+                  )}
+
+                  {video.transcriptionStatus === 'pending' && (
+                    <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p>Transcribing video...</p>
+                    </div>
+                  )}
+
+                  {video.transcript && (
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded max-h-96 overflow-y-auto">
+                      <p className="whitespace-pre-wrap">{video.transcript}</p>
+                    </div>
+                  )}
+
+                  {!video.transcript && video.transcriptionStatus !== 'pending' && !transcriptionError && (
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
+                      <p>No transcript available. Transcription is automatically initiated when videos are uploaded.</p>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {transcriptionError && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  {transcriptionError}
-                </div>
+            </div>
+            
+            <div className="md:col-span-1">
+              {rosterStudents.length > 0 && video.transcript && (
+                <StudentIdentification 
+                  students={rosterStudents}
+                  transcript={video.transcript}
+                  onIdentified={handleStudentIdentified}
+                  identifiedStudent={identifiedStudent}
+                  confidence={confidence}
+                />
               )}
-
-              {video.transcriptionStatus === 'pending' && (
-                <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <p>Transcribing video...</p>
-                </div>
-              )}
-
-              {video.transcript && (
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded max-h-96 overflow-y-auto">
-                  <p className="whitespace-pre-wrap">{video.transcript}</p>
-                </div>
-              )}
-
-              {!video.transcript && video.transcriptionStatus !== 'pending' && !transcriptionError && (
-                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
-                  <p>No transcript available. Transcription is automatically initiated when videos are uploaded.</p>
+              
+              {processingIdentification && (
+                <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md mt-4">
+                  <div className="flex items-center justify-center py-4">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p>Identifying student...</p>
+                  </div>
                 </div>
               )}
             </div>
