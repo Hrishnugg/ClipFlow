@@ -17,7 +17,7 @@ interface Video {
   createdAt: string;
   size: number;
   type: string;
-  transcript?: string;
+  transcript?: string | null;
   transcriptionStatus?: 'pending' | 'completed' | 'failed';
 }
 
