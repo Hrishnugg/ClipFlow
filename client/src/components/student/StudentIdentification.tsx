@@ -25,6 +25,12 @@ export default function StudentIdentification({
 }: StudentIdentificationProps) {
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
 
+  useEffect(() => {
+    if (identifiedStudent) {
+      setSelectedStudent(identifiedStudent);
+    }
+  }, [identifiedStudent]);
+
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedStudent(e.target.value);
     if (onIdentified) {
