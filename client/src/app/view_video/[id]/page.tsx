@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
 
@@ -25,7 +25,7 @@ export default function VideoDetail() {
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [rosterName, setRosterName] = useState<string>('');
-  const [transcribing, setTranscribing] = useState(false);
+  // transcribing state removed as it's handled by transcriptionStatus
   const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
@@ -36,23 +36,24 @@ export default function VideoDetail() {
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
 
-  const fetchVideoDetails = useCallback(async () => {
+
+
+  useEffect(() => {
     if (!user || !videoId) return;
-
-    try {
-      setLoading(true);
-      const videoRef = doc(db, 'videos', videoId);
-      const videoSnap = await getDoc(videoRef);
-
+    
+    setLoading(true);
+    const videoRef = doc(db, 'videos', videoId);
+    
+    const unsubscribe = onSnapshot(videoRef, async (videoSnap) => {
       if (videoSnap.exists()) {
         const data = videoSnap.data();
-
+        
         if (data.userUID !== user.uid) {
           console.error('Unauthorized access to video');
           router.push('/process_video');
           return;
         }
-
+        
         setVideo({
           id: videoSnap.id,
           title: data.title,
@@ -65,84 +66,28 @@ export default function VideoDetail() {
           transcript: data.transcript,
           transcriptionStatus: data.transcriptionStatus
         });
-
-        const rosterRef = doc(db, 'rosters', data.rosterId);
-        const rosterSnap = await getDoc(rosterRef);
-
-        if (rosterSnap.exists()) {
-          setRosterName(rosterSnap.data().name);
+        
+        if (!rosterName) {
+          const rosterRef = doc(db, 'rosters', data.rosterId);
+          const rosterSnap = await getDoc(rosterRef);
+          
+          if (rosterSnap.exists()) {
+            setRosterName(rosterSnap.data().name);
+          }
         }
+        
+        setLoading(false);
       } else {
         console.error('Video not found');
         router.push('/process_video');
       }
-    } catch (error) {
-      console.error('Error fetching video details:', error);
-    } finally {
+    }, (error) => {
+      console.error('Error setting up real-time listener:', error);
       setLoading(false);
-    }
-  }, [user, videoId, router]);
-
-  const transcribeVideo = async () => {
-    if (!video || !video.url || video.transcriptionStatus === 'completed') return;
-
-    try {
-      setTranscribing(true);
-      setTranscriptionError(null);
-
-      const videoRef = doc(db, 'videos', videoId);
-      await updateDoc(videoRef, {
-        transcriptionStatus: 'pending'
-      });
-
-      setVideo(prev => prev ? {
-        ...prev,
-        transcriptionStatus: 'pending'
-      } : null);
-
-      const transcriptionData = {
-        audio: video.url
-      };
-
-      const transcript = await assemblyClient.transcripts.transcribe(transcriptionData);
-
-      if (transcript.text) {
-        await updateDoc(videoRef, {
-          transcript: transcript.text,
-          transcriptionStatus: 'completed'
-        });
-
-        setVideo(prev => prev ? {
-          ...prev,
-          transcript: transcript.text,
-          transcriptionStatus: 'completed'
-        } : null);
-      } else {
-        throw new Error('Transcription failed: No text returned');
-      }
-    } catch (error) {
-      console.error('Error transcribing video:', error);
-      setTranscriptionError('Failed to transcribe video. Please try again later.');
-
-      const videoRef = doc(db, 'videos', videoId);
-      await updateDoc(videoRef, {
-        transcriptionStatus: 'failed'
-      });
-
-      setVideo(prev => prev ? {
-        ...prev,
-        transcriptionStatus: 'failed'
-      } : null);
-    } finally {
-      setTranscribing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user && videoId) {
-      fetchVideoDetails();
-    }
-  }, [user, videoId, fetchVideoDetails]);
+    });
+    
+    return () => unsubscribe();
+  }, [user, videoId, router, rosterName]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -208,7 +153,7 @@ export default function VideoDetail() {
                 </div>
               )}
 
-              {(transcribing || video.transcriptionStatus === 'pending') && (
+              {video.transcriptionStatus === 'pending' && (
                 <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -224,7 +169,7 @@ export default function VideoDetail() {
                 </div>
               )}
 
-              {!video.transcript && !transcribing && video.transcriptionStatus !== 'pending' && !transcriptionError && (
+              {!video.transcript && video.transcriptionStatus !== 'pending' && !transcriptionError && (
                 <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
                   <p>No transcript available. Transcription is automatically initiated when videos are uploaded.</p>
                 </div>
