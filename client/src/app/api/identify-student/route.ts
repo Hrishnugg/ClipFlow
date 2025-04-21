@@ -35,9 +35,11 @@ export async function POST(request: NextRequest) {
       IMPORTANT INSTRUCTIONS:
       1. Use fuzzy matching to account for audio quality issues, accents, or mispronunciations
       2. Only identify students from the provided roster list
-      3. Look for instances where the instructor refers to a student by name
-      4. Consider context clues like "here comes [name]" or "[name] is doing great"
-      5. If multiple students are mentioned, identify the one who appears to be the main subject
+      3. Look for instances where the instructor refers to a student by name, nickname, or last name
+      4. Consider that students might be called by nicknames (e.g., "Bob" for "Robert", "Liz" for "Elizabeth")
+      5. Students might also be referred to by just their last name (e.g., "Smith" for "John Smith")
+      6. Consider context clues like "here comes [name]" or "[name] is doing great"
+      7. If multiple students are mentioned, identify the one who appears to be the main subject
       
       Return your answer in JSON format with two fields:
       - identifiedStudent: The name of the student you think is in the video (must be from the roster)
