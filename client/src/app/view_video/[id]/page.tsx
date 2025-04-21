@@ -4,8 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { AssemblyAI } from 'assemblyai';
 
 interface Video {
   id: string;
@@ -16,16 +17,24 @@ interface Video {
   createdAt: string;
   size: number;
   type: string;
+  transcript?: string;
+  transcriptionStatus?: 'pending' | 'completed' | 'failed';
 }
 
 export default function VideoDetail() {
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [rosterName, setRosterName] = useState<string>('');
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const videoId = params.id as string;
+
+  const assemblyClient = new AssemblyAI({
+    apiKey: "6aa2b79a24c741088a5563a8280e4573",
+  });
 
   const fetchVideoDetails = useCallback(async () => {
     if (!user || !videoId) return;
@@ -52,7 +61,9 @@ export default function VideoDetail() {
           userUID: data.userUID,
           createdAt: data.createdAt,
           size: data.size,
-          type: data.type
+          type: data.type,
+          transcript: data.transcript,
+          transcriptionStatus: data.transcriptionStatus
         });
         
         const rosterRef = doc(db, 'rosters', data.rosterId);
@@ -72,6 +83,61 @@ export default function VideoDetail() {
     }
   }, [user, videoId, router]);
   
+  const transcribeVideo = async () => {
+    if (!video || !video.url || video.transcriptionStatus === 'completed') return;
+    
+    try {
+      setTranscribing(true);
+      setTranscriptionError(null);
+      
+      const videoRef = doc(db, 'videos', videoId);
+      await updateDoc(videoRef, {
+        transcriptionStatus: 'pending'
+      });
+      
+      setVideo(prev => prev ? {
+        ...prev,
+        transcriptionStatus: 'pending'
+      } : null);
+      
+      const transcriptionData = {
+        audio: video.url
+      };
+      
+      const transcript = await assemblyClient.transcripts.transcribe(transcriptionData);
+      
+      if (transcript.text) {
+        await updateDoc(videoRef, {
+          transcript: transcript.text,
+          transcriptionStatus: 'completed'
+        });
+        
+        setVideo(prev => prev ? {
+          ...prev,
+          transcript: transcript.text,
+          transcriptionStatus: 'completed'
+        } : null);
+      } else {
+        throw new Error('Transcription failed: No text returned');
+      }
+    } catch (error) {
+      console.error('Error transcribing video:', error);
+      setTranscriptionError('Failed to transcribe video. Please try again later.');
+      
+      const videoRef = doc(db, 'videos', videoId);
+      await updateDoc(videoRef, {
+        transcriptionStatus: 'failed'
+      });
+      
+      setVideo(prev => prev ? {
+        ...prev,
+        transcriptionStatus: 'failed'
+      } : null);
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
   useEffect(() => {
     if (user && videoId) {
       fetchVideoDetails();
@@ -121,7 +187,7 @@ export default function VideoDetail() {
               </p>
             </div>
             
-            <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
+            <div className="aspect-video bg-black rounded-lg overflow-hidden mb-6">
               <video 
                 className="w-full h-full" 
                 controls 
@@ -129,6 +195,49 @@ export default function VideoDetail() {
               >
                 Your browser does not support the video tag.
               </video>
+            </div>
+            
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Transcript</h2>
+                {!video.transcript && !transcribing && video.transcriptionStatus !== 'pending' && (
+                  <button
+                    onClick={transcribeVideo}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                    disabled={transcribing}
+                  >
+                    Generate Transcript
+                  </button>
+                )}
+              </div>
+              
+              {transcriptionError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  {transcriptionError}
+                </div>
+              )}
+              
+              {(transcribing || video.transcriptionStatus === 'pending') && (
+                <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p>Transcribing video...</p>
+                </div>
+              )}
+              
+              {video.transcript && (
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded max-h-96 overflow-y-auto">
+                  <p className="whitespace-pre-wrap">{video.transcript}</p>
+                </div>
+              )}
+              
+              {!video.transcript && !transcribing && video.transcriptionStatus !== 'pending' && !transcriptionError && (
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
+                  <p>No transcript available. Click "Generate Transcript" to create one.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
