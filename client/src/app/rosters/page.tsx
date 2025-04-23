@@ -5,13 +5,14 @@ import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  nickname: string;
 }
 
 interface Roster {
@@ -20,6 +21,8 @@ interface Roster {
   userUID: string;
   students: Student[];
 }
+
+
 
 export default function Rosters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,8 +75,8 @@ export default function Rosters() {
   const parseCSV = (csvText: string): Student[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-      const [name, email, parentEmail] = line.split(',').map(item => item.trim());
-      return { name, email, parentEmail };
+      const [name, email, parentEmail, nickname = 'N/A'] = line.split(',').map(item => item.trim());
+      return { name, email, parentEmail, nickname };
     });
   };
 

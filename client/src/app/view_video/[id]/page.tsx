@@ -15,6 +15,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  nickname: string;
 }
 
 interface Video {
@@ -64,8 +65,13 @@ export default function VideoDetail() {
         setProcessingIdentification(true);
         
         const studentNames = rosterStudents.map(student => student.name);
+        const studentNicknames = rosterStudents.map(student => student.nickname);
         
-        const result = await identifyStudentFromTranscript(video.transcript, studentNames);
+        const result = await identifyStudentFromTranscript(
+          video.transcript, 
+          studentNames,
+          studentNicknames
+        );
         
         if (result.confidence >= 70) {  // Only set if confidence meets threshold
           setIdentifiedStudent(result.identifiedStudent);

@@ -6,6 +6,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  nickname: string;
 }
 
 interface StudentIdentificationProps {
