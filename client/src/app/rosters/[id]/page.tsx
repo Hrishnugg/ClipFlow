@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -24,6 +24,13 @@ interface Roster {
 export default function RosterDetail() {
   const [roster, setRoster] = useState<Roster | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newStudent, setNewStudent] = useState<{
+    name: string;
+    email: string;
+    parentEmail: string;
+    nickname: string;
+  }>({ name: '', email: '', parentEmail: '', nickname: '' });
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -68,18 +75,79 @@ export default function RosterDetail() {
       fetchRosterDetails();
     }
   }, [user, rosterId, fetchRosterDetails]);
+  
+  const handleAddButtonClick = () => {
+    setShowAddForm(true);
+  };
+
+  const handleCancelAddStudent = () => {
+    setNewStudent({ name: '', email: '', parentEmail: '', nickname: '' });
+    setShowAddForm(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewStudent(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddStudent = async () => {
+    if (!user || !rosterId || !roster) return;
+    
+    if (!newStudent.name.trim() || !newStudent.email.trim()) {
+      alert('Student Name and Student Email are required fields.');
+      return;
+    }
+    
+    try {
+      const updatedStudents = [
+        ...roster.students,
+        {
+          name: newStudent.name.trim(),
+          email: newStudent.email.trim(),
+          parentEmail: newStudent.parentEmail.trim(),
+          nickname: newStudent.nickname.trim()
+        }
+      ];
+      
+      const rosterRef = doc(db, 'rosters', rosterId);
+      await updateDoc(rosterRef, {
+        students: updatedStudents
+      });
+      
+      setNewStudent({ name: '', email: '', parentEmail: '', nickname: '' });
+      setShowAddForm(false);
+      
+      fetchRosterDetails();
+    } catch (error) {
+      console.error('Error adding student to roster:', error);
+      alert('Failed to add student to roster. Please try again.');
+    }
+  };
 
   return (
     <AuthenticatedLayout>
       <div className="p-8 w-full">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => router.push('/rosters')}
-            className="mr-4 text-blue-600 hover:text-blue-800"
-          >
-            ← Back to Rosters
-          </button>
-          <h1 className="text-2xl font-bold">{roster?.name || 'Roster Details'}</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <button
+              onClick={() => router.push('/rosters')}
+              className="mr-4 text-blue-600 hover:text-blue-800"
+            >
+              ← Back to Rosters
+            </button>
+            <h1 className="text-2xl font-bold">{roster?.name || 'Roster Details'}</h1>
+          </div>
+          {roster && !loading && (
+            <button
+              onClick={handleAddButtonClick}
+              className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+            >
+              Add Student
+            </button>
+          )}
         </div>
         
         {loading ? (
@@ -92,6 +160,68 @@ export default function RosterDetail() {
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+            {showAddForm && (
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center flex-wrap">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <input
+                      type="text"
+                      name="name"
+                      value={newStudent.name}
+                      onChange={handleInputChange}
+                      placeholder="Student Name *"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={newStudent.email}
+                      onChange={handleInputChange}
+                      placeholder="Student Email *"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      name="parentEmail"
+                      value={newStudent.parentEmail}
+                      onChange={handleInputChange}
+                      placeholder="Parent Email"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      name="nickname"
+                      value={newStudent.nickname}
+                      onChange={handleInputChange}
+                      placeholder="Nickname"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="ml-4 flex items-center space-x-2">
+                  <button
+                    onClick={handleCancelAddStudent}
+                    className="px-4 py-2 text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddStudent}
+                    className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
             {roster.students.length === 0 ? (
               <div className="p-8 text-center">
                 <p>No students in this roster.</p>
