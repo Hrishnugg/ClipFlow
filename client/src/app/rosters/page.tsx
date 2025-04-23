@@ -5,13 +5,14 @@ import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  nickname: string;
 }
 
 interface Roster {
@@ -20,6 +21,47 @@ interface Roster {
   userUID: string;
   students: Student[];
 }
+
+const updateExistingRostersWithNickname = async (userId: string) => {
+  try {
+    const rostersRef = collection(db, 'rosters');
+    const q = query(rostersRef, where('userUID', '==', userId));
+    const querySnapshot = await getDocs(q);
+    
+    const batch = writeBatch(db);
+    let updateCount = 0;
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const students = data.students || [];
+      
+      type FirestoreStudent = {
+        name: string;
+        email: string;
+        parentEmail: string;
+        nickname?: string;
+      };
+      
+      const needsUpdate = students.some((student: FirestoreStudent) => !('nickname' in student));
+      
+      if (needsUpdate) {
+        const updatedStudents = students.map((student: FirestoreStudent) => {
+          return 'nickname' in student ? student : { ...student, nickname: 'N/A' };
+        });
+        
+        batch.update(doc.ref, { students: updatedStudents });
+        updateCount++;
+      }
+    });
+    
+    if (updateCount > 0) {
+      await batch.commit();
+      console.log(`Updated ${updateCount} rosters with nickname field`);
+    }
+  } catch (error) {
+    console.error('Error updating existing rosters:', error);
+  }
+};
 
 export default function Rosters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,6 +100,7 @@ export default function Rosters() {
   useEffect(() => {
     if (user) {
       fetchRosters();
+      updateExistingRostersWithNickname(user.uid);
     }
   }, [user, fetchRosters]);
 
@@ -72,8 +115,8 @@ export default function Rosters() {
   const parseCSV = (csvText: string): Student[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-      const [name, email, parentEmail] = line.split(',').map(item => item.trim());
-      return { name, email, parentEmail };
+      const [name, email, parentEmail, nickname = 'N/A'] = line.split(',').map(item => item.trim());
+      return { name, email, parentEmail, nickname };
     });
   };
 
