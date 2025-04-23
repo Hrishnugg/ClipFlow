@@ -17,11 +17,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const rosterWithNicknames = studentNames.map((name, index) => {
+    const studentRoster = studentNames.map((name, index) => {
       const nickname = studentNicknames && studentNicknames[index] && studentNicknames[index] !== 'N/A' 
-        ? ` (nickname: ${studentNicknames[index]})` 
-        : '';
-      return `${name}${nickname}`;
+        ? studentNicknames[index]
+        : null;
+      
+      return {
+        name,
+        nickname
+      };
+    });
+    
+    const formattedRoster = studentRoster.map(student => {
+      if (student.nickname) {
+        return `${student.name} (also known as "${student.nickname}")`;
+      }
+      return student.name;
     });
 
     const anthropic = new Anthropic({
@@ -29,28 +40,32 @@ export async function POST(request: NextRequest) {
     });
 
     const prompt = `
-      I'm analyzing a transcript from a ski instruction video. The instructor mentions students by name.
+      I'm analyzing a transcript from a ski instruction video. The instructor mentions students by name or nickname.
       
       TRANSCRIPT:
       ${transcript}
       
-      STUDENT ROSTER (ONLY consider these names, no one else):
-      ${rosterWithNicknames.join(', ')}
+      STUDENT ROSTER (ONLY consider these students, no one else):
+      ${formattedRoster.join('\n- ')}
       
       Based on the transcript, which student from the roster is being filmed skiing?
       
       IMPORTANT INSTRUCTIONS:
-      1. Use fuzzy matching to account for audio quality issues, accents, or mispronunciations
-      2. Only identify students from the provided roster list
-      3. Look for instances where the instructor refers to a student by name, nickname, or last name
-      4. Consider that students might be called by nicknames (e.g., "Bob" for "Robert", "Liz" for "Elizabeth")
-      5. Students might also be referred to by just their last name (e.g., "Smith" for "John Smith")
-      6. Consider context clues like "here comes [name]" or "[name] is doing great"
-      7. If multiple students are mentioned, identify the one who appears to be the main subject
+      1. Search for BOTH real names AND nicknames in the transcript
+      2. If you find a nickname in the transcript, map it back to the student's real name
+      3. Always return the student's real name as the identified student, even if they were referenced by their nickname
+      4. For example, if "Robbie" is mentioned in the transcript, and "Robert (also known as 'Robbie')" is in the roster, identify the student as "Robert"
+      5. Use fuzzy matching to account for audio quality issues, accents, or mispronunciations
+      6. Only identify students from the provided roster list
+      7. Students might also be referred to by just their last name (e.g., "Smith" for "John Smith")
+      8. Consider context clues like "here comes [name]" or "[name] is doing great"
+      9. If multiple students are mentioned, identify the one who appears to be the main subject
       
       Return your answer in JSON format with two fields:
-      - identifiedStudent: The name of the student you think is in the video (must be from the roster)
+      - identifiedStudent: The REAL NAME of the student you think is in the video (must be from the roster)
       - confidence: Your confidence level from 0-100 (as a number)
+      
+      IMPORTANT: Even if you identify a student by their nickname in the transcript, you must return their real name as the identifiedStudent.
       
       If you cannot identify any student from the roster with reasonable confidence, set identifiedStudent to empty string and confidence to 0.
     `;
