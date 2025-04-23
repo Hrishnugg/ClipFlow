@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+// @ts-ignore
 import { AssemblyAI } from 'assemblyai';
 import StudentIdentification from '@/components/student/StudentIdentification';
 import { identifyStudentFromTranscript } from '@/utils/claude';
