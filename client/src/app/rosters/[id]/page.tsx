@@ -103,7 +103,22 @@ export default function RosterDetail() {
       const now = new Date();
       
       if (!isDelete) {
-        if (querySnapshot.empty) {
+        if (!querySnapshot.empty) {
+          const existingStudent = querySnapshot.docs[0];
+          const existingData = existingStudent.data();
+          
+          if (existingData.name !== student.name) {
+            throw new Error(`A student with email ${student.email.toLowerCase()} already exists with a different name (${existingData.name}). Email addresses must be unique across all students.`);
+          }
+          
+          if (!existingData.lastUpdated || now > existingData.lastUpdated.toDate()) {
+            await updateDoc(existingStudent.ref, {
+              parentEmail: student.parentEmail,
+              nickname: student.nickname,
+              lastUpdated: now
+            });
+          }
+        } else {
           const studentData = {
             name: student.name,
             email: student.email.toLowerCase(),
@@ -115,17 +130,6 @@ export default function RosterDetail() {
           };
           
           await setDoc(doc(collection(db, 'students')), studentData);
-        } else {
-          const existingStudent = querySnapshot.docs[0];
-          const existingData = existingStudent.data();
-          
-          if (!existingData.lastUpdated || now > existingData.lastUpdated.toDate()) {
-            await updateDoc(existingStudent.ref, {
-              parentEmail: student.parentEmail,
-              nickname: student.nickname,
-              lastUpdated: now
-            });
-          }
         }
       } else if (!querySnapshot.empty) {
         const rostersRef = collection(db, 'rosters');
@@ -144,11 +148,44 @@ export default function RosterDetail() {
         });
         
         if (!studentExistsInOtherRosters) {
-          await updateDoc(querySnapshot.docs[0].ref, { deleted: true });
+          const studentDoc = querySnapshot.docs[0];
+          
+          const videosRef = collection(db, 'videos');
+          const videoQuery = query(videosRef, where('userUID', '==', user.uid));
+          const videoSnapshot = await getDocs(videoQuery);
+          
+          const batch = writeBatch(db);
+          
+          batch.update(studentDoc.ref, { deleted: true });
+          
+          videoSnapshot.forEach((videoDoc) => {
+            const videoData = videoDoc.data();
+            
+            if (videoData.rosterIds && videoData.rosterIds.length > 0) {
+              const associatedRosters = rosterSnapshot.docs
+                .filter(rosterDoc => videoData.rosterIds.includes(rosterDoc.id))
+                .map(rosterDoc => rosterDoc.data());
+              
+              const videoHasOtherStudents = associatedRosters.some(rosterData => 
+                rosterData.students && rosterData.students.some((s: Student) => 
+                  s.email.toLowerCase() !== student.email.toLowerCase()
+                )
+              );
+              
+              if (!videoHasOtherStudents) {
+                batch.update(videoDoc.ref, { deleted: true });
+              }
+            }
+          });
+          
+          await batch.commit();
         }
       }
+      
+      return { success: true };
     } catch (error) {
       console.error('Error updating students collection:', error);
+      return { success: false, error };
     }
   };
 
@@ -178,6 +215,16 @@ export default function RosterDetail() {
         nickname: newStudent.nickname.trim()
       };
       
+      const result = await updateStudentsCollection(student);
+      
+      if (result && !result.success) {
+        const errorMessage = result.error instanceof Error 
+          ? result.error.message 
+          : 'Error checking student consistency across rosters';
+        alert(errorMessage);
+        return;
+      }
+      
       const updatedStudents = [...roster.students, student];
       
       const rosterRef = doc(db, 'rosters', rosterId);
@@ -185,15 +232,16 @@ export default function RosterDetail() {
         students: updatedStudents
       });
       
-      await updateStudentsCollection(student);
-      
       setNewStudent({ name: '', email: '', parentEmail: '', nickname: '' });
       setShowAddForm(false);
       
       fetchRosterDetails();
     } catch (error) {
       console.error('Error adding student to roster:', error);
-      alert('Failed to add student to roster. Please try again.');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to add student to roster. Please try again.';
+      alert(errorMessage);
     }
   };
   

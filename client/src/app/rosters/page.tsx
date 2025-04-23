@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, getDocs, query, where, writeBatch, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -157,23 +157,39 @@ export default function Rosters() {
       const reader = new FileReader();
       
       reader.onload = async (e) => {
-        const csvText = e.target?.result as string;
-        const students = parseCSV(csvText);
-        const createdAt = new Date();
-        
-        const rosterData = {
-          name: rosterName,
-          userUID: user.uid,
-          students,
-          createdAt
-        };
-        
-        const docRef = await addDoc(collection(db, 'rosters'), rosterData);
-        console.log('Roster added with ID:', docRef.id);
-        
-        await updateStudentsCollection(students, createdAt);
-        
-        fetchRosters();
+        try {
+          const csvText = e.target?.result as string;
+          const students = parseCSV(csvText);
+          const createdAt = new Date();
+          
+          const result = await updateStudentsCollection(students, createdAt);
+          
+          if (result && !result.success && result.error) {
+            const errorMessage = result.error instanceof Error 
+              ? result.error.message 
+              : 'Error updating students collection';
+            alert(errorMessage);
+            return;
+          }
+          
+          const rosterData = {
+            name: rosterName,
+            userUID: user.uid,
+            students,
+            createdAt
+          };
+          
+          const docRef = await addDoc(collection(db, 'rosters'), rosterData);
+          console.log('Roster added with ID:', docRef.id);
+          
+          fetchRosters();
+        } catch (error) {
+          console.error('Error processing roster:', error);
+          const errorMessage = error instanceof Error 
+            ? error.message 
+            : 'Error processing roster. Please try again.';
+          alert(errorMessage);
+        }
       };
       
       reader.readAsText(file);
