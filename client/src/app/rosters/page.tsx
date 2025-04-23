@@ -74,10 +74,20 @@ export default function Rosters() {
 
   const parseCSV = (csvText: string): Student[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
-    return lines.map(line => {
+    const students: Student[] = [];
+    const emailSet = new Set<string>();
+    
+    lines.forEach(line => {
       const [name, email, parentEmail, nickname = ''] = line.split(',').map(item => item.trim());
-      return { name, email, parentEmail, nickname };
+      const lowerEmail = email.toLowerCase();
+      
+      if (!emailSet.has(lowerEmail)) {
+        emailSet.add(lowerEmail);
+        students.push({ name, email: lowerEmail, parentEmail, nickname });
+      }
     });
+    
+    return students;
   };
 
   const handleFileUpload = async (rosterName: string, file: File) => {
