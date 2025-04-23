@@ -75,7 +75,7 @@ export default function Rosters() {
   const parseCSV = (csvText: string): Student[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     return lines.map(line => {
-      const [name, email, parentEmail, nickname = 'N/A'] = line.split(',').map(item => item.trim());
+      const [name, email, parentEmail, nickname = ''] = line.split(',').map(item => item.trim());
       return { name, email, parentEmail, nickname };
     });
   };

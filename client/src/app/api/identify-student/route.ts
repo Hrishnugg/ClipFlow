@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const studentRoster = studentNames.map((name, index) => {
-      const nickname = studentNicknames && studentNicknames[index] && studentNicknames[index] !== 'N/A'
+      const nickname = studentNicknames && studentNicknames[index] && studentNicknames[index] !== ''
         ? studentNicknames[index]
         : null;
 
