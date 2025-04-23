@@ -70,7 +70,7 @@ export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadR
             className="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 focus:outline-none"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            CSV should have 3 columns: Student Name, Student Email, Parent Email
+            CSV should have 4 columns: Student Name, Student Email, Parent Email, Nickname (optional)
           </p>
         </div>
         

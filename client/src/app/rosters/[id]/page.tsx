@@ -11,6 +11,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  nickname: string;
 }
 
 interface Roster {
@@ -109,6 +110,9 @@ export default function RosterDetail() {
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Parent Email
                       </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Nickname
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -122,6 +126,9 @@ export default function RosterDetail() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                           {student.parentEmail}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                          {student.nickname}
                         </td>
                       </tr>
                     ))}

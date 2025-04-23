@@ -5,7 +5,8 @@ interface IdentificationResult {
 
 export async function identifyStudentFromTranscript(
   transcript: string,
-  studentNames: string[]
+  studentNames: string[],
+  studentNicknames?: string[]
 ): Promise<IdentificationResult> {
   try {
     const response = await fetch('/api/identify-student', {
@@ -16,6 +17,7 @@ export async function identifyStudentFromTranscript(
       body: JSON.stringify({
         transcript,
         studentNames,
+        studentNicknames,
       }),
     });
 
