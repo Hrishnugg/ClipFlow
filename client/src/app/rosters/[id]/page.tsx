@@ -101,12 +101,22 @@ export default function RosterDetail() {
       return;
     }
     
+    const studentEmail = newStudent.email.trim().toLowerCase();
+    const studentExists = roster.students.some(
+      student => student.email.toLowerCase() === studentEmail
+    );
+    
+    if (studentExists) {
+      alert('Student already exists in the roster.');
+      return;
+    }
+    
     try {
       const updatedStudents = [
         ...roster.students,
         {
           name: newStudent.name.trim(),
-          email: newStudent.email.trim(),
+          email: studentEmail,
           parentEmail: newStudent.parentEmail.trim(),
           nickname: newStudent.nickname.trim()
         }
