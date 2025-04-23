@@ -149,24 +149,26 @@ export default function RosterDetail() {
   return (
     <AuthenticatedLayout>
       <div className="p-8 w-full">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
+        <div className="mb-6">
+          <div className="mb-3">
             <button
               onClick={() => router.push('/rosters')}
-              className="mr-4 text-blue-600 hover:text-blue-800"
+              className="text-blue-600 hover:text-blue-800"
             >
               ← Back to Rosters
             </button>
-            <h1 className="text-2xl font-bold">{roster?.name || 'Roster Details'}</h1>
           </div>
-          {roster && !loading && (
-            <button
-              onClick={handleAddButtonClick}
-              className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
-            >
-              Add Student
-            </button>
-          )}
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">{roster?.name || 'Roster Details'}</h1>
+            {roster && !loading && (
+              <button
+                onClick={handleAddButtonClick}
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+              >
+                Add Student
+              </button>
+            )}
+          </div>
         </div>
         
         {loading ? (
