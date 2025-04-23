@@ -157,23 +157,36 @@ export default function Rosters() {
       const reader = new FileReader();
       
       reader.onload = async (e) => {
-        const csvText = e.target?.result as string;
-        const students = parseCSV(csvText);
-        const createdAt = new Date();
-        
-        const rosterData = {
-          name: rosterName,
-          userUID: user.uid,
-          students,
-          createdAt
-        };
-        
-        const docRef = await addDoc(collection(db, 'rosters'), rosterData);
-        console.log('Roster added with ID:', docRef.id);
-        
-        await updateStudentsCollection(students, createdAt);
-        
-        fetchRosters();
+        try {
+          const csvText = e.target?.result as string;
+          const students = parseCSV(csvText);
+          const createdAt = new Date();
+          
+          const result = await updateStudentsCollection(students, createdAt);
+          
+          if (result && !result.success && result.error) {
+            const errorMessage = result.error instanceof Error 
+              ? result.error.message 
+              : 'Error updating students collection';
+            alert(errorMessage);
+            return;
+          }
+          
+          const rosterData = {
+            name: rosterName,
+            userUID: user.uid,
+            students,
+            createdAt
+          };
+          
+          const docRef = await addDoc(collection(db, 'rosters'), rosterData);
+          console.log('Roster added with ID:', docRef.id);
+          
+          fetchRosters();
+        } catch (error: any) {
+          console.error('Error processing roster:', error);
+          alert(error.message || 'Error processing roster. Please try again.');
+        }
       };
       
       reader.readAsText(file);
