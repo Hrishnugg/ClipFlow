@@ -22,7 +22,7 @@ interface Video {
   title: string;
   fileName: string;
   fileSize: number;
-  uploadDate: any;
+  uploadDate: { toDate?: () => Date } | Date;
   rosterIds: string[];
 }
 
@@ -99,7 +99,7 @@ export default function StudentDetail() {
     }
   }, [user, studentId, fetchStudentDetails]);
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: { toDate?: () => Date } | Date | null) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleDateString('en-US', {

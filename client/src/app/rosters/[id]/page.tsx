@@ -236,9 +236,12 @@ export default function RosterDetail() {
       setShowAddForm(false);
       
       fetchRosterDetails();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding student to roster:', error);
-      alert(error.message || 'Failed to add student to roster. Please try again.');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to add student to roster. Please try again.';
+      alert(errorMessage);
     }
   };
   

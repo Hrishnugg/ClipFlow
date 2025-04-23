@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, getDocs, query, where, writeBatch, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -183,9 +183,12 @@ export default function Rosters() {
           console.log('Roster added with ID:', docRef.id);
           
           fetchRosters();
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error processing roster:', error);
-          alert(error.message || 'Error processing roster. Please try again.');
+          const errorMessage = error instanceof Error 
+            ? error.message 
+            : 'Error processing roster. Please try again.';
+          alert(errorMessage);
         }
       };
       
