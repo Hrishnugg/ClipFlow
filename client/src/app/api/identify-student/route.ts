@@ -8,7 +8,7 @@ interface IdentificationResult {
 
 export async function POST(request: NextRequest) {
   try {
-    const { transcript, studentNames } = await request.json();
+    const { transcript, studentNames, studentNicknames } = await request.json();
     
     if (!transcript || !studentNames || !Array.isArray(studentNames)) {
       return NextResponse.json(
@@ -16,6 +16,13 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    const rosterWithNicknames = studentNames.map((name, index) => {
+      const nickname = studentNicknames && studentNicknames[index] && studentNicknames[index] !== 'N/A' 
+        ? ` (nickname: ${studentNicknames[index]})` 
+        : '';
+      return `${name}${nickname}`;
+    });
 
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY || '',
@@ -28,7 +35,7 @@ export async function POST(request: NextRequest) {
       ${transcript}
       
       STUDENT ROSTER (ONLY consider these names, no one else):
-      ${studentNames.join(', ')}
+      ${rosterWithNicknames.join(', ')}
       
       Based on the transcript, which student from the roster is being filmed skiing?
       
