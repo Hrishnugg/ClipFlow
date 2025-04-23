@@ -5,7 +5,7 @@ import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -89,6 +89,66 @@ export default function Rosters() {
     
     return students;
   };
+  
+  const updateStudentsCollection = async (students: Student[], rosterCreatedAt: Date) => {
+    if (!user) return;
+    
+    try {
+      const batch = writeBatch(db);
+      const studentsRef = collection(db, 'students');
+      const q = query(studentsRef, where('userUID', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      
+      const existingStudents = new Map();
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        existingStudents.set(data.email.toLowerCase(), {
+          id: doc.id,
+          ...data
+        });
+      });
+      
+      for (const student of students) {
+        const email = student.email.toLowerCase();
+        const existingStudent = existingStudents.get(email);
+        
+        if (existingStudent) {
+          if (existingStudent.name !== student.name) {
+            console.error(`Name mismatch for email ${email}: ${existingStudent.name} vs ${student.name}`);
+            throw new Error(`A student with email ${email} already exists with a different name (${existingStudent.name}). Email addresses must be unique across all students.`);
+          }
+          
+          if (!existingStudent.lastUpdated || rosterCreatedAt > existingStudent.lastUpdated.toDate()) {
+            const studentRef = doc(db, 'students', existingStudent.id);
+            batch.update(studentRef, {
+              parentEmail: student.parentEmail,
+              nickname: student.nickname,
+              lastUpdated: rosterCreatedAt
+            });
+          }
+        } else {
+          const studentData = {
+            name: student.name,
+            email: email,
+            parentEmail: student.parentEmail,
+            nickname: student.nickname,
+            userUID: user.uid,
+            createdAt: rosterCreatedAt,
+            lastUpdated: rosterCreatedAt
+          };
+          
+          const newStudentRef = doc(collection(db, 'students'));
+          batch.set(newStudentRef, studentData);
+        }
+      }
+      
+      await batch.commit();
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating students collection:', error);
+      return { success: false, error };
+    }
+  };
 
   const handleFileUpload = async (rosterName: string, file: File) => {
     if (!user) return;
@@ -99,16 +159,19 @@ export default function Rosters() {
       reader.onload = async (e) => {
         const csvText = e.target?.result as string;
         const students = parseCSV(csvText);
+        const createdAt = new Date();
         
         const rosterData = {
           name: rosterName,
           userUID: user.uid,
           students,
-          createdAt: new Date()
+          createdAt
         };
         
         const docRef = await addDoc(collection(db, 'rosters'), rosterData);
         console.log('Roster added with ID:', docRef.id);
+        
+        await updateStudentsCollection(students, createdAt);
         
         fetchRosters();
       };
