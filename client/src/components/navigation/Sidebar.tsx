@@ -43,6 +43,14 @@ export default function Sidebar() {
               <span>Process Video</span>
             </Link>
           </li>
+          <li className="mb-2">
+            <Link 
+              href="/students" 
+              className={`flex items-center px-6 py-3 ${isActive('/students')} transition-colors`}
+            >
+              <span>Students</span>
+            </Link>
+          </li>
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, writeBatch, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
 interface Student {
@@ -93,6 +93,65 @@ export default function RosterDetail() {
     }));
   };
 
+  const updateStudentsCollection = async (student: Student, isDelete: boolean = false) => {
+    if (!user) return;
+    
+    try {
+      const studentsRef = collection(db, 'students');
+      const q = query(studentsRef, where('userUID', '==', user.uid), where('email', '==', student.email.toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      const now = new Date();
+      
+      if (!isDelete) {
+        if (querySnapshot.empty) {
+          const studentData = {
+            name: student.name,
+            email: student.email.toLowerCase(),
+            parentEmail: student.parentEmail,
+            nickname: student.nickname,
+            userUID: user.uid,
+            createdAt: now,
+            lastUpdated: now
+          };
+          
+          await setDoc(doc(collection(db, 'students')), studentData);
+        } else {
+          const existingStudent = querySnapshot.docs[0];
+          const existingData = existingStudent.data();
+          
+          if (!existingData.lastUpdated || now > existingData.lastUpdated.toDate()) {
+            await updateDoc(existingStudent.ref, {
+              parentEmail: student.parentEmail,
+              nickname: student.nickname,
+              lastUpdated: now
+            });
+          }
+        }
+      } else if (!querySnapshot.empty) {
+        const rostersRef = collection(db, 'rosters');
+        const rosterQuery = query(rostersRef, where('userUID', '==', user.uid));
+        const rosterSnapshot = await getDocs(rosterQuery);
+        
+        let studentExistsInOtherRosters = false;
+        rosterSnapshot.forEach((rosterDoc) => {
+          if (rosterDoc.id !== rosterId) {
+            const rosterData = rosterDoc.data();
+            if (rosterData.students && rosterData.students.some((s: Student) => 
+              s.email.toLowerCase() === student.email.toLowerCase())) {
+              studentExistsInOtherRosters = true;
+            }
+          }
+        });
+        
+        if (!studentExistsInOtherRosters) {
+          await updateDoc(querySnapshot.docs[0].ref, { deleted: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating students collection:', error);
+    }
+  };
+
   const handleAddStudent = async () => {
     if (!user || !rosterId || !roster) return;
     
@@ -112,20 +171,21 @@ export default function RosterDetail() {
     }
     
     try {
-      const updatedStudents = [
-        ...roster.students,
-        {
-          name: newStudent.name.trim(),
-          email: studentEmail,
-          parentEmail: newStudent.parentEmail.trim(),
-          nickname: newStudent.nickname.trim()
-        }
-      ];
+      const student = {
+        name: newStudent.name.trim(),
+        email: studentEmail,
+        parentEmail: newStudent.parentEmail.trim(),
+        nickname: newStudent.nickname.trim()
+      };
+      
+      const updatedStudents = [...roster.students, student];
       
       const rosterRef = doc(db, 'rosters', rosterId);
       await updateDoc(rosterRef, {
         students: updatedStudents
       });
+      
+      await updateStudentsCollection(student);
       
       setNewStudent({ name: '', email: '', parentEmail: '', nickname: '' });
       setShowAddForm(false);
@@ -141,6 +201,7 @@ export default function RosterDetail() {
     if (!user || !rosterId || !roster) return;
     
     try {
+      const student = roster.students[index];
       const updatedStudents = [...roster.students];
       updatedStudents.splice(index, 1);
       
@@ -148,6 +209,8 @@ export default function RosterDetail() {
       await updateDoc(rosterRef, {
         students: updatedStudents
       });
+      
+      await updateStudentsCollection(student, true);
       
       fetchRosterDetails();
     } catch (error) {
