@@ -154,9 +154,15 @@ export default function ProcessVideo() {
       
       zipContents.forEach((relativePath, zipEntry) => {
         if (!zipEntry.dir) {
+          if (relativePath.includes('__MACOSX')) {
+            console.log(`Skipping Mac OS X metadata file: ${relativePath}`);
+            return;
+          }
+          
           const isVideoFile = relativePath.toLowerCase().endsWith('.mp4');
           
           if (isVideoFile) {
+            console.log(`Processing video file: ${relativePath}`);
             const promise = zipEntry.async('blob').then(content => {
               const file = new File([content], zipEntry.name, { type: 'video/mp4' });
               videoFiles.push({ name: zipEntry.name, content: file });
