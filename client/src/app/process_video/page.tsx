@@ -53,6 +53,23 @@ export default function ProcessVideo() {
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
 
+  const fetchRosterDetails = async (rosterId: string) => {
+    if (!user || !rosterId) return;
+
+    try {
+      const rosterRef = doc(db, 'rosters', rosterId);
+      const rosterSnap = await getDoc(rosterRef);
+
+      if (rosterSnap.exists()) {
+        const data = rosterSnap.data();
+        setRosterName(data.name);
+        setRosterStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Error fetching roster details:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       const fetchVideoUnderReview = async () => {
@@ -97,24 +114,7 @@ export default function ProcessVideo() {
       
       fetchVideoUnderReview();
     }
-  }, [user]);
-
-  const fetchRosterDetails = async (rosterId: string) => {
-    if (!user || !rosterId) return;
-
-    try {
-      const rosterRef = doc(db, 'rosters', rosterId);
-      const rosterSnap = await getDoc(rosterRef);
-
-      if (rosterSnap.exists()) {
-        const data = rosterSnap.data();
-        setRosterName(data.name);
-        setRosterStudents(data.students || []);
-      }
-    } catch (error) {
-      console.error('Error fetching roster details:', error);
-    }
-  };
+  }, [user, fetchRosterDetails]);
 
   const handleStudentIdentified = async (studentName: string, studentConfidence: number) => {
     setIdentifiedStudent(studentName);
