@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, updateDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
@@ -30,6 +30,9 @@ interface Video {
   transcriptionStatus?: 'pending' | 'completed' | 'failed';
   identifiedStudent?: string;
   confidence?: number;
+  underReview?: boolean;
+  saved?: boolean;
+  reviewStatus?: 'pending' | 'completed';
 }
 
 type SessionMode = 'upload' | 'review';
@@ -45,18 +48,64 @@ export default function ProcessVideo() {
   const [identifiedStudent, setIdentifiedStudent] = useState<string>('');
   const [confidence, setConfidence] = useState<number>(0);
   const { user } = useAuth();
-  
+
   const assemblyClient = new AssemblyAI({
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
 
+  useEffect(() => {
+    if (user) {
+      const fetchVideoUnderReview = async () => {
+        try {
+          setLoading(true);
+          const videosRef = collection(db, 'videos');
+          const videoQuery = query(
+            videosRef, 
+            where('userUID', '==', user.uid),
+            where('underReview', '==', true)
+          );
+          
+          const videoSnapshot = await getDocs(videoQuery);
+          
+          if (!videoSnapshot.empty) {
+            const videoDoc = videoSnapshot.docs[0];
+            const videoData = videoDoc.data();
+            
+            setCurrentVideo({
+              id: videoDoc.id,
+              ...videoData
+            } as Video);
+            
+            setSessionMode('review');
+            
+            // Fetch roster details for student identification
+            if (videoData.rosterId) {
+              await fetchRosterDetails(videoData.rosterId);
+            }
+            
+            if (videoData.identifiedStudent) {
+              setIdentifiedStudent(videoData.identifiedStudent);
+              setConfidence(videoData.confidence || 0);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching video under review:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchVideoUnderReview();
+    }
+  }, [user]);
+
   const fetchRosterDetails = async (rosterId: string) => {
     if (!user || !rosterId) return;
-    
+
     try {
       const rosterRef = doc(db, 'rosters', rosterId);
       const rosterSnap = await getDoc(rosterRef);
-      
+
       if (rosterSnap.exists()) {
         const data = rosterSnap.data();
         setRosterName(data.name);
@@ -83,15 +132,15 @@ export default function ProcessVideo() {
 
   const handleDeleteVideo = async () => {
     if (!currentVideo || !user) return;
-    
+
     try {
       setLoading(true);
-      
+
       const videoStorageRef = ref(storage, currentVideo.url);
       await deleteObject(videoStorageRef);
-      
+
       await deleteDoc(doc(db, 'videos', currentVideo.id));
-      
+
       setCurrentVideo(null);
       setSessionMode('upload');
       setIdentifiedStudent('');
@@ -105,20 +154,22 @@ export default function ProcessVideo() {
       setLoading(false);
     }
   };
-  
+
   const handleSaveVideo = async () => {
     if (!currentVideo || !identifiedStudent) return;
-    
+
     try {
       setLoading(true);
-      
+
       const videoRef = doc(db, 'videos', currentVideo.id);
       await updateDoc(videoRef, {
         identifiedStudent,
         confidence,
-        saved: true
+        saved: true,
+        underReview: false,
+        reviewStatus: 'completed'
       });
-      
+
       setCurrentVideo(null);
       setSessionMode('upload');
       setIdentifiedStudent('');
@@ -143,14 +194,14 @@ export default function ProcessVideo() {
 
   const handleFileUpload = async (rosterId: string, file: File) => {
     if (!user) return;
-    
+
     try {
       setUploading(true);
-      
+
       const storageRef = ref(storage, `videos/${user.uid}/${Date.now()}_${file.name}`);
-      
+
       const uploadTask = uploadBytesResumable(storageRef, file);
-      
+
       uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -161,7 +212,7 @@ export default function ProcessVideo() {
         },
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          
+
           const videoData: Omit<Video, 'id'> = {
             title: file.name,
             url: downloadURL,
@@ -170,28 +221,30 @@ export default function ProcessVideo() {
             createdAt: new Date().toISOString(),
             size: file.size,
             type: file.type,
-            transcriptionStatus: 'pending'
+            transcriptionStatus: 'pending',
+            underReview: true,
+            saved: false
           };
-          
+
           const docRef = await addDoc(collection(db, 'videos'), videoData);
           console.log('Video added with ID:', docRef.id);
-          
+
           const newVideo: Video = {
             id: docRef.id,
             ...videoData
           };
-          
+
           setCurrentVideo(newVideo);
           setSessionMode('review');
-          
+
           await fetchRosterDetails(rosterId);
-          
+
           try {
             console.log('Starting transcription for video:', docRef.id);
             const transcriptionData = {
               audio: downloadURL
             };
-            
+
             assemblyClient.transcripts.transcribe(transcriptionData)
               .then(async (transcript) => {
                 if (transcript.text) {
@@ -200,7 +253,7 @@ export default function ProcessVideo() {
                     transcriptionStatus: 'completed'
                   });
                   console.log('Transcription completed for video:', docRef.id);
-                  
+
                   setCurrentVideo(prev => prev ? {
                     ...prev,
                     transcript: transcript.text,
@@ -268,7 +321,7 @@ export default function ProcessVideo() {
             <div className="flex items-center mb-6">
               <h1 className="text-2xl font-bold">Review Video</h1>
             </div>
-            
+
             {loading ? (
               <div className="flex justify-center py-8">
                 <p>Loading...</p>
@@ -336,7 +389,7 @@ export default function ProcessVideo() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Action buttons */}
                     <div className="flex justify-between mt-6">
                       <button
@@ -373,11 +426,11 @@ export default function ProcessVideo() {
           </div>
         )}
       </div>
-      
-      <UploadVideoModal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        onUpload={handleFileUpload} 
+
+      <UploadVideoModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onUpload={handleFileUpload}
       />
     </AuthenticatedLayout>
   );
