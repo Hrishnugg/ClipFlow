@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, query, where, getDocs, orderBy, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, orderBy, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
@@ -28,6 +28,8 @@ export default function ProcessVideo() {
   const [uploading, setUploading] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
+  const [rosterName, setRosterName] = useState<string>('');
   const { user } = useAuth();
   const router = useRouter();
   
@@ -157,7 +159,8 @@ export default function ProcessVideo() {
             console.error('Error starting transcription:', error);
           }
           
-          router.push(`/view_video/${docRef.id}`);
+          setCurrentVideo(newVideo);
+          fetchRosterName(rosterId);
         }
       );
     } catch (error) {
@@ -165,6 +168,30 @@ export default function ProcessVideo() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const fetchRosterName = async (rosterId: string) => {
+    if (!user) return;
+    
+    try {
+      const rosterRef = doc(db, 'rosters', rosterId);
+      const rosterSnap = await getDoc(rosterRef);
+      
+      if (rosterSnap.exists()) {
+        const rosterData = rosterSnap.data();
+        setRosterName(rosterData.name);
+      }
+    } catch (error) {
+      console.error('Error fetching roster details:', error);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const formatDate = (dateString: string) => {
@@ -176,6 +203,35 @@ export default function ProcessVideo() {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
   };
+  
+  useEffect(() => {
+    if (!currentVideo || !user) return;
+    
+    const videoRef = doc(db, 'videos', currentVideo.id);
+    
+    const unsubscribe = onSnapshot(videoRef, (videoSnap) => {
+      if (videoSnap.exists()) {
+        const data = videoSnap.data();
+        
+        setCurrentVideo({
+          id: videoSnap.id,
+          title: data.title,
+          url: data.url,
+          rosterId: data.rosterId,
+          userUID: data.userUID,
+          createdAt: data.createdAt,
+          size: data.size,
+          type: data.type,
+          transcript: data.transcript,
+          transcriptionStatus: data.transcriptionStatus
+        });
+      }
+    }, (error) => {
+      console.error('Error setting up real-time listener:', error);
+    });
+    
+    return () => unsubscribe();
+  }, [currentVideo?.id, user]);
 
   return (
     <AuthenticatedLayout>
@@ -195,7 +251,7 @@ export default function ProcessVideo() {
           <div className="flex justify-center py-8">
             <p>Loading videos...</p>
           </div>
-        ) : videos.length === 0 ? (
+        ) : !currentVideo ? (
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
             <p className="mb-4">No videos uploaded, please upload a video</p>
             <button
@@ -207,28 +263,57 @@ export default function ProcessVideo() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => (
-              <div 
-                key={video.id}
-                onClick={() => router.push(`/view_video/${video.id}`)}
-                className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold mb-2">{currentVideo.title}</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Roster:</span> {rosterName}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Size:</span> {formatFileSize(currentVideo.size)}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Uploaded:</span> {new Date(currentVideo.createdAt).toLocaleString()}
+              </p>
+            </div>
+            
+            <div className="aspect-video bg-black rounded-lg overflow-hidden mb-6">
+              <video
+                className="w-full h-full"
+                controls
+                src={currentVideo.url}
               >
-                <div className="aspect-video bg-black">
-                  <video 
-                    className="w-full h-full object-cover"
-                    src={video.url}
-                    preload="metadata"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1">{truncateTitle(video.title)}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Uploaded: {formatDate(video.createdAt)}
-                  </p>
-                </div>
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Transcript</h2>
               </div>
-            ))}
+              
+              {currentVideo.transcriptionStatus === 'pending' && (
+                <div className="flex items-center justify-center py-8 bg-gray-100 dark:bg-gray-700 rounded">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p>Transcribing video...</p>
+                </div>
+              )}
+              
+              {currentVideo.transcript && (
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded max-h-96 overflow-y-auto">
+                  <p className="whitespace-pre-wrap">{currentVideo.transcript}</p>
+                </div>
+              )}
+              
+              {!currentVideo.transcript && currentVideo.transcriptionStatus !== 'pending' && (
+                <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-center">
+                  <p>No transcript available. Transcription is automatically initiated when videos are uploaded.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
