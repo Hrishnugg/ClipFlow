@@ -29,6 +29,7 @@ interface Video {
   type: string;
   transcript?: string | null;
   transcriptionStatus?: 'pending' | 'completed' | 'failed';
+  identifiedStudent?: string;
 }
 
 export default function VideoDetail() {
@@ -39,6 +40,7 @@ export default function VideoDetail() {
   const [identifiedStudent, setIdentifiedStudent] = useState<string>('');
   const [confidence, setConfidence] = useState<number>(0);
   const [processingIdentification, setProcessingIdentification] = useState<boolean>(false);
+  const [identificationAttempted, setIdentificationAttempted] = useState<boolean>(false);
   // transcribing state removed as it's handled by transcriptionStatus
   const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -61,6 +63,11 @@ export default function VideoDetail() {
         return;
       }
 
+      if (video.identifiedStudent) {
+        setIdentifiedStudent(video.identifiedStudent);
+        return;
+      }
+
       try {
         setProcessingIdentification(true);
         
@@ -73,19 +80,28 @@ export default function VideoDetail() {
           studentNicknames
         );
         
-        if (result.confidence >= 70) {  // Only set if confidence meets threshold
+        setIdentificationAttempted(true);
+        
+        // Only set the identified student if confidence meets threshold
+        if (result.confidence >= 70) {
           setIdentifiedStudent(result.identifiedStudent);
           setConfidence(result.confidence);
+          
+          const videoRef = doc(db, 'videos', video.id);
+          await updateDoc(videoRef, {
+            identifiedStudent: result.identifiedStudent
+          });
         }
       } catch (error) {
         console.error('Error identifying student:', error);
+        setIdentificationAttempted(true);
       } finally {
         setProcessingIdentification(false);
       }
     };
 
     processTranscript();
-  }, [video?.transcript, rosterStudents, processingIdentification, identifiedStudent]);
+  }, [video?.transcript, video?.identifiedStudent, video?.id, rosterStudents, processingIdentification, identifiedStudent]);
 
 
   useEffect(() => {
@@ -114,7 +130,8 @@ export default function VideoDetail() {
           size: data.size,
           type: data.type,
           transcript: data.transcript,
-          transcriptionStatus: data.transcriptionStatus
+          transcriptionStatus: data.transcriptionStatus,
+          identifiedStudent: data.identifiedStudent || ''
         });
         
         if (data.rosterId) {
@@ -149,9 +166,16 @@ export default function VideoDetail() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
   
-  const handleStudentIdentified = (studentName: string, studentConfidence: number) => {
+  const handleStudentIdentified = async (studentName: string, studentConfidence: number) => {
     setIdentifiedStudent(studentName);
     setConfidence(studentConfidence);
+    
+    if (video?.id) {
+      const videoRef = doc(db, 'videos', video.id);
+      await updateDoc(videoRef, {
+        identifiedStudent: studentName
+      });
+    }
   };
 
   return (
@@ -256,6 +280,15 @@ export default function VideoDetail() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <p>Identifying student...</p>
+                  </div>
+                </div>
+              )}
+              
+              {identificationAttempted && !processingIdentification && !identifiedStudent && (
+                <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md mt-4">
+                  <div className="text-center py-4">
+                    <p className="text-amber-600 mb-2">Could not identify a student with confidence.</p>
+                    <p>Please manually select a student from the dropdown above.</p>
                   </div>
                 </div>
               )}
