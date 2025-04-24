@@ -214,6 +214,11 @@ Also
     }
   };
 
+  const isProcessing = loading || 
+                      (video?.transcriptionStatus === 'pending') || 
+                      processingIdentification || 
+                      (video?.transcript && !identificationAttempted);
+
   return (
     <AuthenticatedLayout>
       <div className="p-8 w-full">
@@ -227,9 +232,18 @@ Also
           <h1 className="text-2xl font-bold">{video?.title || 'Video Details'}</h1>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <p>Loading video details...</p>
+        {isProcessing ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p className="text-lg font-medium mb-2">
+              {loading ? "Loading video details..." : 
+               video?.transcriptionStatus === 'pending' ? "Transcribing video..." : 
+               processingIdentification ? "Identifying student..." : 
+               "Processing video..."}
+            </p>
+            <p className="text-sm text-gray-500">
+              Please wait while we prepare your video
+            </p>
           </div>
         ) : !video ? (
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
