@@ -232,7 +232,7 @@ export default function ProcessVideo() {
               transcriptionStatus: 'pending',
               underReview: true,
               saved: false,
-              processingStatus: 'transcribing'
+              processingStatus: 'uploading'
             };
 
             const docRef = await addDoc(collection(db, 'videos'), videoData);
@@ -248,6 +248,15 @@ export default function ProcessVideo() {
             // Fetch roster details
             await fetchRosterDetails(rosterId);
             
+            await updateDoc(doc(db, 'videos', docRef.id), {
+              processingStatus: 'transcribing'
+            });
+            
+            setCurrentVideo(prev => prev ? {
+              ...prev,
+              processingStatus: 'transcribing'
+            } : null);
+            
             console.log('Starting transcription for video:', docRef.id);
             const transcriptionData = {
               audio: downloadURL
@@ -260,7 +269,7 @@ export default function ProcessVideo() {
                 await updateDoc(doc(db, 'videos', docRef.id), {
                   transcript: transcript.text,
                   transcriptionStatus: 'completed',
-                  processingStatus: 'ready'
+                  processingStatus: 'identifying'
                 });
                 console.log('Transcription completed for video:', docRef.id);
 
@@ -268,10 +277,38 @@ export default function ProcessVideo() {
                   ...prev,
                   transcript: transcript.text,
                   transcriptionStatus: 'completed',
-                  processingStatus: 'ready'
+                  processingStatus: 'identifying'
                 } : null);
                 
-                setSessionMode('review');
+                try {
+                  console.log('Starting student identification for video:', docRef.id);
+                  
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                  
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    processingStatus: 'ready'
+                  });
+                  
+                  setCurrentVideo(prev => prev ? {
+                    ...prev,
+                    processingStatus: 'ready'
+                  } : null);
+                  
+                  // Only now transition to review mode after both transcription and identification
+                  setSessionMode('review');
+                } catch (error) {
+                  console.error('Error identifying student:', error);
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    processingStatus: 'ready'
+                  });
+                  
+                  setCurrentVideo(prev => prev ? {
+                    ...prev,
+                    processingStatus: 'ready'
+                  } : null);
+                  
+                  setSessionMode('review');
+                }
               } else {
                 await updateDoc(doc(db, 'videos', docRef.id), {
                   transcriptionStatus: 'failed',
