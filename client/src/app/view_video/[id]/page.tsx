@@ -33,6 +33,7 @@ interface Video {
   llmIdentifiedStudent?: string; // Track original LLM identification
   confidence?: number;
   manuallySelected?: boolean;
+  identificationAttempted?: boolean;
 }
 
 export default function VideoDetail() {
@@ -54,42 +55,49 @@ export default function VideoDetail() {
   const assemblyClient = new AssemblyAI({
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
-
+Also
   useEffect(() => {
     const processTranscript = async () => {
       if (
         !video?.transcript || 
         processingIdentification || 
-        rosterStudents.length === 0 || 
-        identifiedStudent
+        rosterStudents.length === 0
       ) {
         return;
       }
 
       if (video.identifiedStudent) {
         setIdentifiedStudent(video.identifiedStudent);
+        setConfidence(video.confidence || 0);
+        setIdentificationAttempted(true);
+        return;
+      }
+      
+      if (video.identificationAttempted) {
+        setIdentificationAttempted(true);
+        setProcessingIdentification(false);
         return;
       }
 
       try {
         setProcessingIdentification(true);
-        
+
         const studentNames = rosterStudents.map(student => student.name);
         const studentNicknames = rosterStudents.map(student => student.nickname);
-        
+
         const result = await identifyStudentFromTranscript(
-          video.transcript, 
+          video.transcript,
           studentNames,
           studentNicknames
         );
-        
+
         setIdentificationAttempted(true);
-        
+
         // Only set the identified student if confidence meets threshold
         if (result.confidence >= 70) {
           setIdentifiedStudent(result.identifiedStudent);
           setConfidence(result.confidence);
-          
+
           const videoRef = doc(db, 'videos', video.id);
           await updateDoc(videoRef, {
             identifiedStudent: result.identifiedStudent,
@@ -97,10 +105,24 @@ export default function VideoDetail() {
             confidence: result.confidence,
             manuallySelected: false
           });
+        } else {
+          setConfidence(0);
+          const videoRef = doc(db, 'videos', video.id);
+          await updateDoc(videoRef, {
+            identificationAttempted: true,
+            confidence: 0
+          });
         }
       } catch (error) {
         console.error('Error identifying student:', error);
         setIdentificationAttempted(true);
+        setConfidence(0);
+
+        const videoRef = doc(db, 'videos', video.id);
+        await updateDoc(videoRef, {
+          identificationAttempted: true,
+          confidence: 0
+        });
       } finally {
         setProcessingIdentification(false);
       }
@@ -112,20 +134,20 @@ export default function VideoDetail() {
 
   useEffect(() => {
     if (!user || !videoId) return;
-    
+
     setLoading(true);
     const videoRef = doc(db, 'videos', videoId);
-    
+
     const unsubscribe = onSnapshot(videoRef, async (videoSnap) => {
       if (videoSnap.exists()) {
         const data = videoSnap.data();
-        
+
         if (data.userUID !== user.uid) {
           console.error('Unauthorized access to video');
           router.push('/process_video');
           return;
         }
-        
+
         setVideo({
           id: videoSnap.id,
           title: data.title,
@@ -140,20 +162,21 @@ export default function VideoDetail() {
           identifiedStudent: data.identifiedStudent || '',
           llmIdentifiedStudent: data.llmIdentifiedStudent || '',
           confidence: data.confidence || 0,
-          manuallySelected: data.manuallySelected || false
+          manuallySelected: data.manuallySelected || false,
+          identificationAttempted: data.identificationAttempted || false
         });
-        
+
         if (data.rosterId) {
           const rosterRef = doc(db, 'rosters', data.rosterId);
           const rosterSnap = await getDoc(rosterRef);
-          
+
           if (rosterSnap.exists()) {
             const rosterData = rosterSnap.data();
             setRosterName(rosterData.name);
             setRosterStudents(rosterData.students || []);
           }
         }
-        
+
         setLoading(false);
       } else {
         console.error('Video not found');
@@ -163,7 +186,7 @@ export default function VideoDetail() {
       console.error('Error setting up real-time listener:', error);
       setLoading(false);
     });
-    
+
     return () => unsubscribe();
   }, [user, videoId, router]);
 
@@ -174,15 +197,15 @@ export default function VideoDetail() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-  
+
   const handleStudentIdentified = async (studentName: string, studentConfidence: number) => {
     setIdentifiedStudent(studentName);
     setConfidence(studentConfidence);
-    
+
     if (video?.id) {
       const videoRef = doc(db, 'videos', video.id);
       const isManuallySelected = studentName !== video.llmIdentifiedStudent;
-      
+
       await updateDoc(videoRef, {
         identifiedStudent: studentName,
         confidence: studentConfidence,
@@ -273,10 +296,10 @@ export default function VideoDetail() {
                 </div>
               </div>
             </div>
-            
+
             <div className="md:col-span-1">
               {rosterStudents.length > 0 && video.transcript && (
-                <StudentIdentification 
+                <StudentIdentification
                   students={rosterStudents}
                   transcript={video.transcript}
                   onIdentified={handleStudentIdentified}
@@ -286,7 +309,7 @@ export default function VideoDetail() {
                   manuallySelected={video?.manuallySelected}
                 />
               )}
-              
+
               {processingIdentification && (
                 <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md mt-4">
                   <div className="flex items-center justify-center py-4">
@@ -298,13 +321,19 @@ export default function VideoDetail() {
                   </div>
                 </div>
               )}
-              
+
               {identificationAttempted && !processingIdentification && !identifiedStudent && (
                 <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md mt-4">
                   <div className="text-center py-4">
                     <p className="text-amber-600 mb-2">Could not identify a student with confidence.</p>
                     <p>Please manually select a student from the dropdown above.</p>
                   </div>
+                  {confidence === 0 && (
+                    <div className="mt-2 text-center">
+                      <p className="text-sm mb-1">Confidence Level:</p>
+                      <div className="text-lg font-bold text-amber-600">0.0%</div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

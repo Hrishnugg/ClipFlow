@@ -62,7 +62,7 @@ export default function StudentIdentification({
         </div>
       ) : (confidence !== undefined && confidence > 0 && (
         <div className="mb-4">
-          <p className="text-sm mb-1">Confidence:</p>
+          <p className="text-sm mb-1">Confidence Level:</p>
           <div className={`text-lg font-bold ${getConfidenceColor(confidence)}`}>
             {confidence.toFixed(1)}%
           </div>
