@@ -55,7 +55,7 @@ export default function VideoDetail() {
   const assemblyClient = new AssemblyAI({
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
-Also
+  
   useEffect(() => {
     const processTranscript = async () => {
       if (
