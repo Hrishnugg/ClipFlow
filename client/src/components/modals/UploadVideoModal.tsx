@@ -14,7 +14,7 @@ interface Roster {
 interface UploadVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (rosterId: string, file: File) => void;
+  onUpload: (rosterId: string, file: File, isZipFile?: boolean) => void;
 }
 
 export default function UploadVideoModal({ isOpen, onClose, onUpload }: UploadVideoModalProps) {
@@ -72,7 +72,8 @@ export default function UploadVideoModal({ isOpen, onClose, onUpload }: UploadVi
 
   const handleSubmit = () => {
     if (selectedFile && selectedRoster) {
-      onUpload(selectedRoster, selectedFile);
+      const isZipFile = selectedFile.type === 'application/zip' || selectedFile.name.endsWith('.zip');
+      onUpload(selectedRoster, selectedFile, isZipFile);
       setSelectedFile(null);
       setSelectedRoster('');
       onClose();
@@ -116,11 +117,11 @@ export default function UploadVideoModal({ isOpen, onClose, onUpload }: UploadVi
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".mp4"
+            accept=".mp4,.zip"
             className="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 focus:outline-none"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Only MP4 video files are supported
+            MP4 video files or ZIP files containing videos are supported
           </p>
         </div>
         

@@ -131,9 +131,154 @@ export default function ProcessVideo() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-
-  const handleFileUpload = async (rosterId: string, file: File) => {
+  
+  const [zipUploadedVideos, setZipUploadedVideos] = useState<Video[]>([]);
+  
+  const handleZipUpload = async (rosterId: string, zipFile: File) => {
     if (!user) return;
+    
+    try {
+      setUploading(true);
+      
+      const JSZip = (await import('jszip')).default;
+      
+      const zip = new JSZip();
+      
+      const zipContents = await zip.loadAsync(zipFile);
+      
+      const videoFiles: { name: string, content: Blob }[] = [];
+      
+      const uploadedVideos: Video[] = [];
+      
+      const filePromises: Promise<void>[] = [];
+      
+      zipContents.forEach((relativePath, zipEntry) => {
+        if (!zipEntry.dir) {
+          const isVideoFile = relativePath.toLowerCase().endsWith('.mp4');
+          
+          if (isVideoFile) {
+            const promise = zipEntry.async('blob').then(content => {
+              const file = new File([content], zipEntry.name, { type: 'video/mp4' });
+              videoFiles.push({ name: zipEntry.name, content: file });
+            });
+            
+            filePromises.push(promise);
+          }
+        }
+      });
+      
+      await Promise.all(filePromises);
+      
+      console.log(`Found ${videoFiles.length} videos in the zip file`);
+      
+      for (const videoFile of videoFiles) {
+        try {
+          const file = new File([videoFile.content], videoFile.name, { type: 'video/mp4' });
+          
+          const storageRef = ref(storage, `videos/${user.uid}/${Date.now()}_${file.name}`);
+          
+          const uploadTask = uploadBytesResumable(storageRef, file);
+          
+          const downloadURL = await new Promise<string>((resolve, reject) => {
+            uploadTask.on('state_changed',
+              (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log(`Upload of ${file.name} is ${progress}% done`);
+              },
+              (error) => {
+                console.error(`Error uploading ${file.name}:`, error);
+                reject(error);
+              },
+              async () => {
+                const url = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve(url);
+              }
+            );
+          });
+          
+          const videoData: Omit<Video, 'id'> = {
+            title: file.name,
+            url: downloadURL,
+            rosterId,
+            userUID: user.uid,
+            createdAt: new Date().toISOString(),
+            size: file.size,
+            type: file.type,
+            transcriptionStatus: 'pending',
+            isReviewed: false
+          };
+          
+          const docRef = await addDoc(collection(db, 'videos'), videoData);
+          console.log(`Video ${file.name} added with ID:`, docRef.id);
+          
+          const newVideo: Video = {
+            id: docRef.id,
+            ...videoData
+          };
+          
+          uploadedVideos.push(newVideo);
+          
+          try {
+            console.log(`Starting transcription for video: ${docRef.id}`);
+            const transcriptionData = {
+              audio: downloadURL
+            };
+            
+            await assemblyClient.transcripts.transcribe(transcriptionData)
+              .then(async (transcript) => {
+                if (transcript.text) {
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    transcript: transcript.text,
+                    transcriptionStatus: 'completed'
+                  });
+                  console.log(`Transcription completed for video: ${docRef.id}`);
+                  
+                  // After transcription, run student identification
+                  await processVideoIdentification(docRef.id, transcript.text, rosterId);
+                } else {
+                  await updateDoc(doc(db, 'videos', docRef.id), {
+                    transcriptionStatus: 'failed'
+                  });
+                  console.error('Transcription failed: No text returned');
+                }
+              })
+              .catch(async (error) => {
+                console.error('Error transcribing video:', error);
+                await updateDoc(doc(db, 'videos', docRef.id), {
+                  transcriptionStatus: 'failed'
+                });
+              });
+          } catch (error) {
+            console.error(`Error starting transcription for ${file.name}:`, error);
+          }
+        } catch (error) {
+          console.error(`Error processing video ${videoFile.name}:`, error);
+        }
+      }
+      
+      setZipUploadedVideos(uploadedVideos);
+      
+      console.log('Videos uploaded via zip:', uploadedVideos);
+      
+      if (uploadedVideos.length > 0) {
+        setCurrentVideo(uploadedVideos[uploadedVideos.length - 1]);
+        fetchRosterName(rosterId);
+      }
+      
+    } catch (error) {
+      console.error('Error handling zip upload:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileUpload = async (rosterId: string, file: File, isZipFile?: boolean) => {
+    if (!user) return;
+    
+    if (isZipFile) {
+      await handleZipUpload(rosterId, file);
+      return;
+    }
     
     try {
       setUploading(true);
@@ -377,6 +522,62 @@ export default function ProcessVideo() {
       console.error('Error deleting video:', error);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const processVideoIdentification = async (videoId: string, transcript: string, rosterId: string) => {
+    try {
+      // Get roster students for identification
+      const rosterRef = doc(db, 'rosters', rosterId);
+      const rosterSnap = await getDoc(rosterRef);
+      
+      if (!rosterSnap.exists()) {
+        console.error('Roster not found for student identification');
+        return;
+      }
+      
+      const rosterData = rosterSnap.data();
+      const students = rosterData.students || [];
+      
+      if (students.length === 0) {
+        console.error('No students found in roster for identification');
+        return;
+      }
+      
+      const studentNames = students.map((student: Student) => student.name);
+      const studentNicknames = students.map((student: Student) => student.nickname);
+      
+      const result = await identifyStudentFromTranscript(
+        transcript,
+        studentNames,
+        studentNicknames
+      );
+      
+      const videoRef = doc(db, 'videos', videoId);
+      
+      if (result.confidence >= 70) {
+        await updateDoc(videoRef, {
+          identifiedStudent: result.identifiedStudent,
+          llmIdentifiedStudent: result.identifiedStudent,
+          confidence: result.confidence,
+          manuallySelected: false,
+          identificationAttempted: true
+        });
+        console.log(`Student identification completed for video: ${videoId}`);
+      } else {
+        await updateDoc(videoRef, {
+          identificationAttempted: true,
+          confidence: 0
+        });
+        console.log(`Could not identify student with confidence for video: ${videoId}`);
+      }
+    } catch (error) {
+      console.error('Error identifying student:', error);
+      const videoRef = doc(db, 'videos', videoId);
+      await updateDoc(videoRef, {
+        identificationAttempted: true,
+        confidence: 0
+      });
     }
   };
 
