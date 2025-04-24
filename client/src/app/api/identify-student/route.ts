@@ -28,6 +28,48 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      console.warn('ANTHROPIC_API_KEY is not set. Using fallback identification method.');
+      
+      // Fallback: Try to find student names in transcript
+      let bestMatch = '';
+      let bestConfidence = 0;
+      
+      // Simple fallback logic - check if any student name appears in the transcript
+      for (const student of studentRoster) {
+        if (transcript.toLowerCase().includes(student.name.toLowerCase())) {
+          bestMatch = student.name;
+          bestConfidence = 90;
+          break;
+        } else if (student.nickname && transcript.toLowerCase().includes(student.nickname.toLowerCase())) {
+          bestMatch = student.name;
+          bestConfidence = 85;
+          break;
+        }
+      }
+      
+      if (!bestMatch) {
+        for (const student of studentRoster) {
+          const nameParts = student.name.split(' ');
+          if (nameParts.length > 1) {
+            const lastName = nameParts[nameParts.length - 1];
+            if (transcript.toLowerCase().includes(lastName.toLowerCase())) {
+              bestMatch = student.name;
+              bestConfidence = 75;
+              break;
+            }
+          }
+        }
+      }
+      
+      console.log('Fallback identification result:', { identifiedStudent: bestMatch, confidence: bestConfidence });
+      return NextResponse.json(
+        { identifiedStudent: bestMatch, confidence: bestConfidence },
+        { status: 200 }
+      );
+    }
+
     const nicknameToNameMapping = studentRoster
       .filter(student => student.nickname)
       .map(student => `"${student.nickname}" is the nickname for student with real name "${student.name}"`);
@@ -39,8 +81,10 @@ export async function POST(request: NextRequest) {
       return `Student ${index + 1}: Name = "${student.name}", Nickname = None`;
     });
 
+    console.log('Calling Claude API for student identification with roster:', formattedRoster);
+    
     const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
+      apiKey: apiKey,
     });
 
     const prompt = `
@@ -79,40 +123,67 @@ export async function POST(request: NextRequest) {
       If you cannot identify any student from the roster with reasonable confidence, set identifiedStudent to empty string and confidence to 0.
     `;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-7-sonnet-20250219',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    let contentText = '';
-    if (response.content[0] && typeof response.content[0] === 'object') {
-      if ('text' in response.content[0]) {
-        contentText = response.content[0].text as string;
-      }
-    }
-
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('Could not extract JSON from Claude response');
-      return NextResponse.json(
-        { identifiedStudent: '', confidence: 0 },
-        { status: 200 }
-      );
-    }
-
     try {
-      const result = JSON.parse(jsonMatch[0]);
-      const identificationResult: IdentificationResult = {
-        identifiedStudent: result.identifiedStudent || '',
-        confidence: typeof result.confidence === 'number' ? result.confidence : 0
-      };
+      const response = await anthropic.messages.create({
+        model: 'claude-3-7-sonnet-20250219',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      });
 
-      return NextResponse.json(identificationResult, { status: 200 });
-    } catch (parseError) {
-      console.error('Error parsing JSON from Claude response:', parseError);
+      let contentText = '';
+      if (response.content[0] && typeof response.content[0] === 'object') {
+        if ('text' in response.content[0]) {
+          contentText = response.content[0].text as string;
+        }
+      }
+
+      const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('Could not extract JSON from Claude response');
+        return NextResponse.json(
+          { identifiedStudent: '', confidence: 0 },
+          { status: 200 }
+        );
+      }
+
+      try {
+        const result = JSON.parse(jsonMatch[0]);
+        const identificationResult: IdentificationResult = {
+          identifiedStudent: result.identifiedStudent || '',
+          confidence: typeof result.confidence === 'number' ? result.confidence : 0
+        };
+
+        console.log('Claude API identification result:', identificationResult);
+        return NextResponse.json(identificationResult, { status: 200 });
+      } catch (parseError) {
+        console.error('Error parsing JSON from Claude response:', parseError);
+        return NextResponse.json(
+          { identifiedStudent: '', confidence: 0 },
+          { status: 200 }
+        );
+      }
+    } catch (apiError) {
+      console.error('Error calling Claude API:', apiError);
+      
+      let bestMatch = '';
+      let bestConfidence = 0;
+      
+      // Simple fallback logic - check if any student name appears in the transcript
+      for (const student of studentRoster) {
+        if (transcript.toLowerCase().includes(student.name.toLowerCase())) {
+          bestMatch = student.name;
+          bestConfidence = 70;
+          break;
+        } else if (student.nickname && transcript.toLowerCase().includes(student.nickname.toLowerCase())) {
+          bestMatch = student.name;
+          bestConfidence = 65;
+          break;
+        }
+      }
+      
+      console.log('API error fallback identification result:', { identifiedStudent: bestMatch, confidence: bestConfidence });
       return NextResponse.json(
-        { identifiedStudent: '', confidence: 0 },
+        { identifiedStudent: bestMatch, confidence: bestConfidence },
         { status: 200 }
       );
     }
