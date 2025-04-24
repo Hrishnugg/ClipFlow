@@ -33,9 +33,10 @@ interface Video {
   underReview?: boolean;
   saved?: boolean;
   reviewStatus?: 'pending' | 'completed';
+  processingStatus?: 'uploading' | 'transcribing' | 'identifying' | 'ready';
 }
 
-type SessionMode = 'upload' | 'review';
+type SessionMode = 'upload' | 'loading' | 'review';
 
 export default function ProcessVideo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -196,10 +197,13 @@ export default function ProcessVideo() {
     if (!user) return;
 
     try {
+      setIsModalOpen(false);
+      
+      setSessionMode('loading');
       setUploading(true);
+      setLoading(true);
 
       const storageRef = ref(storage, `videos/${user.uid}/${Date.now()}_${file.name}`);
-
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on('state_changed',
@@ -209,78 +213,99 @@ export default function ProcessVideo() {
         },
         (error) => {
           console.error('Error uploading video:', error);
+          setLoading(false);
+          setUploading(false);
+          setSessionMode('upload');
         },
         async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-          const videoData: Omit<Video, 'id'> = {
-            title: file.name,
-            url: downloadURL,
-            rosterId,
-            userUID: user.uid,
-            createdAt: new Date().toISOString(),
-            size: file.size,
-            type: file.type,
-            transcriptionStatus: 'pending',
-            underReview: true,
-            saved: false
-          };
-
-          const docRef = await addDoc(collection(db, 'videos'), videoData);
-          console.log('Video added with ID:', docRef.id);
-
-          const newVideo: Video = {
-            id: docRef.id,
-            ...videoData
-          };
-
-          setCurrentVideo(newVideo);
-          setSessionMode('review');
-
-          await fetchRosterDetails(rosterId);
-
           try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+            const videoData: Omit<Video, 'id'> = {
+              title: file.name,
+              url: downloadURL,
+              rosterId,
+              userUID: user.uid,
+              createdAt: new Date().toISOString(),
+              size: file.size,
+              type: file.type,
+              transcriptionStatus: 'pending',
+              underReview: true,
+              saved: false,
+              processingStatus: 'transcribing'
+            };
+
+            const docRef = await addDoc(collection(db, 'videos'), videoData);
+            console.log('Video added with ID:', docRef.id);
+
+            const newVideo: Video = {
+              id: docRef.id,
+              ...videoData
+            };
+
+            setCurrentVideo(newVideo);
+            
+            // Fetch roster details
+            await fetchRosterDetails(rosterId);
+            
             console.log('Starting transcription for video:', docRef.id);
             const transcriptionData = {
               audio: downloadURL
             };
 
-            assemblyClient.transcripts.transcribe(transcriptionData)
-              .then(async (transcript) => {
-                if (transcript.text) {
-                  await updateDoc(doc(db, 'videos', docRef.id), {
-                    transcript: transcript.text,
-                    transcriptionStatus: 'completed'
-                  });
-                  console.log('Transcription completed for video:', docRef.id);
-
-                  setCurrentVideo(prev => prev ? {
-                    ...prev,
-                    transcript: transcript.text,
-                    transcriptionStatus: 'completed'
-                  } : null);
-                } else {
-                  await updateDoc(doc(db, 'videos', docRef.id), {
-                    transcriptionStatus: 'failed'
-                  });
-                  console.error('Transcription failed: No text returned');
-                }
-              })
-              .catch(async (error) => {
-                console.error('Error transcribing video:', error);
+            try {
+              const transcript = await assemblyClient.transcripts.transcribe(transcriptionData);
+              
+              if (transcript.text) {
                 await updateDoc(doc(db, 'videos', docRef.id), {
-                  transcriptionStatus: 'failed'
+                  transcript: transcript.text,
+                  transcriptionStatus: 'completed',
+                  processingStatus: 'ready'
                 });
+                console.log('Transcription completed for video:', docRef.id);
+
+                setCurrentVideo(prev => prev ? {
+                  ...prev,
+                  transcript: transcript.text,
+                  transcriptionStatus: 'completed',
+                  processingStatus: 'ready'
+                } : null);
+                
+                setSessionMode('review');
+              } else {
+                await updateDoc(doc(db, 'videos', docRef.id), {
+                  transcriptionStatus: 'failed',
+                  processingStatus: 'ready'
+                });
+                console.error('Transcription failed: No text returned');
+                
+                setSessionMode('review');
+              }
+            } catch (error) {
+              console.error('Error transcribing video:', error);
+              await updateDoc(doc(db, 'videos', docRef.id), {
+                transcriptionStatus: 'failed',
+                processingStatus: 'ready'
               });
+              
+              setSessionMode('review');
+            } finally {
+              setLoading(false);
+              setUploading(false);
+            }
           } catch (error) {
-            console.error('Error starting transcription:', error);
+            console.error('Error finalizing upload:', error);
+            setLoading(false);
+            setUploading(false);
+            setSessionMode('upload');
           }
         }
       );
     } catch (error) {
       console.error('Error handling file upload:', error);
-    } finally {
+      setLoading(false);
       setUploading(false);
+      setSessionMode('upload');
     }
   };
 
@@ -314,6 +339,32 @@ export default function ProcessVideo() {
               >
                 {uploading ? 'Uploading...' : 'Upload Video'}
               </button>
+            </div>
+          </div>
+        ) : sessionMode === 'loading' ? (
+          <div>
+            <div className="flex items-center mb-6">
+              <h1 className="text-2xl font-bold">Processing Video</h1>
+            </div>
+            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-12 text-center">
+              <div className="flex flex-col items-center justify-center py-8">
+                <svg className="animate-spin mb-4 h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <h2 className="text-xl font-semibold mb-2">Processing Your Video</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Please wait while we process your video. This includes:
+                </p>
+                <ul className="text-left text-gray-600 dark:text-gray-400 mb-4">
+                  <li className="mb-2">• Uploading the video to secure storage</li>
+                  <li className="mb-2">• Generating a transcript of the video content</li>
+                  <li className="mb-2">• Analyzing the transcript for student identification</li>
+                </ul>
+                <p className="text-gray-600 dark:text-gray-400">
+                  This may take a few moments depending on the size of your video.
+                </p>
+              </div>
             </div>
           </div>
         ) : (
