@@ -62,23 +62,26 @@ export default function StudentDetail() {
         });
         
         const videosRef = collection(db, 'videos');
-        const videoQuery = query(videosRef, where('userUID', '==', user.uid));
+        const videoQuery = query(
+          videosRef, 
+          where('userUID', '==', user.uid),
+          where('saved', '==', true),
+          where('identifiedStudent', '==', data.name)
+        );
         const videoSnapshot = await getDocs(videoQuery);
         
         const studentVideos: Video[] = [];
         videoSnapshot.forEach((doc) => {
           const videoData = doc.data();
           
-          if (videoData.rosterIds && videoData.rosterIds.length > 0) {
-            studentVideos.push({
-              id: doc.id,
-              title: videoData.title,
-              fileName: videoData.fileName,
-              fileSize: videoData.fileSize,
-              uploadDate: videoData.uploadDate,
-              rosterIds: videoData.rosterIds
-            });
-          }
+          studentVideos.push({
+            id: doc.id,
+            title: videoData.title,
+            fileName: videoData.title,
+            fileSize: videoData.size,
+            uploadDate: videoData.createdAt,
+            rosterIds: [videoData.rosterId]
+          });
         });
         
         setVideos(studentVideos);
