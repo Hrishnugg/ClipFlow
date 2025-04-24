@@ -15,6 +15,7 @@ interface StudentIdentificationProps {
   onIdentified?: (studentName: string, confidence: number) => void;
   identifiedStudent?: string;
   confidence?: number;
+  manuallySelected?: boolean;
 }
 
 export default function StudentIdentification({
@@ -22,7 +23,8 @@ export default function StudentIdentification({
   transcript,
   onIdentified,
   identifiedStudent,
-  confidence
+  confidence,
+  manuallySelected
 }: StudentIdentificationProps) {
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
 
@@ -49,14 +51,21 @@ export default function StudentIdentification({
     <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md">
       <h3 className="font-bold mb-2">Student Identification</h3>
       
-      {confidence !== undefined && confidence > 0 && (
+      {manuallySelected ? (
+        <div className="mb-4">
+          <p className="text-sm mb-1">Selection:</p>
+          <div className="text-lg font-bold text-purple-600">
+            Manually Selected
+          </div>
+        </div>
+      ) : (confidence !== undefined && confidence > 0 && (
         <div className="mb-4">
           <p className="text-sm mb-1">Confidence:</p>
           <div className={`text-lg font-bold ${getConfidenceColor(confidence)}`}>
             {confidence.toFixed(1)}%
           </div>
         </div>
-      )}
+      ))}
 
       <div>
         <label className="block text-sm font-medium mb-2">

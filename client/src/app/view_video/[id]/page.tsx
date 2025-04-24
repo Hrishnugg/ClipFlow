@@ -30,6 +30,8 @@ interface Video {
   transcript?: string | null;
   transcriptionStatus?: 'pending' | 'completed' | 'failed';
   identifiedStudent?: string;
+  confidence?: number;
+  manuallySelected?: boolean;
 }
 
 export default function VideoDetail() {
@@ -89,7 +91,9 @@ export default function VideoDetail() {
           
           const videoRef = doc(db, 'videos', video.id);
           await updateDoc(videoRef, {
-            identifiedStudent: result.identifiedStudent
+            identifiedStudent: result.identifiedStudent,
+            confidence: result.confidence,
+            manuallySelected: false
           });
         }
       } catch (error) {
@@ -131,7 +135,9 @@ export default function VideoDetail() {
           type: data.type,
           transcript: data.transcript,
           transcriptionStatus: data.transcriptionStatus,
-          identifiedStudent: data.identifiedStudent || ''
+          identifiedStudent: data.identifiedStudent || '',
+          confidence: data.confidence || 0,
+          manuallySelected: data.manuallySelected || false
         });
         
         if (data.rosterId) {
@@ -173,7 +179,9 @@ export default function VideoDetail() {
     if (video?.id) {
       const videoRef = doc(db, 'videos', video.id);
       await updateDoc(videoRef, {
-        identifiedStudent: studentName
+        identifiedStudent: studentName,
+        confidence: studentConfidence,
+        manuallySelected: true
       });
     }
   };
@@ -269,6 +277,7 @@ export default function VideoDetail() {
                   onIdentified={handleStudentIdentified}
                   identifiedStudent={identifiedStudent}
                   confidence={confidence}
+                  manuallySelected={video?.manuallySelected}
                 />
               )}
               
