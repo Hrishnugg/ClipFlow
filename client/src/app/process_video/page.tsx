@@ -26,12 +26,10 @@ interface Video {
 export default function ProcessVideo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [rosterName, setRosterName] = useState<string>('');
   const { user } = useAuth();
-  const router = useRouter();
   
   const assemblyClient = new AssemblyAI({
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
@@ -51,23 +49,33 @@ export default function ProcessVideo() {
         );
         
         const querySnapshot = await getDocs(q);
-        const fetchedVideos: Video[] = [];
         
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedVideos.push({
-            id: doc.id,
-            title: data.title,
-            url: data.url,
-            rosterId: data.rosterId,
-            userUID: data.userUID,
-            createdAt: data.createdAt,
-            size: data.size,
-            type: data.type
-          });
-        });
+        if (querySnapshot.empty) {
+          setLoading(false);
+          return;
+        }
         
-        setVideos(fetchedVideos);
+        const firstDoc = querySnapshot.docs[0];
+        const data = firstDoc.data();
+        
+        const video: Video = {
+          id: firstDoc.id,
+          title: data.title,
+          url: data.url,
+          rosterId: data.rosterId,
+          userUID: data.userUID,
+          createdAt: data.createdAt,
+          size: data.size,
+          type: data.type,
+          transcript: data.transcript,
+          transcriptionStatus: data.transcriptionStatus
+        };
+        
+        setCurrentVideo(video);
+        
+        if (data.rosterId) {
+          fetchRosterName(data.rosterId);
+        }
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
@@ -125,8 +133,6 @@ export default function ProcessVideo() {
             id: docRef.id,
             ...videoData
           };
-          
-          setVideos(prevVideos => [newVideo, ...prevVideos]);
           
           try {
             console.log('Starting transcription for video:', docRef.id);
