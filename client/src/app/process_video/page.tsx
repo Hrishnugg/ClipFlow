@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { useAuth } from '@/context/AuthContext';
-import { collection, addDoc, query, where, getDocs, orderBy, updateDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc, query, where, getDocs, orderBy, updateDoc, doc, getDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
 import StudentIdentification from '@/components/student/StudentIdentification';
@@ -34,6 +34,7 @@ interface Video {
   confidence?: number;
   manuallySelected?: boolean;
   identificationAttempted?: boolean;
+  isReviewed?: boolean;
 }
 
 export default function ProcessVideo() {
@@ -47,6 +48,7 @@ export default function ProcessVideo() {
   const [confidence, setConfidence] = useState<number>(0);
   const [processingIdentification, setProcessingIdentification] = useState<boolean>(false);
   const [identificationAttempted, setIdentificationAttempted] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
   const { user } = useAuth();
   
   const assemblyClient = new AssemblyAI({
@@ -159,7 +161,8 @@ export default function ProcessVideo() {
             createdAt: new Date().toISOString(),
             size: file.size,
             type: file.type,
-            transcriptionStatus: 'pending'
+            transcriptionStatus: 'pending',
+            isReviewed: false
           };
           
           const docRef = await addDoc(collection(db, 'videos'), videoData);
@@ -244,7 +247,8 @@ export default function ProcessVideo() {
           llmIdentifiedStudent: data.llmIdentifiedStudent || '',
           confidence: data.confidence || 0,
           manuallySelected: data.manuallySelected || false,
-          identificationAttempted: data.identificationAttempted || false
+          identificationAttempted: data.identificationAttempted || false,
+          isReviewed: data.isReviewed || false
         };
         
         setCurrentVideo(updatedVideo);
@@ -347,6 +351,35 @@ export default function ProcessVideo() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVideo?.transcript, currentVideo?.identifiedStudent, currentVideo?.id, currentVideo?.identificationAttempted, rosterStudents, processingIdentification]);
 
+  const handleDeleteVideo = async () => {
+    if (!currentVideo || !user || deleting) return;
+    
+    try {
+      setDeleting(true);
+      
+      const videoPath = currentVideo.url.split('videos%2F')[1].split('?')[0];
+      const decodedPath = decodeURIComponent(videoPath);
+      const storageRef = ref(storage, `videos/${decodedPath}`);
+      
+      await deleteObject(storageRef).catch(error => {
+        console.error('Error deleting video from storage:', error);
+      });
+      
+      const videoRef = doc(db, 'videos', currentVideo.id);
+      await deleteDoc(videoRef);
+      
+      setCurrentVideo(null);
+      setIdentifiedStudent('');
+      setConfidence(0);
+      setIdentificationAttempted(false);
+      
+    } catch (error) {
+      console.error('Error deleting video:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const isProcessing = loading || 
                       (currentVideo?.transcriptionStatus === 'pending') || 
                       processingIdentification || 
@@ -399,7 +432,26 @@ export default function ProcessVideo() {
             <div className="md:col-span-2">
               <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
                 <div className="mb-4">
-                  <h2 className="text-xl font-semibold mb-2">{currentVideo.title}</h2>
+                  <div className="flex justify-between items-start">
+                    <h2 className="text-xl font-semibold mb-2">{currentVideo.title}</h2>
+                    <button 
+                      onClick={handleDeleteVideo}
+                      disabled={deleting}
+                      className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                      aria-label="Delete video"
+                    >
+                      {deleting ? (
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   <p className="text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Roster:</span> {rosterName}
                   </p>
