@@ -9,6 +9,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import { db, storage } from '@/firebase/config';
 import { AssemblyAI } from 'assemblyai';
 import StudentIdentification from '@/components/student/StudentIdentification';
+import { identifyStudentFromTranscript } from '@/utils/claude';
 
 interface Student {
   name: string;
@@ -283,29 +284,53 @@ export default function ProcessVideo() {
                 try {
                   console.log('Starting student identification for video:', docRef.id);
                   
-                  await new Promise(resolve => setTimeout(resolve, 2000));
+                  // Extract student names from roster for identification
+                  const studentNames = rosterStudents.map(student => student.name);
+                  const studentNicknames = rosterStudents.map(student => student.nickname || '');
+                  
+                  const identificationResult = await identifyStudentFromTranscript(
+                    transcript.text || '',
+                    studentNames,
+                    studentNicknames
+                  );
                   
                   await updateDoc(doc(db, 'videos', docRef.id), {
-                    processingStatus: 'ready'
+                    processingStatus: 'ready',
+                    identifiedStudent: identificationResult.identifiedStudent,
+                    confidence: identificationResult.confidence,
+                    llmIdentifiedStudent: identificationResult.identifiedStudent
                   });
                   
                   setCurrentVideo(prev => prev ? {
                     ...prev,
-                    processingStatus: 'ready'
+                    processingStatus: 'ready',
+                    identifiedStudent: identificationResult.identifiedStudent,
+                    confidence: identificationResult.confidence,
+                    llmIdentifiedStudent: identificationResult.identifiedStudent
                   } : null);
+                  
+                  setIdentifiedStudent(identificationResult.identifiedStudent);
+                  setConfidence(identificationResult.confidence);
                   
                   // Only now transition to review mode after both transcription and identification
                   setSessionMode('review');
                 } catch (error) {
                   console.error('Error identifying student:', error);
                   await updateDoc(doc(db, 'videos', docRef.id), {
-                    processingStatus: 'ready'
+                    processingStatus: 'ready',
+                    identifiedStudent: '',
+                    confidence: 0
                   });
                   
                   setCurrentVideo(prev => prev ? {
                     ...prev,
-                    processingStatus: 'ready'
+                    processingStatus: 'ready',
+                    identifiedStudent: '',
+                    confidence: 0
                   } : null);
+                  
+                  setIdentifiedStudent('');
+                  setConfidence(0);
                   
                   setSessionMode('review');
                 }
