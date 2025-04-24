@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 
 interface Student {
   name: string;
@@ -29,6 +29,7 @@ const StudentIdentification = React.memo(({
   manuallySelected
 }: StudentIdentificationProps) => {
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (identifiedStudent) {
@@ -36,13 +37,17 @@ const StudentIdentification = React.memo(({
     }
   }, [identifiedStudent]);
 
-  const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectionChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = e.target.value;
+    
     setSelectedStudent(newValue);
+    
     if (onIdentified) {
-      onIdentified(newValue, 100); // 100% confidence when manually selected
+      startTransition(() => {
+        onIdentified(newValue, 100); // 100% confidence when manually selected
+      });
     }
-  };
+  }, [onIdentified, startTransition]);
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 90) return 'text-green-600';
@@ -74,18 +79,22 @@ const StudentIdentification = React.memo(({
         <label className="block text-sm font-medium mb-2">
           Student
         </label>
-        <select
-          value={selectedStudent}
-          onChange={handleSelectionChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        >
-          <option value="" disabled>Select a student</option>
-          {students.map((student, index) => (
-            <option key={index} value={student.name}>
-              {student.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={selectedStudent}
+            onChange={handleSelectionChange}
+            disabled={isPending}
+            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${isPending ? 'opacity-50' : ''}`}
+          >
+            <option value="" disabled>Select a student</option>
+            {students.map((student, index) => (
+              <option key={index} value={student.name}>
+                {student.name}
+              </option>
+            ))}
+          </select>
+          {isPending && <div className="absolute right-3 top-2"><div className="w-5 h-5 border-t-2 border-blue-500 rounded-full animate-spin"></div></div>}
+        </div>
       </div>
     </div>
   );

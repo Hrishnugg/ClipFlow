@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
@@ -138,6 +138,8 @@ export default function VideoDetail() {
     setLoading(true);
     const videoRef = doc(db, 'videos', videoId);
 
+    const lastManualUpdateTimeRef = useRef('');
+
     const unsubscribe = onSnapshot(videoRef, async (videoSnap) => {
       if (videoSnap.exists()) {
         const data = videoSnap.data();
@@ -148,7 +150,12 @@ export default function VideoDetail() {
           return;
         }
 
-        setVideo({
+        if (data.lastUpdated === lastManualUpdateTimeRef.current && data.manuallySelected) {
+          console.log('Skipping update from our own manual selection');
+          return;
+        }
+
+        const updatedVideo = {
           id: videoSnap.id,
           title: data.title,
           url: data.url,
@@ -163,8 +170,21 @@ export default function VideoDetail() {
           llmIdentifiedStudent: data.llmIdentifiedStudent || '',
           confidence: data.confidence || 0,
           manuallySelected: data.manuallySelected || false,
-          identificationAttempted: data.identificationAttempted || false
-        });
+          identificationAttempted: data.identificationAttempted || false,
+          lastUpdated: data.lastUpdated || ''
+        };
+
+        setVideo(updatedVideo);
+
+        if (data.manuallySelected && data.lastUpdated) {
+          lastManualUpdateTimeRef.current = data.lastUpdated;
+        }
+
+        if (!processingIdentification) {
+          setIdentifiedStudent(data.identifiedStudent || '');
+          setConfidence(data.confidence || 0);
+          setIdentificationAttempted(data.identificationAttempted || false);
+        }
 
         if (data.rosterId) {
           const rosterRef = doc(db, 'rosters', data.rosterId);
@@ -188,7 +208,7 @@ export default function VideoDetail() {
     });
 
     return () => unsubscribe();
-  }, [user, videoId, router]);
+  }, [user, videoId, router, processingIdentification]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -197,6 +217,31 @@ export default function VideoDetail() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    };
+  };
+
+  const debouncedFirestoreUpdate = useCallback(
+    debounce(async (videoId: string, studentName: string, studentConfidence: number, isManuallySelected: boolean) => {
+      try {
+        const videoRef = doc(db, 'videos', videoId);
+        await updateDoc(videoRef, {
+          identifiedStudent: studentName,
+          confidence: studentConfidence,
+          manuallySelected: isManuallySelected,
+          lastUpdated: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Error updating Firestore:', error);
+      }
+    }, 500), // Increase delay to 500ms for more stability
+    []
+  );
 
   const handleStudentIdentified = useCallback(async (studentName: string, studentConfidence: number) => {
     if (studentName === identifiedStudent && studentConfidence === confidence) {
@@ -207,16 +252,11 @@ export default function VideoDetail() {
     setConfidence(studentConfidence);
 
     if (video?.id) {
-      const videoRef = doc(db, 'videos', video.id);
       const isManuallySelected = studentName !== video.llmIdentifiedStudent;
-
-      await updateDoc(videoRef, {
-        identifiedStudent: studentName,
-        confidence: studentConfidence,
-        manuallySelected: isManuallySelected
-      });
+      
+      debouncedFirestoreUpdate(video.id, studentName, studentConfidence, isManuallySelected);
     }
-  }, [identifiedStudent, confidence, video?.id, video?.llmIdentifiedStudent]);
+  }, [identifiedStudent, confidence, video?.id, video?.llmIdentifiedStudent, debouncedFirestoreUpdate]);
 
   const isProcessing = loading || 
                       (video?.transcriptionStatus === 'pending') || 
