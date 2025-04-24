@@ -129,7 +129,7 @@ export default function VideoDetail() {
     };
 
     processTranscript();
-  }, [video?.transcript, video?.identifiedStudent, video?.id, rosterStudents, processingIdentification, identifiedStudent]);
+  }, [video?.transcript, video?.identifiedStudent, video?.id, video?.identificationAttempted, rosterStudents, processingIdentification]);
 
 
   useEffect(() => {
@@ -198,7 +198,11 @@ export default function VideoDetail() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleStudentIdentified = async (studentName: string, studentConfidence: number) => {
+  const handleStudentIdentified = useCallback(async (studentName: string, studentConfidence: number) => {
+    if (studentName === identifiedStudent && studentConfidence === confidence) {
+      return;
+    }
+    
     setIdentifiedStudent(studentName);
     setConfidence(studentConfidence);
 
@@ -212,7 +216,7 @@ export default function VideoDetail() {
         manuallySelected: isManuallySelected
       });
     }
-  };
+  }, [identifiedStudent, confidence, video?.id, video?.llmIdentifiedStudent]);
 
   const isProcessing = loading || 
                       (video?.transcriptionStatus === 'pending') || 

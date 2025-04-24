@@ -19,7 +19,7 @@ interface StudentIdentificationProps {
   manuallySelected?: boolean;
 }
 
-export default function StudentIdentification({
+const StudentIdentification = React.memo(({
   students,
   transcript,
   onIdentified,
@@ -27,7 +27,7 @@ export default function StudentIdentification({
   llmIdentifiedStudent,
   confidence,
   manuallySelected
-}: StudentIdentificationProps) {
+}: StudentIdentificationProps) => {
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
 
   useEffect(() => {
@@ -37,9 +37,10 @@ export default function StudentIdentification({
   }, [identifiedStudent]);
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedStudent(e.target.value);
+    const newValue = e.target.value;
+    setSelectedStudent(newValue);
     if (onIdentified) {
-      onIdentified(e.target.value, 100); // 100% confidence when manually selected
+      onIdentified(newValue, 100); // 100% confidence when manually selected
     }
   };
 
@@ -88,4 +89,8 @@ export default function StudentIdentification({
       </div>
     </div>
   );
-}
+});
+
+StudentIdentification.displayName = 'StudentIdentification';
+
+export default StudentIdentification;
