@@ -14,6 +14,7 @@ interface StudentIdentificationProps {
   transcript: string | null;
   onIdentified?: (studentName: string, confidence: number) => void;
   identifiedStudent?: string;
+  llmIdentifiedStudent?: string;
   confidence?: number;
   manuallySelected?: boolean;
 }
@@ -23,6 +24,7 @@ export default function StudentIdentification({
   transcript,
   onIdentified,
   identifiedStudent,
+  llmIdentifiedStudent,
   confidence,
   manuallySelected
 }: StudentIdentificationProps) {
@@ -51,7 +53,7 @@ export default function StudentIdentification({
     <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-md">
       <h3 className="font-bold mb-2">Student Identification</h3>
       
-      {manuallySelected ? (
+      {manuallySelected && identifiedStudent !== llmIdentifiedStudent ? (
         <div className="mb-4">
           <p className="text-sm mb-1">Selection:</p>
           <div className="text-lg font-bold text-purple-600">

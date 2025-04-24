@@ -30,6 +30,7 @@ interface Video {
   transcript?: string | null;
   transcriptionStatus?: 'pending' | 'completed' | 'failed';
   identifiedStudent?: string;
+  llmIdentifiedStudent?: string; // Track original LLM identification
   confidence?: number;
   manuallySelected?: boolean;
 }
@@ -92,6 +93,7 @@ export default function VideoDetail() {
           const videoRef = doc(db, 'videos', video.id);
           await updateDoc(videoRef, {
             identifiedStudent: result.identifiedStudent,
+            llmIdentifiedStudent: result.identifiedStudent, // Store original LLM identification
             confidence: result.confidence,
             manuallySelected: false
           });
@@ -136,6 +138,7 @@ export default function VideoDetail() {
           transcript: data.transcript,
           transcriptionStatus: data.transcriptionStatus,
           identifiedStudent: data.identifiedStudent || '',
+          llmIdentifiedStudent: data.llmIdentifiedStudent || '',
           confidence: data.confidence || 0,
           manuallySelected: data.manuallySelected || false
         });
@@ -178,10 +181,12 @@ export default function VideoDetail() {
     
     if (video?.id) {
       const videoRef = doc(db, 'videos', video.id);
+      const isManuallySelected = studentName !== video.llmIdentifiedStudent;
+      
       await updateDoc(videoRef, {
         identifiedStudent: studentName,
         confidence: studentConfidence,
-        manuallySelected: true
+        manuallySelected: isManuallySelected
       });
     }
   };
@@ -276,6 +281,7 @@ export default function VideoDetail() {
                   transcript={video.transcript}
                   onIdentified={handleStudentIdentified}
                   identifiedStudent={identifiedStudent}
+                  llmIdentifiedStudent={video?.llmIdentifiedStudent}
                   confidence={confidence}
                   manuallySelected={video?.manuallySelected}
                 />
