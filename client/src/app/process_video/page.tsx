@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { useAuth } from '@/context/AuthContext';
@@ -34,6 +33,22 @@ export default function ProcessVideo() {
   const assemblyClient = new AssemblyAI({
     apiKey: process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY || '',
   });
+
+  const fetchRosterName = async (rosterId: string) => {
+    if (!user) return;
+    
+    try {
+      const rosterRef = doc(db, 'rosters', rosterId);
+      const rosterSnap = await getDoc(rosterRef);
+      
+      if (rosterSnap.exists()) {
+        const rosterData = rosterSnap.data();
+        setRosterName(rosterData.name);
+      }
+    } catch (error) {
+      console.error('Error fetching roster details:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -84,6 +99,7 @@ export default function ProcessVideo() {
     };
 
     fetchVideos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleUpload = () => {
@@ -176,22 +192,6 @@ export default function ProcessVideo() {
     }
   };
 
-  const fetchRosterName = async (rosterId: string) => {
-    if (!user) return;
-    
-    try {
-      const rosterRef = doc(db, 'rosters', rosterId);
-      const rosterSnap = await getDoc(rosterRef);
-      
-      if (rosterSnap.exists()) {
-        const rosterData = rosterSnap.data();
-        setRosterName(rosterData.name);
-      }
-    } catch (error) {
-      console.error('Error fetching roster details:', error);
-    }
-  };
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -200,16 +200,6 @@ export default function ProcessVideo() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  const truncateTitle = (title: string, maxLength: number = 20) => {
-    if (title.length <= maxLength) return title;
-    return title.substring(0, maxLength) + '...';
-  };
-  
   useEffect(() => {
     if (!currentVideo || !user) return;
     
@@ -237,6 +227,7 @@ export default function ProcessVideo() {
     });
     
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVideo?.id, user]);
 
   return (
