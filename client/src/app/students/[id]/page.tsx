@@ -97,7 +97,7 @@ export default function StudentDetailPage() {
 
     return (
       <>
-        <div className="mb-2">
+        <div className="mb-6">
           <Link 
             href="/students" 
             className="text-blue-600 hover:text-blue-800 flex items-center"
