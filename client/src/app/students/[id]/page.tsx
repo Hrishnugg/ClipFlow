@@ -48,7 +48,7 @@ export default function StudentDetailPage() {
           
           const videosQuery = query(
             collection(db, 'videos'), 
-            where('studentIds', 'array-contains', studentId)
+            where('identifiedStudent', '==', data.name)
           );
           
           const videosSnapshot = await getDocs(videosQuery);
