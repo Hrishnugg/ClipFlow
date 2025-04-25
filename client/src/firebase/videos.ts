@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './config';
 
 /**
@@ -7,9 +7,13 @@ import { db, storage } from './config';
  */
 export async function processVideo(
   video: File, 
-  rosterId: string
+  rosterId: string,
+  user_uid: string
 ): Promise<{ success: boolean; videoId?: string; error?: string }> {
   try {
+    const transcriptionResult = await transcribeVideo(video);
+    const transcript = transcriptionResult.success ? transcriptionResult.transcript : '';
+    
     const storageRef = ref(storage, `videos/${Date.now()}_${video.name}`);
     const snapshot = await uploadBytes(storageRef, video);
     const downloadURL = await getDownloadURL(snapshot.ref);
@@ -20,7 +24,9 @@ export async function processVideo(
       rosterId: rosterId, 
       isReviewed: false,
       uploadDate: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      transcript: transcript,
+      user_uid: user_uid
     };
     
     const videoRef = await addDoc(collection(db, 'videos'), videoData);
@@ -34,6 +40,49 @@ export async function processVideo(
     };
   }
 }
+/**
+ * Transcribe a video using AssemblyAI
+ */
+export async function transcribeVideo(
+  video: File
+): Promise<{ success: boolean; transcript?: string; error?: string }> {
+  try {
+    const tempStorageRef = ref(storage, `temp_transcription/${Date.now()}_${video.name}`);
+    const snapshot = await uploadBytes(tempStorageRef, video);
+    const videoUrl = await getDownloadURL(snapshot.ref);
+    
+    const { AssemblyAI } = await import('assemblyai');
+    const apiKey = process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('AssemblyAI API key is not defined');
+    }
+    
+    const client = new AssemblyAI({
+      apiKey: apiKey,
+    });
+
+    const result = await client.transcripts.transcribe({
+      audio: videoUrl,
+    });
+    
+    try {
+      await deleteObject(tempStorageRef);
+    } catch (deleteError) {
+      console.warn('Could not delete temporary transcription file:', deleteError);
+    }
+    
+    return { success: true, transcript: result.text || '' };
+  } catch (error) {
+    console.error('Error transcribing video:', error);
+    return { 
+      success: false, 
+      error: 'Failed to transcribe video. Will proceed with upload without transcript.',
+      transcript: ''
+    };
+  }
+}
+
 
 /**
  * Check if videos collection exists, create if it doesn't
