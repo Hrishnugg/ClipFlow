@@ -5,6 +5,7 @@ import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
+import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 
 interface Student {
   id: string;
@@ -48,35 +49,32 @@ export default function StudentsPage() {
     fetchStudents();
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Students</h1>
-        <p>Loading students...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Students</h1>
-      
-      {students.length === 0 ? (
-        <p>No students found. Upload a roster to add students.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {students.map((student) => (
-            <Link 
-              href={`/students/${student.id}`} 
-              key={student.id}
-              className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <h2 className="text-lg font-semibold">{student.name}</h2>
-              <p className="text-gray-600">{student.email}</p>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+    <AuthenticatedLayout>
+      <div className="p-8 w-full">
+        <h1 className="text-2xl font-bold mb-6">Students</h1>
+        
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <p>Loading students...</p>
+          </div>
+        ) : students.length === 0 ? (
+          <p>No students found. Upload a roster to add students.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {students.map((student) => (
+              <Link 
+                href={`/students/${student.id}`} 
+                key={student.id}
+                className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+              >
+                <h2 className="text-lg font-semibold">{student.name}</h2>
+                <p className="text-gray-600">{student.email}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </AuthenticatedLayout>
   );
 }
