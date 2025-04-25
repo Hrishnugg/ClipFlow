@@ -1,6 +1,7 @@
 import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './config';
+import { identifyStudentViaLLM, getStudentNamesFromRoster } from './llm';
 
 /**
  * Process a single video by uploading it to Firebase Storage and adding it to Firestore
@@ -14,6 +15,19 @@ export async function processVideo(
     const transcriptionResult = await transcribeVideo(video);
     const transcript = transcriptionResult.success ? transcriptionResult.transcript : '';
     
+    let identifiedStudent = '';
+    let confidenceLevel = 0;
+    
+    if (transcript && rosterId) {
+      const studentNames = await getStudentNamesFromRoster(rosterId);
+      
+      if (studentNames.length > 0) {
+        const identification = await identifyStudentViaLLM(studentNames, transcript);
+        identifiedStudent = identification.identifiedStudent;
+        confidenceLevel = identification.confidence;
+      }
+    }
+    
     const storageRef = ref(storage, `videos/${Date.now()}_${video.name}`);
     const snapshot = await uploadBytes(storageRef, video);
     const downloadURL = await getDownloadURL(snapshot.ref);
@@ -26,7 +40,9 @@ export async function processVideo(
       uploadDate: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       transcript: transcript,
-      user_uid: user_uid
+      user_uid: user_uid,
+      identifiedStudent: identifiedStudent,
+      confidenceLevel: confidenceLevel
     };
     
     const videoRef = await addDoc(collection(db, 'videos'), videoData);
