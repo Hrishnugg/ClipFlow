@@ -110,16 +110,16 @@ export default function StudentDetailPage() {
           <h1 className="text-2xl font-bold">{student.name}</h1>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200">
           <h2 className="text-lg font-semibold mb-4">Student Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-gray-600">Email</p>
-              <p>{student.email}</p>
+              <p className="text-sm text-gray-600 mb-1">Email</p>
+              <p className="text-base">{student.email}</p>
             </div>
             <div>
-              <p className="text-gray-600">Parent Email</p>
-              <p>{student.parentEmail}</p>
+              <p className="text-sm text-gray-600 mb-1">Parent Email</p>
+              <p className="text-base">{student.parentEmail}</p>
             </div>
           </div>
         </div>

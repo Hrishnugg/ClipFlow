@@ -66,10 +66,10 @@ export default function StudentsPage() {
               <Link 
                 href={`/students/${student.id}`} 
                 key={student.id}
-                className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
               >
-                <h2 className="text-lg font-semibold">{student.name}</h2>
-                <p className="text-gray-600">{student.email}</p>
+                <h2 className="text-lg font-semibold mb-2">{student.name}</h2>
+                <p className="text-gray-600 text-sm">{student.email}</p>
               </Link>
             ))}
           </div>

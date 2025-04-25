@@ -51,7 +51,7 @@ export async function addOrUpdateStudent(student: Student): Promise<string> {
  * Validates a roster of students to ensure there are no duplicates
  * and all required fields are present.
  */
-export function validateRoster(students: Student[]): { valid: boolean; error?: string } {
+export async function validateRoster(students: Student[]): Promise<{ valid: boolean; error?: string }> {
   if (students.length === 0) {
     return { valid: false, error: 'Roster cannot be empty.' };
   }
@@ -74,6 +74,22 @@ export function validateRoster(students: Student[]): { valid: boolean; error?: s
     }
   }
   
+  for (const student of students) {
+    const studentsRef = collection(db, 'students');
+    const q = query(studentsRef, where('email', '==', student.email));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const existingStudent = querySnapshot.docs[0].data();
+      if (existingStudent.name !== student.name) {
+        return {
+          valid: false,
+          error: `Cannot upload roster: Student with email ${student.email} already exists with a different name (${existingStudent.name} vs ${student.name}).`
+        };
+      }
+    }
+  }
+  
   return { valid: true };
 }
 
@@ -82,7 +98,7 @@ export function validateRoster(students: Student[]): { valid: boolean; error?: s
  * Returns the IDs of the students that were added or updated.
  */
 export async function processRoster(students: Student[]): Promise<{ success: boolean; studentIds?: string[]; error?: string }> {
-  const validation = validateRoster(students);
+  const validation = await validateRoster(students);
   if (!validation.valid) {
     return { success: false, error: validation.error };
   }
