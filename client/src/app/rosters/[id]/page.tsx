@@ -71,13 +71,16 @@ export default function RosterDetail() {
   return (
     <AuthenticatedLayout>
       <div className="p-8 w-full">
-        <div className="flex items-center mb-6">
+        <div className="mb-6">
           <button
             onClick={() => router.push('/rosters')}
-            className="mr-4 text-blue-600 hover:text-blue-800"
+            className="text-blue-600 hover:text-blue-800 flex items-center"
           >
-            ← Back to Rosters
+            <span className="mr-1">←</span> Back to Rosters
           </button>
+        </div>
+        
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">{roster?.name || 'Roster Details'}</h1>
         </div>
         

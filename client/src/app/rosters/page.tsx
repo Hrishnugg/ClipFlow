@@ -7,6 +7,7 @@ import UploadRosterModal from '@/components/modals/UploadRosterModal';
 import { useAuth } from '@/context/AuthContext';
 import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { processRoster } from '@/firebase/students';
 
 interface Student {
   name: string;
@@ -25,6 +26,7 @@ export default function Rosters() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rosters, setRosters] = useState<Roster[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchRosters = useCallback(async () => {
@@ -79,6 +81,7 @@ export default function Rosters() {
 
   const handleFileUpload = async (rosterName: string, file: File) => {
     if (!user) return;
+    setError(null);
     
     try {
       const reader = new FileReader();
@@ -87,22 +90,31 @@ export default function Rosters() {
         const csvText = e.target?.result as string;
         const students = parseCSV(csvText);
         
+        const result = await processRoster(students);
+        
+        if (!result.success) {
+          setError(result.error || 'Failed to process roster');
+          return;
+        }
+        
         const rosterData = {
           name: rosterName,
           userUID: user.uid,
           students,
+          studentIds: result.studentIds,
           createdAt: new Date()
         };
         
         const docRef = await addDoc(collection(db, 'rosters'), rosterData);
         console.log('Roster added with ID:', docRef.id);
-        
+        setIsModalOpen(false);
         fetchRosters();
       };
       
       reader.readAsText(file);
     } catch (error) {
       console.error('Error uploading roster:', error);
+      setError('An error occurred while uploading the roster');
     }
   };
 
@@ -118,6 +130,12 @@ export default function Rosters() {
             Upload Roster
           </button>
         </div>
+        
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p>{error}</p>
+          </div>
+        )}
         
         {loading ? (
           <div className="flex justify-center py-8">
@@ -148,7 +166,8 @@ export default function Rosters() {
       <UploadRosterModal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
-        onUpload={handleFileUpload} 
+        onUpload={handleFileUpload}
+        error={error}
       />
     </AuthenticatedLayout>
   );
