@@ -7,7 +7,8 @@ import { db, storage } from './config';
  */
 export async function processVideo(
   video: File, 
-  rosterId: string
+  rosterId: string,
+  user_uid: string
 ): Promise<{ success: boolean; videoId?: string; error?: string }> {
   try {
     const transcriptionResult = await transcribeVideo(video);
@@ -24,7 +25,8 @@ export async function processVideo(
       isReviewed: false,
       uploadDate: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      transcript: transcript
+      transcript: transcript,
+      user_uid: user_uid
     };
     
     const videoRef = await addDoc(collection(db, 'videos'), videoData);

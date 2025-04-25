@@ -106,7 +106,7 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
         
         for (const videoFile of videoFiles) {
           const file = new File([videoFile.data], videoFile.name, { type: 'video/mp4' });
-          await processVideo(file, selectedRosterId);
+          await processVideo(file, selectedRosterId, user?.uid || '');
           
           setProcessingCount(prev => ({
             ...prev,
