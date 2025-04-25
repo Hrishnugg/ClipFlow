@@ -6,9 +6,10 @@ interface UploadRosterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (rosterName: string, file: File) => void;
+  error?: string | null;
 }
 
-export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadRosterModalProps) {
+export default function UploadRosterModal({ isOpen, onClose, onUpload, error }: UploadRosterModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [rosterName, setRosterName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +74,12 @@ export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadR
             CSV should have 3 columns: Student Name, Student Email, Parent Email
           </p>
         </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
         
         <div className="flex justify-end space-x-2">
           <button
