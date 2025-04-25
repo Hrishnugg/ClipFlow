@@ -9,7 +9,7 @@ interface UploadRosterModalProps {
   error?: string | null;
 }
 
-export default function UploadRosterModal({ isOpen, onClose, onUpload, error }: UploadRosterModalProps) {
+export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadRosterModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [rosterName, setRosterName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
