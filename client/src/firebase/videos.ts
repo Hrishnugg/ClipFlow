@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config';
 
@@ -41,7 +41,7 @@ export async function processVideo(
 export async function ensureVideosCollection(): Promise<boolean> {
   try {
     const videosRef = collection(db, 'videos');
-    await getDocs(query(videosRef, where('__name__', '>=', '')));
+    await getDocs(query(videosRef, limit(1)));
     return true;
   } catch (error) {
     console.error('Error checking videos collection:', error);
