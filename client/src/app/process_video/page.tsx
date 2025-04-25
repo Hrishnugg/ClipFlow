@@ -1,11 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
+import UploadVideoModal from '@/components/modals/UploadVideoModal';
 
 export default function ProcessVideo() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error] = useState<string | null>(null);
+
   const handleUpload = () => {
-    console.log('Upload videos clicked');
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -22,6 +30,12 @@ export default function ProcessVideo() {
             </button>
           </div>
         </div>
+        
+        <UploadVideoModal 
+          isOpen={isModalOpen} 
+          onClose={handleCloseModal} 
+          error={error}
+        />
       </div>
     </AuthenticatedLayout>
   );
