@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './config';
 
 /**
@@ -45,7 +45,9 @@ export async function transcribeVideo(
   video: File
 ): Promise<{ success: boolean; transcript?: string; error?: string }> {
   try {
-    const videoUrl = URL.createObjectURL(video);
+    const tempStorageRef = ref(storage, `temp_transcription/${Date.now()}_${video.name}`);
+    const snapshot = await uploadBytes(tempStorageRef, video);
+    const videoUrl = await getDownloadURL(snapshot.ref);
     
     const { AssemblyAI } = await import('assemblyai');
     const apiKey = process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY;
@@ -58,12 +60,15 @@ export async function transcribeVideo(
       apiKey: apiKey,
     });
 
-    // Use the correct parameter structure for AssemblyAI
     const result = await client.transcripts.transcribe({
       audio: videoUrl,
     });
     
-    URL.revokeObjectURL(videoUrl);
+    try {
+      await deleteObject(tempStorageRef);
+    } catch (deleteError) {
+      console.warn('Could not delete temporary transcription file:', deleteError);
+    }
     
     return { success: true, transcript: result.text || '' };
   } catch (error) {
