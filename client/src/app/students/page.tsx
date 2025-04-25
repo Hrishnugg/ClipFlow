@@ -68,8 +68,8 @@ export default function StudentsPage() {
                 key={student.id}
                 className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
               >
-                <h2 className="text-lg font-semibold mb-2">{student.name}</h2>
-                <p className="text-gray-600 text-sm">{student.email}</p>
+                <h2 className="text-black text-lg font-semibold mb-2">{student.name}</h2>
+                <p className="text-gray-800 text-sm">{student.email}</p>
               </Link>
             ))}
           </div>

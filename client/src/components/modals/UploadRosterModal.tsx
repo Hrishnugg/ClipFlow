@@ -75,12 +75,6 @@ export default function UploadRosterModal({ isOpen, onClose, onUpload, error }: 
           </p>
         </div>
         
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-        
         <div className="flex justify-end space-x-2">
           <button
             onClick={handleCancel}

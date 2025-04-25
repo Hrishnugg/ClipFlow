@@ -78,7 +78,7 @@ export default function StudentDetailPage() {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="flex justify-center py-8">
+        <div className="text-black flex justify-center py-8">
           <p>Loading student information...</p>
         </div>
       );
@@ -88,7 +88,7 @@ export default function StudentDetailPage() {
       return (
         <div>
           <p>Student not found.</p>
-          <Link href="/students" className="text-blue-500 hover:underline mt-4 inline-block">
+          <Link href="/students" className="text-blue-300 hover:underline mt-4 inline-block">
             Back to Students
           </Link>
         </div>
@@ -100,7 +100,7 @@ export default function StudentDetailPage() {
         <div className="mb-6">
           <Link 
             href="/students" 
-            className="text-blue-600 hover:text-blue-800 flex items-center"
+            className="text-blue-400 hover:text-blue-200 flex items-center"
           >
             <span className="mr-1">←</span> Back to Students
           </Link>
@@ -111,24 +111,24 @@ export default function StudentDetailPage() {
         </div>
         
         <div className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4">Student Information</h2>
+          <h2 className="text-black text-lg font-semibold mb-4">Student Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Email</p>
-              <p className="text-base">{student.email}</p>
+              <p className="text-black text-sm mb-1">Email</p>
+              <p className="text-black text-base">{student.email}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Parent Email</p>
-              <p className="text-base">{student.parentEmail}</p>
+              <p className="text-sm text-black mb-1">Parent Email</p>
+              <p className="text-black text-base">{student.parentEmail}</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Videos</h2>
+          <h2 className="text-black text-lg font-semibold mb-4">Videos</h2>
           
           {videos.length === 0 ? (
-            <p>No videos found for this student.</p>
+            <p className="text-black">No videos found for this student.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {videos.map((video) => (
