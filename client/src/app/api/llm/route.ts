@@ -31,14 +31,13 @@ Your task:
 1. Identify which student from the roster is being described or shown in this video.
 2. Look for direct mentions of the student's name (first or last name).
 3. Consider that the transcription might not be perfect - names might be slightly misspelled or unclear due to accents or audio quality.
-4. Assign a confidence level from 0 to 1 (where 1 is 100% confident) based on how certain you are about the identification.
+4. Assign a confidence level from 0 to 100 (where 100 is 100% confident) based on how certain you are about the identification.
 5. If you cannot identify any student with reasonable confidence, return an empty string for the student name and 0 for confidence.
 
 Return your answer in this exact JSON format:
 {
   "identifiedStudent": "Full Student Name",
-  "confidence": 0.X,
-  "reasoning": "Brief explanation of why you identified this student"
+  "confidence": XX
 }
 `;
 

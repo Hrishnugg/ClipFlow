@@ -4,7 +4,6 @@ import { db } from './config';
 interface IdentificationResult {
   identifiedStudent: string;
   confidence: number;
-  reasoning?: string;
   error?: string;
 }
 
@@ -34,10 +33,12 @@ export async function identifyStudentViaLLM(
     }
 
     const result = await response.json();
+    
+    const identifiedStudent = (result.confidence >= 70) ? result.identifiedStudent : '';
+    
     return {
-      identifiedStudent: result.identifiedStudent || '',
+      identifiedStudent: identifiedStudent || '',
       confidence: result.confidence || 0,
-      reasoning: result.reasoning,
     };
   } catch (error) {
     console.error('Error identifying student via LLM:', error);
