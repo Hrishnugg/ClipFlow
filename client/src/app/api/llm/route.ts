@@ -50,7 +50,11 @@ Return your answer in this exact JSON format:
       ],
     });
 
-    const content = response.content[0].text;
+    let content = '';
+    if (response.content[0].type === 'text') {
+      content = response.content[0].text;
+    }
+    
     let result;
     
     try {
