@@ -97,14 +97,17 @@ export default function StudentDetailPage() {
 
     return (
       <>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{student.name}</h1>
+        <div className="mb-2">
           <Link 
             href="/students" 
-            className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+            className="text-blue-600 hover:text-blue-800 flex items-center"
           >
-            Back to Students
+            <span className="mr-1">←</span> Back to Students
           </Link>
+        </div>
+        
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">{student.name}</h1>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6 mb-6">
