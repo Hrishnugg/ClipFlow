@@ -98,7 +98,7 @@ export default function ProcessVideo() {
       );
     }
 
-    if (videos.length === 0 || isProcessing) {
+    if (videos.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-8">
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
