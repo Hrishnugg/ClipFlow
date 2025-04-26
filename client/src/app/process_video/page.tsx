@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import UploadVideoModal from '@/components/modals/UploadVideoModal';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { useAuth } from '@/context/AuthContext';
 import VideoPlaylist from '@/components/video/VideoPlaylist';
@@ -20,6 +20,7 @@ interface Video {
   confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
+  rosterId?: string;
 }
 
 export default function ProcessVideo() {
@@ -88,6 +89,24 @@ export default function ProcessVideo() {
   const handleProcessingStatusChange = (isCurrentlyProcessing: boolean) => {
     setIsProcessing(isCurrentlyProcessing);
   };
+  
+  const handleStudentSelect = async (studentName: string | null) => {
+    if (!selectedVideo) return;
+    
+    try {
+      const videoRef = doc(db, 'videos', selectedVideo.id);
+      await setDoc(videoRef, {
+        identifiedStudent: studentName || ''
+      }, { merge: true });
+      
+      setSelectedVideo({
+        ...selectedVideo,
+        identifiedStudent: studentName || ''
+      });
+    } catch (error) {
+      console.error('Error updating identified student:', error);
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -148,6 +167,8 @@ export default function ProcessVideo() {
           <StudentInfoSidebar 
             identifiedStudent={selectedVideo?.identifiedStudent || null} 
             confidenceLevel={selectedVideo?.confidenceLevel}
+            rosterId={selectedVideo?.rosterId}
+            onStudentSelect={handleStudentSelect}
           />
         </div>
       </div>
