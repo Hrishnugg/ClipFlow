@@ -13,6 +13,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  user_uid?: string;
 }
 
 interface Roster {
@@ -90,7 +91,7 @@ export default function Rosters() {
         const csvText = e.target?.result as string;
         const students = parseCSV(csvText);
         
-        const result = await processRoster(students);
+        const result = await processRoster(students, user.uid);
         
         if (!result.success) {
           setError(result.error || 'Failed to process roster');

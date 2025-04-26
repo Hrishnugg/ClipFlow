@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  user_uid?: string;
 }
 
 export default function StudentsPage() {
@@ -24,7 +25,7 @@ export default function StudentsPage() {
       if (!user) return;
       
       try {
-        const studentsQuery = query(collection(db, 'students'));
+        const studentsQuery = query(collection(db, 'students'), where('user_uid', '==', user.uid));
         const studentsSnapshot = await getDocs(studentsQuery);
         
         const studentsData: Student[] = [];
@@ -34,7 +35,8 @@ export default function StudentsPage() {
             id: doc.id,
             name: data.name,
             email: data.email,
-            parentEmail: data.parentEmail
+            parentEmail: data.parentEmail,
+            user_uid: data.user_uid
           });
         });
         
