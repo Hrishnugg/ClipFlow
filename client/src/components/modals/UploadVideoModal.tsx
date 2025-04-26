@@ -16,9 +16,10 @@ interface UploadVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   error?: string | null;
+    onProcessingStatusChange?: (isProcessing: boolean) => void;
 }
 
-export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalProps) {
+export default function UploadVideoModal({ isOpen, onClose, error, onProcessingStatusChange }: UploadVideoModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedRosterId, setSelectedRosterId] = useState<string>('');
   const [rosters, setRosters] = useState<Roster[]>([]);
@@ -29,12 +30,12 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
   useEffect(() => {
     const fetchRosters = async () => {
       if (!user) return;
-      
+
       try {
         const rostersRef = collection(db, 'rosters');
         const q = query(rostersRef, where('userUID', '==', user.uid));
         const querySnapshot = await getDocs(q);
-        
+
         const fetchedRosters: Roster[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -43,13 +44,13 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
             name: data.name,
           });
         });
-        
+
         setRosters(fetchedRosters);
       } catch (error) {
         console.error('Error fetching rosters:', error);
       }
     };
-    
+
     if (isOpen) {
       fetchRosters();
     }
@@ -70,25 +71,28 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
   const handleSubmit = async () => {
     if (selectedFile && selectedRosterId) {
       setIsUploading(true);
-      
+      if (onProcessingStatusChange) {
+        onProcessingStatusChange(true);
+      }
+
       try {
         await ensureVideosCollection();
-        
+
         const zipData = await selectedFile.arrayBuffer();
         const zip = await JSZip.loadAsync(zipData);
-        
+
         const videoFiles: { name: string; data: Blob }[] = [];
         const folderPromises: Promise<void>[] = [];
-        
+
         zip.forEach((relativePath, zipEntry) => {
           if (
-            zipEntry.dir || 
-            relativePath.startsWith('__MACOSX/') || 
+            zipEntry.dir ||
+            relativePath.startsWith('__MACOSX/') ||
             !relativePath.toLowerCase().endsWith('.mp4')
           ) {
             return;
           }
-          
+
           const promise = zipEntry.async('blob').then(blob => {
             const fileName = relativePath.split('/').pop() || 'unknown.mp4';
             videoFiles.push({
@@ -96,31 +100,37 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
               data: blob
             });
           });
-          
+
           folderPromises.push(promise);
         });
-        
+
         await Promise.all(folderPromises);
-        
+
         setProcessingCount({ total: videoFiles.length, current: 0 });
-        
+
         for (const videoFile of videoFiles) {
           const file = new File([videoFile.data], videoFile.name, { type: 'video/mp4' });
           await processVideo(file, selectedRosterId, user?.uid || '');
-          
+
           setProcessingCount(prev => ({
             ...prev,
             current: prev.current + 1
           }));
         }
-        
+
         setSelectedFile(null);
         setSelectedRosterId('');
         setIsUploading(false);
+        if (onProcessingStatusChange) {
+          onProcessingStatusChange(false);
+        }
         onClose();
       } catch (error) {
         console.error('Error processing zip file:', error);
         setIsUploading(false);
+        if (onProcessingStatusChange) {
+          onProcessingStatusChange(false);
+        }
       }
     }
   };
@@ -128,6 +138,9 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
   const handleCancel = () => {
     setSelectedFile(null);
     setSelectedRosterId('');
+    if (onProcessingStatusChange && isUploading) {
+      onProcessingStatusChange(false);
+    }
     onClose();
   };
 
@@ -135,7 +148,7 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Upload Videos</h2>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">
             Select Roster
@@ -153,7 +166,7 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
             ))}
           </select>
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">
             Select a ZIP file containing videos
@@ -169,21 +182,21 @@ export default function UploadVideoModal({ isOpen, onClose }: UploadVideoModalPr
             ZIP file should contain MP4 videos only. __MACOSX and other metadata files will be ignored.
           </p>
         </div>
-        
+
         {isUploading && (
           <div className="mb-4">
             <p className="text-sm mb-1">
               Processing videos: {processingCount.current} of {processingCount.total}
             </p>
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full" 
+              <div
+                className="bg-blue-600 h-2.5 rounded-full"
                 style={{ width: `${(processingCount.current / processingCount.total) * 100}%` }}
               ></div>
             </div>
           </div>
         )}
-        
+
         <div className="flex justify-end space-x-2">
           <button
             onClick={handleCancel}
