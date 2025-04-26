@@ -16,7 +16,7 @@ interface UploadVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   error?: string | null;
-    onProcessingStatusChange?: (isProcessing: boolean) => void;
+  onProcessingStatusChange?: (isProcessing: boolean) => void;
 }
 
 export default function UploadVideoModal({ isOpen, onClose, error, onProcessingStatusChange }: UploadVideoModalProps) {
