@@ -34,13 +34,20 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
           <button
             key={video.id}
             onClick={() => onSelectVideo(video)}
-            className={`w-full p-4 text-left hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex flex-col overflow-hidden ${
-              selectedVideoId === video.id ? 'bg-gray-200 dark:bg-gray-700' : ''
-            }`}
+            className={`
+              w-full p-4 text-left 
+              hover:bg-gray-200 dark:hover:bg-gray-700 
+              transition-colors flex flex-col overflow-hidden 
+              ${selectedVideoId === video.id ? 'bg-gray-200 dark:bg-gray-700' : ''}
+            `}
           >
-            <div className="w-full max-w-full">
-              <p className="font-medium w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{video.title}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
+            {/* make this div shrinkable */}
+            <div className="w-full max-w-full min-w-0">
+              {/* now truncate will work reliably */}
+              <p className="font-medium truncate">
+                {video.title}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                 {new Date(video.uploadDate).toLocaleDateString()}
               </p>
             </div>
