@@ -13,7 +13,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 h-screen shadow-md bg-white dark:bg-gray-800 fixed left-0 top-0 flex flex-col">
+    <div className="w-64 h-screen shadow-md bg-white dark:bg-black fixed left-0 top-0 flex flex-col">
       <div className="py-4 px-6">
         <h2 className="text-xl font-bold">ClipFlow</h2>
       </div>
