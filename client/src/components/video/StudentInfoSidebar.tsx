@@ -18,7 +18,7 @@ export default function StudentInfoSidebar({
 }: StudentInfoSidebarProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(identifiedStudent);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(identifiedStudent || '');
 
   useEffect(() => {
     async function fetchStudentNames() {
@@ -43,7 +43,7 @@ export default function StudentInfoSidebar({
   }, [rosterId]);
   
   useEffect(() => {
-    setSelectedStudent(identifiedStudent);
+    setSelectedStudent(identifiedStudent || '');
   }, [identifiedStudent]);
   
   const handleStudentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
