@@ -24,11 +24,11 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel 
         <p className="font-medium">{identifiedStudent}</p>
         {confidenceLevel !== undefined && (
           <div className="mt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Confidence: {confidenceLevel * 100}%</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Confidence: {confidenceLevel}%</p>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-1 dark:bg-gray-700">
               <div
                 className="bg-blue-600 h-2 rounded-full"
-                style={{ width: `${confidenceLevel * 100}%` }}
+                style={{ width: `${confidenceLevel}%` }}
               ></div>
             </div>
           </div>
