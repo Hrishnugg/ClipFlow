@@ -38,10 +38,12 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
               selectedVideoId === video.id ? 'bg-gray-200 dark:bg-gray-700' : ''
             }`}
           >
-            <span className="font-medium truncate block overflow-hidden text-ellipsis whitespace-nowrap">{video.title}</span>
-            <span className="text-sm text-gray-500 dark:text-gray-400 truncate block overflow-hidden text-ellipsis whitespace-nowrap">
-              {new Date(video.uploadDate).toLocaleDateString()}
-            </span>
+            <div className="w-full max-w-full">
+              <p className="font-medium w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{video.title}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 w-full max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                {new Date(video.uploadDate).toLocaleDateString()}
+              </p>
+            </div>
           </button>
         ))}
       </div>
