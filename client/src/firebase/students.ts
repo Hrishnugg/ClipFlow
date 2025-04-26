@@ -12,7 +12,7 @@ interface Student {
  * Adds a student to the students collection if they don't already exist,
  * or updates their parent email if they do exist.
  */
-export async function addOrUpdateStudent(student: Student): Promise<string> {
+export async function addOrUpdateStudent(student: Student, user_uid: string): Promise<string> {
   try {
     const studentsRef = collection(db, 'students');
     const q = query(studentsRef, where('email', '==', student.email));
@@ -36,6 +36,7 @@ export async function addOrUpdateStudent(student: Student): Promise<string> {
         name: student.name,
         email: student.email,
         parentEmail: student.parentEmail,
+        user_uid: user_uid,
         createdAt: new Date().toISOString()
       });
       
@@ -97,7 +98,7 @@ export async function validateRoster(students: Student[]): Promise<{ valid: bool
  * Processes a roster of students, validating and adding each student to the database.
  * Returns the IDs of the students that were added or updated.
  */
-export async function processRoster(students: Student[]): Promise<{ success: boolean; studentIds?: string[]; error?: string }> {
+export async function processRoster(students: Student[], user_uid: string): Promise<{ success: boolean; studentIds?: string[]; error?: string }> {
   const validation = await validateRoster(students);
   if (!validation.valid) {
     return { success: false, error: validation.error };
@@ -106,7 +107,7 @@ export async function processRoster(students: Student[]): Promise<{ success: boo
   try {
     const studentIds: string[] = [];
     for (const student of students) {
-      const studentId = await addOrUpdateStudent(student);
+      const studentId = await addOrUpdateStudent(student, user_uid);
       studentIds.push(studentId);
     }
     
