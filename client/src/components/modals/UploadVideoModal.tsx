@@ -179,7 +179,7 @@ export default function UploadVideoModal({ isOpen, onClose, error, onProcessingS
             disabled={isUploading}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            ZIP file should contain MP4 videos only. __MACOSX and other metadata files will be ignored.
+            ZIP file should contain MP4 videos only.
           </p>
         </div>
 
