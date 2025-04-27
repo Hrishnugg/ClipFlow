@@ -23,6 +23,8 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
   if (videos.length === 0) {
     return <div className="p-4">No videos available</div>;
   }
+  
+  const sortedVideos = [...videos].sort((a, b) => a.confidenceLevel - b.confidenceLevel);
 
   return (
     <div className="w-full h-full overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
@@ -30,7 +32,7 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
         <h2 className="text-lg font-semibold">Unreviewed Videos</h2>
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {videos.map((video) => (
+        {sortedVideos.map((video) => (
           <button
             key={video.id}
             onClick={() => onSelectVideo(video)}
@@ -42,7 +44,15 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
             `}
           >
             {/* make this div shrinkable */}
-            <div className="w-full max-w-full min-w-0">
+            <div className="w-full max-w-full min-w-0 flex items-center">
+              {!video.identifiedStudent && (
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
+                     title="Low confidence - Could not identify any student"></div>
+              )}
+              {video.identifiedStudent && (
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
+                     title="Student identified with confidence"></div>
+              )}
               {/* now truncate will work reliably */}
               <p className="font-medium truncate">
                 {video.title}

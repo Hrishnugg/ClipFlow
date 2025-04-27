@@ -30,6 +30,8 @@ export default function ProcessVideo() {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isStudentUpdate, setIsStudentUpdate] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -61,9 +63,21 @@ export default function ProcessVideo() {
           });
         });
         
-        setVideos(videosData);
-        if (videosData.length > 0) {
-          setSelectedVideo(videosData[0]);
+        // Sort videos by confidence level (lowest to highest) - same as in VideoPlaylist
+        const sortedVideosData = [...videosData].sort((a, b) => a.confidenceLevel - b.confidenceLevel);
+        
+        setVideos(sortedVideosData);
+        
+        if (isStudentUpdate && selectedVideo) {
+          const updatedSelectedVideo = sortedVideosData.find(video => video.id === selectedVideo.id);
+          if (updatedSelectedVideo) {
+            setSelectedVideo(updatedSelectedVideo);
+          } else if (sortedVideosData.length > 0) {
+            setSelectedVideo(sortedVideosData[0]);
+          }
+          setIsStudentUpdate(false);
+        } else if (sortedVideosData.length > 0) {
+          setSelectedVideo(sortedVideosData[0]);
         }
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -73,7 +87,7 @@ export default function ProcessVideo() {
     };
     
     fetchVideos();
-  }, [user, isProcessing]);
+  }, [user, isProcessing, refreshTrigger]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
@@ -89,6 +103,11 @@ export default function ProcessVideo() {
 
   const handleProcessingStatusChange = (isCurrentlyProcessing: boolean) => {
     setIsProcessing(isCurrentlyProcessing);
+  };
+  
+  const handleStudentUpdate = () => {
+    setIsStudentUpdate(true);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const renderContent = () => {
@@ -152,6 +171,7 @@ export default function ProcessVideo() {
             confidenceLevel={selectedVideo?.confidenceLevel}
             rosterId={selectedVideo?.rosterId}
             videoId={selectedVideo?.id}
+            onStudentUpdate={handleStudentUpdate}
           />
         </div>
       </div>
