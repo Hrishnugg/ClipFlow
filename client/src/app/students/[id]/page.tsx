@@ -25,6 +25,7 @@ interface Video {
   asset: string;
   transcript: string;
   identifiedStudent: string;
+  confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
   rosterId?: string;
