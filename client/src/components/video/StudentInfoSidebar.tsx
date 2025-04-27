@@ -26,14 +26,6 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     
     fetchStudentNames();
   }, [rosterId]);
-  if (!identifiedStudent) {
-    return (
-      <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
-        <p className="text-gray-500 dark:text-gray-400">No student identified</p>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
