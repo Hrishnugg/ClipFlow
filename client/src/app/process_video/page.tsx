@@ -63,18 +63,21 @@ export default function ProcessVideo() {
           });
         });
         
-        setVideos(videosData);
+        // Sort videos by confidence level (lowest to highest) - same as in VideoPlaylist
+        const sortedVideosData = [...videosData].sort((a, b) => a.confidenceLevel - b.confidenceLevel);
+        
+        setVideos(sortedVideosData);
         
         if (isStudentUpdate && selectedVideo) {
-          const updatedSelectedVideo = videosData.find(video => video.id === selectedVideo.id);
+          const updatedSelectedVideo = sortedVideosData.find(video => video.id === selectedVideo.id);
           if (updatedSelectedVideo) {
             setSelectedVideo(updatedSelectedVideo);
-          } else if (videosData.length > 0) {
-            setSelectedVideo(videosData[0]);
+          } else if (sortedVideosData.length > 0) {
+            setSelectedVideo(sortedVideosData[0]);
           }
           setIsStudentUpdate(false);
-        } else if (videosData.length > 0) {
-          setSelectedVideo(videosData[0]);
+        } else if (sortedVideosData.length > 0) {
+          setSelectedVideo(sortedVideosData[0]);
         }
       } catch (error) {
         console.error('Error fetching videos:', error);
