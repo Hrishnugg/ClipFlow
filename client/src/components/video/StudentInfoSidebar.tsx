@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
-import { ref, deleteObject, getStorage } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
 
 interface StudentInfoSidebarProps {
   identifiedStudent: string | null;
