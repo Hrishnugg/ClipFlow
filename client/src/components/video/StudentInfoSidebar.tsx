@@ -58,15 +58,26 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
   };
   
   const handleSaveVideo = async () => {
-    if (videoId) {
+    if (videoId && selectedStudent) {
       try {
         const videoRef = doc(db, 'videos', videoId);
-        await updateDoc(videoRef, {
-          isReviewed: true
-        });
-        console.log('Marked video as reviewed');
-        if (onStudentUpdate) {
-          onStudentUpdate();
+        const videoDoc = await getDoc(videoRef);
+        
+        if (videoDoc.exists()) {
+          const videoData = videoDoc.data();
+          const creationDate = videoData.createdAt || videoData.uploadDate;
+          const formattedDate = new Date(creationDate).toLocaleDateString();
+          const newTitle = `${selectedStudent} ${formattedDate}`;
+          
+          await updateDoc(videoRef, {
+            isReviewed: true,
+            title: newTitle
+          });
+          
+          console.log('Marked video as reviewed and updated title');
+          if (onStudentUpdate) {
+            onStudentUpdate();
+          }
         }
       } catch (error) {
         console.error('Error updating video review status:', error);

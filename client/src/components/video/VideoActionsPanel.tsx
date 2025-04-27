@@ -42,7 +42,19 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
       
       querySnapshot.forEach((document) => {
         const videoRef = doc(db, 'videos', document.id);
-        batch.update(videoRef, { isReviewed: true });
+        const videoData = document.data();
+        const identifiedStudent = videoData.identifiedStudent;
+        
+        if (identifiedStudent) {
+          const creationDate = videoData.createdAt || videoData.uploadDate;
+          const formattedDate = new Date(creationDate).toLocaleDateString();
+          const newTitle = `${identifiedStudent} ${formattedDate}`;
+          
+          batch.update(videoRef, { 
+            isReviewed: true,
+            title: newTitle
+          });
+        }
       });
       
       await batch.commit();
