@@ -63,7 +63,15 @@ export default function ProcessVideo() {
         });
         
         setVideos(videosData);
-        if (videosData.length > 0) {
+        
+        if (selectedVideo) {
+          const updatedSelectedVideo = videosData.find(video => video.id === selectedVideo.id);
+          if (updatedSelectedVideo) {
+            setSelectedVideo(updatedSelectedVideo);
+          } else if (videosData.length > 0) {
+            setSelectedVideo(videosData[0]);
+          }
+        } else if (videosData.length > 0) {
           setSelectedVideo(videosData[0]);
         }
       } catch (error) {
