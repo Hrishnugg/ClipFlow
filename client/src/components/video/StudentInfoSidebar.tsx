@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStudentNamesFromRoster } from '@/firebase/llm';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { db, storage } from '@/firebase/config';
+import { ref, deleteObject, getStorage } from 'firebase/storage';
 
 interface StudentInfoSidebarProps {
   identifiedStudent: string | null;
@@ -55,6 +56,62 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
       }
     }
   };
+  
+  const handleSaveVideo = async () => {
+    if (videoId) {
+      try {
+        const videoRef = doc(db, 'videos', videoId);
+        await updateDoc(videoRef, {
+          isReviewed: true
+        });
+        console.log('Marked video as reviewed');
+        if (onStudentUpdate) {
+          onStudentUpdate();
+        }
+      } catch (error) {
+        console.error('Error updating video review status:', error);
+      }
+    }
+  };
+
+  const handleDeleteVideo = async () => {
+    if (videoId) {
+      try {
+        const videoRef = doc(db, 'videos', videoId);
+        const videoDoc = await getDoc(videoRef);
+        
+        if (videoDoc.exists()) {
+          const videoData = videoDoc.data();
+          const assetUrl = videoData.asset;
+          
+          await deleteDoc(videoRef);
+          console.log('Deleted video document from Firestore');
+          
+          try {
+            if (assetUrl) {
+              const filePathMatch = assetUrl.match(/\/o\/([^?]+)/);
+              if (filePathMatch && filePathMatch[1]) {
+                const filePath = decodeURIComponent(filePathMatch[1]);
+                const storageRef = ref(storage, filePath);
+                await deleteObject(storageRef);
+                console.log('Deleted video file from Storage:', filePath);
+              } else {
+                console.error('Could not extract file path from URL:', assetUrl);
+              }
+            }
+          } catch (storageError) {
+            console.error('Error deleting video from storage:', storageError);
+          }
+        }
+        
+        if (onStudentUpdate) {
+          onStudentUpdate();
+        }
+      } catch (error) {
+        console.error('Error deleting video:', error);
+      }
+    }
+  };
 
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
@@ -84,6 +141,24 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           </div>
         )}
       </div>
+      
+      {/* Video action buttons */}
+      {videoId && (
+        <div className="mt-6 space-y-2">
+          <button 
+            onClick={handleSaveVideo}
+            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Save Video
+          </button>
+          <button 
+            onClick={handleDeleteVideo}
+            className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            Delete Video
+          </button>
+        </div>
+      )}
     </div>
   );
 }
