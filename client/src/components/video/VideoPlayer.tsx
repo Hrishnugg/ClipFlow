@@ -27,7 +27,7 @@ export default function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
           width="100%"
           height="100%"
           controls={true}
-          playing={true}
+          playing={false}
         />
       </div>
       <div className="mt-4">
