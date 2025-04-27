@@ -31,6 +31,7 @@ export default function ProcessVideo() {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isStudentUpdate, setIsStudentUpdate] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -64,13 +65,14 @@ export default function ProcessVideo() {
         
         setVideos(videosData);
         
-        if (selectedVideo) {
+        if (isStudentUpdate && selectedVideo) {
           const updatedSelectedVideo = videosData.find(video => video.id === selectedVideo.id);
           if (updatedSelectedVideo) {
             setSelectedVideo(updatedSelectedVideo);
           } else if (videosData.length > 0) {
             setSelectedVideo(videosData[0]);
           }
+          setIsStudentUpdate(false);
         } else if (videosData.length > 0) {
           setSelectedVideo(videosData[0]);
         }
@@ -101,6 +103,7 @@ export default function ProcessVideo() {
   };
   
   const handleStudentUpdate = () => {
+    setIsStudentUpdate(true);
     setRefreshTrigger(prev => prev + 1);
   };
 
