@@ -76,6 +76,7 @@ export default function StudentDetailPage() {
               asset: data.asset,
               transcript: data.transcript,
               identifiedStudent: data.identifiedStudent,
+              confidenceLevel: data.confidenceLevel || 100, // Default to 100 for reviewed videos
               isReviewed: data.isReviewed,
               uploadDate: data.uploadDate,
               rosterId: data.rosterId
