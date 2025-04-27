@@ -17,9 +17,10 @@ interface VideoPlaylistProps {
   videos: Video[];
   selectedVideoId: string | null;
   onSelectVideo: (video: Video) => void;
+  title?: string; // Add title prop
 }
 
-export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }: VideoPlaylistProps) {
+export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos" }: VideoPlaylistProps) {
   if (videos.length === 0) {
     return <div className="p-4">No videos available</div>;
   }
@@ -29,7 +30,7 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
   return (
     <div className="w-full h-full overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold">Unreviewed Videos</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {sortedVideos.map((video) => (
