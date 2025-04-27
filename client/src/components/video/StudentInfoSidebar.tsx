@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStudentNamesFromRoster } from '@/firebase/llm';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/firebase/config';
 
 interface StudentInfoSidebarProps {
   identifiedStudent: string | null;
   confidenceLevel?: number;
   rosterId?: string;
+  videoId?: string;
 }
 
-export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId }: StudentInfoSidebarProps) {
+export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId }: StudentInfoSidebarProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   
   useEffect(() => {
@@ -27,6 +30,22 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     fetchStudentNames();
   }, [rosterId]);
 
+  const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedStudent = e.target.value;
+    
+    if (videoId) {
+      try {
+        const videoRef = doc(db, 'videos', videoId);
+        await updateDoc(videoRef, {
+          identifiedStudent: selectedStudent
+        });
+        console.log('Updated student in video document:', selectedStudent);
+      } catch (error) {
+        console.error('Error updating identified student:', error);
+      }
+    }
+  };
+
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
@@ -34,6 +53,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
         <select 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium"
           defaultValue={identifiedStudent || ''}
+          onChange={handleStudentSelect}
         >
           <option value="">Select a student</option>
           {studentNames.map((name) => (
