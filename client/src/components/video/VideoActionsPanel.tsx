@@ -9,9 +9,10 @@ import ConfirmationModal from '../../components/modals/ConfirmationModal';
 interface VideoActionsPanelProps {
   userUid: string;
   onUpdate: () => void;
+  allVideosHaveIdentifiedStudents: boolean;
 }
 
-export default function VideoActionsPanel({ userUid, onUpdate }: VideoActionsPanelProps) {
+export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIdentifiedStudents }: VideoActionsPanelProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -129,7 +130,7 @@ export default function VideoActionsPanel({ userUid, onUpdate }: VideoActionsPan
       <div className="space-y-2">
         <button 
           onClick={handleSaveAll}
-          disabled={isSaving}
+          disabled={isSaving || !allVideosHaveIdentifiedStudents}
           className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving...' : 'Save All Videos'}
