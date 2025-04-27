@@ -49,6 +49,10 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo }
                 <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
                      title="Low confidence - Could not identify any student"></div>
               )}
+              {video.confidenceLevel > 0 && video.identifiedStudent && (
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
+                     title="Student identified with confidence"></div>
+              )}
               {/* now truncate will work reliably */}
               <p className="font-medium truncate">
                 {video.title}

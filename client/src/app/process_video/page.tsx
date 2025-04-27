@@ -30,6 +30,7 @@ export default function ProcessVideo() {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function ProcessVideo() {
     };
     
     fetchVideos();
-  }, [user, isProcessing]);
+  }, [user, isProcessing, refreshTrigger]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
@@ -89,6 +90,10 @@ export default function ProcessVideo() {
 
   const handleProcessingStatusChange = (isCurrentlyProcessing: boolean) => {
     setIsProcessing(isCurrentlyProcessing);
+  };
+  
+  const handleStudentUpdate = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const renderContent = () => {
@@ -152,6 +157,7 @@ export default function ProcessVideo() {
             confidenceLevel={selectedVideo?.confidenceLevel}
             rosterId={selectedVideo?.rosterId}
             videoId={selectedVideo?.id}
+            onStudentUpdate={handleStudentUpdate}
           />
         </div>
       </div>

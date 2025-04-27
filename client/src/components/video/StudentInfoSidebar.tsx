@@ -10,9 +10,10 @@ interface StudentInfoSidebarProps {
   confidenceLevel?: number;
   rosterId?: string;
   videoId?: string;
+  onStudentUpdate?: () => void;
 }
 
-export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId }: StudentInfoSidebarProps) {
+export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId, onStudentUpdate }: StudentInfoSidebarProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
   
@@ -46,6 +47,9 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           identifiedStudent: newSelectedStudent
         });
         console.log('Updated student in video document:', newSelectedStudent);
+        if (onStudentUpdate) {
+          onStudentUpdate();
+        }
       } catch (error) {
         console.error('Error updating identified student:', error);
       }
