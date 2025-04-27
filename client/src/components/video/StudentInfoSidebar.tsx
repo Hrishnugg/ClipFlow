@@ -14,6 +14,7 @@ interface StudentInfoSidebarProps {
 
 export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId }: StudentInfoSidebarProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
   
   useEffect(() => {
     const fetchStudentNames = async () => {
@@ -30,16 +31,21 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     fetchStudentNames();
   }, [rosterId]);
 
+  useEffect(() => {
+    setSelectedStudent(identifiedStudent || '');
+  }, [identifiedStudent]);
+
   const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedStudent = e.target.value;
+    const newSelectedStudent = e.target.value;
+    setSelectedStudent(newSelectedStudent);
     
     if (videoId) {
       try {
         const videoRef = doc(db, 'videos', videoId);
         await updateDoc(videoRef, {
-          identifiedStudent: selectedStudent
+          identifiedStudent: newSelectedStudent
         });
-        console.log('Updated student in video document:', selectedStudent);
+        console.log('Updated student in video document:', newSelectedStudent);
       } catch (error) {
         console.error('Error updating identified student:', error);
       }
@@ -52,7 +58,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
       <div className="mt-2">
         <select 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium"
-          defaultValue={identifiedStudent || ''}
+          value={selectedStudent}
           onChange={handleStudentSelect}
         >
           <option value="">Select a student</option>
