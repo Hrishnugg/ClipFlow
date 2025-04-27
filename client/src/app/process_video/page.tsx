@@ -20,6 +20,7 @@ interface Video {
   confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
+  rosterId?: string;
 }
 
 export default function ProcessVideo() {
@@ -55,7 +56,8 @@ export default function ProcessVideo() {
             identifiedStudent: data.identifiedStudent,
             confidenceLevel: data.confidenceLevel,
             isReviewed: data.isReviewed,
-            uploadDate: data.uploadDate
+            uploadDate: data.uploadDate,
+            rosterId: data.rosterId
           });
         });
         
@@ -148,6 +150,7 @@ export default function ProcessVideo() {
           <StudentInfoSidebar 
             identifiedStudent={selectedVideo?.identifiedStudent || null} 
             confidenceLevel={selectedVideo?.confidenceLevel}
+            rosterId={selectedVideo?.rosterId}
           />
         </div>
       </div>
