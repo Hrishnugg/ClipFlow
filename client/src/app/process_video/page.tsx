@@ -10,6 +10,7 @@ import VideoPlaylist from '@/components/video/VideoPlaylist';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import TranscriptSection from '@/components/video/TranscriptSection';
 import StudentInfoSidebar from '@/components/video/StudentInfoSidebar';
+import VideoActionsPanel from '@/components/video/VideoActionsPanel';
 
 interface Video {
   id: string;
@@ -166,13 +167,26 @@ export default function ProcessVideo() {
         
         {/* Student info sidebar */}
         <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
-          <StudentInfoSidebar 
-            identifiedStudent={selectedVideo?.identifiedStudent || null} 
-            confidenceLevel={selectedVideo?.confidenceLevel}
-            rosterId={selectedVideo?.rosterId}
-            videoId={selectedVideo?.id}
-            onStudentUpdate={handleStudentUpdate}
-          />
+          <div className="flex flex-col h-full">
+            <div className="flex-grow">
+              <StudentInfoSidebar 
+                identifiedStudent={selectedVideo?.identifiedStudent || null} 
+                confidenceLevel={selectedVideo?.confidenceLevel}
+                rosterId={selectedVideo?.rosterId}
+                videoId={selectedVideo?.id}
+                onStudentUpdate={handleStudentUpdate}
+              />
+            </div>
+            
+            {videos.length > 0 && (
+              <div className="flex-shrink-0 mt-3">
+                <VideoActionsPanel 
+                  userUid={user?.uid || ''} 
+                  onUpdate={handleStudentUpdate}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
