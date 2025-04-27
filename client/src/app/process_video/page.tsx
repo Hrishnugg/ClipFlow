@@ -200,7 +200,6 @@ export default function ProcessVideo() {
       <UploadVideoModal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
-        error={error}
         onProcessingStatusChange={handleProcessingStatusChange}
       />
     </AuthenticatedLayout>
