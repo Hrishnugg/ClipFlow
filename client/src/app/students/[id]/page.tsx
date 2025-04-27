@@ -176,7 +176,8 @@ export default function StudentDetailPage() {
         </div>
         
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">{student.name}</h1>
+          <h1 className="text-xl font-bold">{student.name}</h1>
+          <h2 className="text-md">{student.email}</h2>
         </div>
         
         <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
