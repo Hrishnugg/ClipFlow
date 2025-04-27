@@ -26,7 +26,6 @@ interface Video {
 
 export default function ProcessVideo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error] = useState<string | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
