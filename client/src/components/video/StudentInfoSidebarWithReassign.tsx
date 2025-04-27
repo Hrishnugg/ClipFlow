@@ -52,10 +52,20 @@ export default function StudentInfoSidebarWithReassign({
       setIsReassigning(true);
       try {
         const videoRef = doc(db, 'videos', videoId);
-        await updateDoc(videoRef, {
-          identifiedStudent: selectedStudent
-        });
-        console.log('Updated student in video document:', selectedStudent);
+        
+        const videoDoc = await getDoc(videoRef);
+        if (videoDoc.exists()) {
+          const videoData = videoDoc.data();
+          const createdDate = videoData.uploadDate || new Date().toISOString().split('T')[0];
+          
+          await updateDoc(videoRef, {
+            identifiedStudent: selectedStudent,
+            title: `${selectedStudent} ${createdDate}`
+          });
+          
+          console.log('Updated video with new student and title:', selectedStudent, createdDate);
+        }
+        
         if (onStudentUpdate) {
           onStudentUpdate();
         }
