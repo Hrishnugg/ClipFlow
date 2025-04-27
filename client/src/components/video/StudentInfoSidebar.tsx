@@ -147,7 +147,8 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
         <div className="mt-6 space-y-2">
           <button 
             onClick={handleSaveVideo}
-            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={!selectedStudent}
+            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             Save Video
           </button>

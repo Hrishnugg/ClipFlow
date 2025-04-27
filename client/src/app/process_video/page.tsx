@@ -183,6 +183,7 @@ export default function ProcessVideo() {
                 <VideoActionsPanel 
                   userUid={user?.uid || ''} 
                   onUpdate={handleStudentUpdate}
+                  allVideosHaveIdentifiedStudents={videos.every(video => video.identifiedStudent !== "")}
                 />
               </div>
             )}
