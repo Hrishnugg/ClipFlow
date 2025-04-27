@@ -61,7 +61,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           value={selectedStudent}
           onChange={handleStudentSelect}
         >
-          <option value="">Select a student</option>
+          <option value="" disabled>Select a student</option>
           {studentNames.map((name) => (
             <option key={name} value={name}>
               {name}
