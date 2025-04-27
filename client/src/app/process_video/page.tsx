@@ -151,6 +151,7 @@ export default function ProcessVideo() {
             identifiedStudent={selectedVideo?.identifiedStudent || null} 
             confidenceLevel={selectedVideo?.confidenceLevel}
             rosterId={selectedVideo?.rosterId}
+            videoId={selectedVideo?.id}
           />
         </div>
       </div>
