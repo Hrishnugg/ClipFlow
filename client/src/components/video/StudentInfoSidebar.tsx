@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStudentNamesFromRoster } from '@/firebase/llm';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
-import { ref, deleteObject } from 'firebase/storage';
+import { ref, deleteObject, getStorage } from 'firebase/storage';
 
 interface StudentInfoSidebarProps {
   identifiedStudent: string | null;
@@ -78,16 +78,30 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     if (videoId) {
       try {
         const videoRef = doc(db, 'videos', videoId);
+        const videoDoc = await getDoc(videoRef);
         
-        await deleteDoc(videoRef);
-        console.log('Deleted video document from Firestore');
-        
-        try {
-          const storageRef = ref(storage, `videos/${videoId}`);
-          await deleteObject(storageRef);
-          console.log('Deleted video file from Storage');
-        } catch (storageError) {
-          console.error('Error deleting video from storage:', storageError);
+        if (videoDoc.exists()) {
+          const videoData = videoDoc.data();
+          const assetUrl = videoData.asset;
+          
+          await deleteDoc(videoRef);
+          console.log('Deleted video document from Firestore');
+          
+          try {
+            if (assetUrl) {
+              const filePathMatch = assetUrl.match(/\/o\/([^?]+)/);
+              if (filePathMatch && filePathMatch[1]) {
+                const filePath = decodeURIComponent(filePathMatch[1]);
+                const storageRef = ref(storage, filePath);
+                await deleteObject(storageRef);
+                console.log('Deleted video file from Storage:', filePath);
+              } else {
+                console.error('Could not extract file path from URL:', assetUrl);
+              }
+            }
+          } catch (storageError) {
+            console.error('Error deleting video from storage:', storageError);
+          }
         }
         
         if (onStudentUpdate) {
