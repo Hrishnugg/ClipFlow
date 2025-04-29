@@ -15,11 +15,10 @@ interface Roster {
 interface UploadVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  error?: string | null;
   onProcessingStatusChange?: (isProcessing: boolean) => void;
 }
 
-export default function UploadVideoModal({ isOpen, onClose, error, onProcessingStatusChange }: UploadVideoModalProps) {
+export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusChange }: UploadVideoModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedRosterId, setSelectedRosterId] = useState<string>('');
   const [rosters, setRosters] = useState<Roster[]>([]);

@@ -6,17 +6,22 @@ import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
 
-interface StudentInfoSidebarProps {
+interface StudentInfoSidebarWithReassignProps {
   identifiedStudent: string | null;
-  confidenceLevel?: number;
   rosterId?: string;
   videoId?: string;
   onStudentUpdate?: () => void;
 }
 
-export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId, onStudentUpdate }: StudentInfoSidebarProps) {
+export default function StudentInfoSidebarWithReassign({ 
+  identifiedStudent, 
+  rosterId, 
+  videoId, 
+  onStudentUpdate 
+}: StudentInfoSidebarWithReassignProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
+  const [isReassigning, setIsReassigning] = useState(false);
   
   useEffect(() => {
     const fetchStudentNames = async () => {
@@ -37,50 +42,37 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     setSelectedStudent(identifiedStudent || '');
   }, [identifiedStudent]);
 
-  const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStudentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSelectedStudent = e.target.value;
     setSelectedStudent(newSelectedStudent);
-    
-    if (videoId) {
+  };
+  
+  const handleReassignStudent = async () => {
+    if (videoId && selectedStudent) {
+      setIsReassigning(true);
       try {
         const videoRef = doc(db, 'videos', videoId);
-        await updateDoc(videoRef, {
-          identifiedStudent: newSelectedStudent
-        });
-        console.log('Updated student in video document:', newSelectedStudent);
+        
+        const videoDoc = await getDoc(videoRef);
+        if (videoDoc.exists()) {
+          const videoData = videoDoc.data();
+          const createdDate = videoData.uploadDate || new Date().toISOString().split('T')[0];
+          
+          await updateDoc(videoRef, {
+            identifiedStudent: selectedStudent,
+            title: `${selectedStudent} ${createdDate}`
+          });
+          
+          console.log('Updated video with new student and title:', selectedStudent, createdDate);
+        }
+        
         if (onStudentUpdate) {
           onStudentUpdate();
         }
       } catch (error) {
         console.error('Error updating identified student:', error);
-      }
-    }
-  };
-  
-  const handleSaveVideo = async () => {
-    if (videoId && selectedStudent) {
-      try {
-        const videoRef = doc(db, 'videos', videoId);
-        const videoDoc = await getDoc(videoRef);
-        
-        if (videoDoc.exists()) {
-          const videoData = videoDoc.data();
-          const creationDate = videoData.createdAt || videoData.uploadDate;
-          const formattedDate = new Date(creationDate).toLocaleDateString();
-          const newTitle = `${selectedStudent} ${formattedDate}`;
-          
-          await updateDoc(videoRef, {
-            isReviewed: true,
-            title: newTitle
-          });
-          
-          console.log('Marked video as reviewed and updated title');
-          if (onStudentUpdate) {
-            onStudentUpdate();
-          }
-        }
-      } catch (error) {
-        console.error('Error updating video review status:', error);
+      } finally {
+        setIsReassigning(false);
       }
     }
   };
@@ -140,29 +132,19 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
             </option>
           ))}
         </select>
-        {confidenceLevel !== undefined && (
-          <div className="mt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">AI Confidence: {confidenceLevel}%</p>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-1 dark:bg-gray-700">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{ width: `${confidenceLevel}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
+        
+        <button 
+          onClick={handleReassignStudent}
+          disabled={isReassigning || selectedStudent === identifiedStudent || !selectedStudent}
+          className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed mt-2"
+        >
+          {isReassigning ? 'Reassigning...' : 'Reassign Video'}
+        </button>
       </div>
       
       {/* Video action buttons */}
       {videoId && (
-        <div className="mt-6 space-y-2">
-          <button 
-            onClick={handleSaveVideo}
-            disabled={!selectedStudent}
-            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
-          >
-            Save Video
-          </button>
+        <div className="mt-6">
           <button 
             onClick={handleDeleteVideo}
             className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
