@@ -1,15 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
+  
+  useEffect(() => {
+    if (pathname === '/create_team') {
+      setIsTeamsExpanded(true);
+    }
+  }, [pathname]);
   
   const isActive = (path: string) => {
     return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
+  };
+
+  const toggleTeamsExpand = () => {
+    setIsTeamsExpanded(!isTeamsExpanded);
   };
 
   return (
@@ -19,6 +30,27 @@ export default function Sidebar() {
       </div>
       <nav className="mt-6 flex-grow">
         <ul>
+          <li className="mb-2">
+            <div 
+              onClick={toggleTeamsExpand}
+              className="flex items-center justify-between px-6 py-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span>Teams</span>
+              <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
+            </div>
+            {isTeamsExpanded && (
+              <ul className="ml-4">
+                <li className="mb-2">
+                  <Link 
+                    href="/create_team" 
+                    className="flex items-center px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span>+ Create Team</span>
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
           <li className="mb-2">
             <Link 
               href="/dashboard" 
@@ -49,6 +81,14 @@ export default function Sidebar() {
               className={`flex items-center px-6 py-3 ${isActive('/process_video')} transition-colors`}
             >
               <span>Process Video</span>
+            </Link>
+          </li>
+          <li className="mb-2">
+            <Link 
+              href="/invite" 
+              className={`flex items-center px-6 py-3 ${isActive('/invite')} transition-colors`}
+            >
+              <span>Invite</span>
             </Link>
           </li>
         </ul>
