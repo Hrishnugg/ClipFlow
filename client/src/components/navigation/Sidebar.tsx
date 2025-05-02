@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
@@ -8,6 +8,12 @@ import SignOutButton from '@/components/auth/SignOutButton';
 export default function Sidebar() {
   const pathname = usePathname();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
+  
+  useEffect(() => {
+    if (pathname === '/create_team') {
+      setIsTeamsExpanded(true);
+    }
+  }, [pathname]);
   
   const isActive = (path: string) => {
     return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
