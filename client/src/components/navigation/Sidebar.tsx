@@ -1,19 +1,41 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
+import { useAuth } from '@/context/AuthContext';
+import { getTeamsForUser } from '@/firebase/firestore';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
+  const [teams, setTeams] = useState<any[]>([]);
+  const { user } = useAuth();
   
   useEffect(() => {
     if (pathname === '/create_team') {
       setIsTeamsExpanded(true);
     }
   }, [pathname]);
+  
+  const fetchTeams = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const userTeams = await getTeamsForUser(user.uid);
+      setTeams(userTeams);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      setTeams([]);
+    }
+  }, [user]);
+  
+  useEffect(() => {
+    if (user) {
+      fetchTeams();
+    }
+  }, [user, fetchTeams]);
   
   const isActive = (path: string) => {
     return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
@@ -43,11 +65,21 @@ export default function Sidebar() {
                 <li className="mb-2">
                   <Link 
                     href="/create_team" 
-                    className="flex items-center px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className={`flex items-center px-6 py-2 ${isActive('/create_team')} transition-colors`}
                   >
                     <span>+ Create Team</span>
                   </Link>
                 </li>
+                {teams.map((team) => (
+                  <li key={team.id} className="mb-2">
+                    <Link 
+                      href={`/teams/${team.id}`} 
+                      className={`flex items-center px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
+                    >
+                      <span>{team.name}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             )}
           </li>
