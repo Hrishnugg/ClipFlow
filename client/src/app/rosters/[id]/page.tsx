@@ -18,7 +18,7 @@ interface Roster {
   id: string;
   name: string;
   userUID: string;
-  teamID: string;
+  teamID: string; // We're keeping this as string since rosters belong to only one team
   students: Student[];
 }
 

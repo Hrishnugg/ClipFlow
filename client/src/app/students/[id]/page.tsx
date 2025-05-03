@@ -18,6 +18,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  teamID?: string[];
 }
 
 interface Video {
@@ -55,7 +56,9 @@ export default function StudentDetailPage() {
           const data = studentSnap.data();
           const selectedTeam = await getUserSelectedTeam(user.uid);
           
-          if (data.teamID !== selectedTeam) {
+          const teamIDs = Array.isArray(data.teamID) ? data.teamID : [data.teamID];
+          
+          if (!teamIDs.includes(selectedTeam)) {
             console.error('Unauthorized access to student');
             router.push('/students');
             return;

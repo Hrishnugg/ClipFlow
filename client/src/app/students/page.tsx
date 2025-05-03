@@ -14,7 +14,7 @@ interface Student {
   email: string;
   parentEmail: string;
   user_uid?: string;
-  teamID?: string;
+  teamID?: string[];
 }
 
 export default function StudentsPage() {
@@ -40,7 +40,7 @@ export default function StudentsPage() {
         
         const studentsQuery = query(
           collection(db, 'students'), 
-          where('teamID', '==', selectedTeam)
+          where('teamID', 'array-contains', selectedTeam)
         );
         const studentsSnapshot = await getDocs(studentsQuery);
         

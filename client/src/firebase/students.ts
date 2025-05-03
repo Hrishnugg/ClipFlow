@@ -6,6 +6,7 @@ interface Student {
   name: string;
   email: string;
   parentEmail: string;
+  teamID?: string[]; // Array of team IDs
 }
 
 /**
@@ -22,13 +23,21 @@ export async function addOrUpdateStudent(student: Student, user_uid: string, tea
       const existingStudentDoc = querySnapshot.docs[0];
       const existingStudent = existingStudentDoc.data();
       
-      if (existingStudent.parentEmail !== student.parentEmail) {
-        await setDoc(doc(db, 'students', existingStudentDoc.id), {
-          ...existingStudent,
-          parentEmail: student.parentEmail,
-          teamID: teamID // Update teamID when updating other fields
-        }, { merge: true });
+      let teamIDs = existingStudent.teamID || [];
+      
+      if (typeof teamIDs === 'string') {
+        teamIDs = [teamIDs];
       }
+      
+      if (!teamIDs.includes(teamID)) {
+        teamIDs.push(teamID);
+      }
+      
+      await setDoc(doc(db, 'students', existingStudentDoc.id), {
+        ...existingStudent,
+        parentEmail: student.parentEmail,
+        teamID: teamIDs
+      }, { merge: true });
       
       return existingStudentDoc.id;
     } else {
@@ -38,7 +47,7 @@ export async function addOrUpdateStudent(student: Student, user_uid: string, tea
         email: student.email,
         parentEmail: student.parentEmail,
         user_uid: user_uid,
-        teamID: teamID,
+        teamID: [teamID], // Initialize as array with the first teamID
         createdAt: new Date().toISOString()
       });
       
