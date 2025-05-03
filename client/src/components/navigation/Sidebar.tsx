@@ -129,7 +129,6 @@ export default function Sidebar() {
                     className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer ${isActive('/create_team')}`}
                   >
                     <span>+ Create Team</span>
-                    {teams.length === 0 && selectedTeam === null && <span className="ml-2 font-bold text-blue-600">✓</span>}
                   </div>
                 </li>
                 {teams.map((team) => (

@@ -97,7 +97,7 @@ export default function StudentsPage() {
           <p>
             {selectedTeam 
               ? "No students found. Upload a roster to add students." 
-              : "Please create and select a team first to view students."}
+              : "Please create a team and upload a roster to view students."}
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
