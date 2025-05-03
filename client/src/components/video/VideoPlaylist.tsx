@@ -11,6 +11,7 @@ interface Video {
   confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
+  teamID?: string;
 }
 
 interface VideoPlaylistProps {

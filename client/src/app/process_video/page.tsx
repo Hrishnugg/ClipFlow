@@ -6,6 +6,7 @@ import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { useAuth } from '@/context/AuthContext';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 import VideoPlaylist from '@/components/video/VideoPlaylist';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import TranscriptSection from '@/components/video/TranscriptSection';
@@ -22,6 +23,7 @@ interface Video {
   isReviewed: boolean;
   uploadDate: string;
   rosterId?: string;
+  teamID?: string;
 }
 
 export default function ProcessVideo() {
@@ -39,10 +41,13 @@ export default function ProcessVideo() {
       if (!user) return;
       
       try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        
         const videosQuery = query(
           collection(db, 'videos'), 
           where('user_uid', '==', user.uid),
-          where('isReviewed', '==', false)
+          where('isReviewed', '==', false),
+          where('teamID', '==', selectedTeam)
         );
         
         const querySnapshot = await getDocs(videosQuery);
@@ -59,7 +64,8 @@ export default function ProcessVideo() {
             confidenceLevel: data.confidenceLevel,
             isReviewed: data.isReviewed,
             uploadDate: data.uploadDate,
-            rosterId: data.rosterId
+            rosterId: data.rosterId,
+            teamID: data.teamID
           });
         });
         

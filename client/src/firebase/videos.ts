@@ -9,7 +9,8 @@ import { identifyStudentViaLLM, getStudentNamesFromRoster } from './llm';
 export async function processVideo(
   video: File, 
   rosterId: string,
-  user_uid: string
+  user_uid: string,
+  teamID?: string
 ): Promise<{ success: boolean; videoId?: string; error?: string }> {
   try {
     const transcriptionResult = await transcribeVideo(video);
@@ -42,7 +43,8 @@ export async function processVideo(
       transcript: transcript,
       user_uid: user_uid,
       identifiedStudent: identifiedStudent,
-      confidenceLevel: confidenceLevel
+      confidenceLevel: confidenceLevel,
+      teamID: teamID
     };
     
     const videoRef = await addDoc(collection(db, 'videos'), videoData);
