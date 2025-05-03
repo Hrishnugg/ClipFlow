@@ -91,6 +91,8 @@ export default function Sidebar() {
         window.location.reload();
       } else if (currentPath.startsWith('/rosters/')) {
         window.location.href = '/rosters';
+      } else if (currentPath.startsWith('/students/')) {
+        window.location.href = '/students';
       }
     } catch (error) {
       console.error('Error updating selected team:', error);
