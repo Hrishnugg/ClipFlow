@@ -15,10 +15,13 @@ export default function Sidebar() {
   const { user } = useAuth();
   
   useEffect(() => {
-    if (pathname === '/create_team') {
+    const storedExpandState = localStorage.getItem('teamsExpanded');
+    if (storedExpandState) {
+      setIsTeamsExpanded(storedExpandState === 'true');
+    } else if (pathname === '/create_team') {
       setIsTeamsExpanded(true);
     }
-  }, [pathname]);
+  }, []);
   
   const fetchTeams = useCallback(async () => {
     if (!user) return;
@@ -96,7 +99,9 @@ export default function Sidebar() {
   };
 
   const toggleTeamsExpand = () => {
-    setIsTeamsExpanded(!isTeamsExpanded);
+    const newState = !isTeamsExpanded;
+    setIsTeamsExpanded(newState);
+    localStorage.setItem('teamsExpanded', newState.toString());
   };
 
   return (
