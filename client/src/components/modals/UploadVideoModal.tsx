@@ -6,10 +6,12 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { processVideo, ensureVideosCollection } from '../../firebase/videos';
 import { useAuth } from '../../context/AuthContext';
+import { getUserSelectedTeam } from '../../firebase/firestore';
 
 interface Roster {
   id: string;
   name: string;
+  teamID?: string;
 }
 
 interface UploadVideoModalProps {
@@ -31,8 +33,13 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
       if (!user) return;
 
       try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
         const rostersRef = collection(db, 'rosters');
-        const q = query(rostersRef, where('userUID', '==', user.uid));
+        const q = query(
+          rostersRef, 
+          where('userUID', '==', user.uid),
+          where('teamID', '==', selectedTeam)
+        );
         const querySnapshot = await getDocs(q);
 
         const fetchedRosters: Roster[] = [];
@@ -109,7 +116,8 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
 
         for (const videoFile of videoFiles) {
           const file = new File([videoFile.data], videoFile.name, { type: 'video/mp4' });
-          await processVideo(file, selectedRosterId, user?.uid || '');
+          const selectedTeam = await getUserSelectedTeam(user?.uid || '');
+          await processVideo(file, selectedRosterId, user?.uid || '', selectedTeam || undefined);
 
           setProcessingCount(prev => ({
             ...prev,

@@ -6,6 +6,7 @@ import UploadVideoModal from '@/components/modals/UploadVideoModal';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { useAuth } from '@/context/AuthContext';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 import VideoPlaylist from '@/components/video/VideoPlaylist';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import TranscriptSection from '@/components/video/TranscriptSection';
@@ -22,6 +23,7 @@ interface Video {
   isReviewed: boolean;
   uploadDate: string;
   rosterId?: string;
+  teamID?: string;
 }
 
 export default function ProcessVideo() {
@@ -32,6 +34,7 @@ export default function ProcessVideo() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isStudentUpdate, setIsStudentUpdate] = useState(false);
+  const [hasMatchingRosters, setHasMatchingRosters] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,10 +42,13 @@ export default function ProcessVideo() {
       if (!user) return;
       
       try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        
         const videosQuery = query(
           collection(db, 'videos'), 
           where('user_uid', '==', user.uid),
-          where('isReviewed', '==', false)
+          where('isReviewed', '==', false),
+          where('teamID', '==', selectedTeam)
         );
         
         const querySnapshot = await getDocs(videosQuery);
@@ -59,7 +65,8 @@ export default function ProcessVideo() {
             confidenceLevel: data.confidenceLevel,
             isReviewed: data.isReviewed,
             uploadDate: data.uploadDate,
-            rosterId: data.rosterId
+            rosterId: data.rosterId,
+            teamID: data.teamID
           });
         });
         
@@ -79,6 +86,15 @@ export default function ProcessVideo() {
         } else if (sortedVideosData.length > 0) {
           setSelectedVideo(sortedVideosData[0]);
         }
+        
+        const rostersRef = collection(db, 'rosters');
+        const rostersQuery = query(
+          rostersRef,
+          where('teamID', '==', selectedTeam)
+        );
+        const rostersSnapshot = await getDocs(rostersQuery);
+        setHasMatchingRosters(!rostersSnapshot.empty);
+        
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
@@ -125,12 +141,18 @@ export default function ProcessVideo() {
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
             <h1 className="text-2xl font-bold mb-6 text-center">Process Video</h1>
             <div className="flex justify-center">
-              <button
-                onClick={handleUpload}
-                className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
-              >
-                Upload Videos
-              </button>
+              {hasMatchingRosters ? (
+                <button
+                  onClick={handleUpload}
+                  className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+                >
+                  Upload Videos
+                </button>
+              ) : (
+                <p className="text-center text-gray-600 dark:text-gray-400">
+                  No rosters found. Upload a roster to get started.
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -31,6 +31,7 @@ interface Video {
   isReviewed: boolean;
   uploadDate: string;
   rosterId?: string;
+  teamID?: string;
 }
 
 export default function StudentDetailPage() {
@@ -75,7 +76,8 @@ export default function StudentDetailPage() {
           const videosQuery = query(
             collection(db, 'videos'),
             where('isReviewed', '==', true),
-            where('identifiedStudent', '==', data.name)
+            where('identifiedStudent', '==', data.name),
+            where('teamID', '==', selectedTeam)
           );
           
           const videosSnapshot = await getDocs(videosQuery);
@@ -92,7 +94,8 @@ export default function StudentDetailPage() {
               confidenceLevel: data.confidenceLevel || 100, // Default to 100 for reviewed videos
               isReviewed: data.isReviewed,
               uploadDate: data.uploadDate,
-              rosterId: data.rosterId
+              rosterId: data.rosterId,
+              teamID: data.teamID
             });
           });
           
