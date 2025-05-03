@@ -85,6 +85,11 @@ export default function Sidebar() {
       await updateUserSelectedTeam(user.uid, teamId);
       setSelectedTeam(teamId);
       console.log('Team selected:', teamId);
+      
+      const currentPath = window.location.pathname;
+      if (currentPath === '/rosters' || currentPath === '/students') {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Error updating selected team:', error);
     }
