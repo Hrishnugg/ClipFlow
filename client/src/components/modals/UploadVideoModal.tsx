@@ -11,6 +11,7 @@ import { getUserSelectedTeam } from '../../firebase/firestore';
 interface Roster {
   id: string;
   name: string;
+  teamID?: string;
 }
 
 interface UploadVideoModalProps {
@@ -32,8 +33,13 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
       if (!user) return;
 
       try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
         const rostersRef = collection(db, 'rosters');
-        const q = query(rostersRef, where('userUID', '==', user.uid));
+        const q = query(
+          rostersRef, 
+          where('userUID', '==', user.uid),
+          where('teamID', '==', selectedTeam)
+        );
         const querySnapshot = await getDocs(q);
 
         const fetchedRosters: Roster[] = [];
