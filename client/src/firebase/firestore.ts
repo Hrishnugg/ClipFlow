@@ -148,3 +148,13 @@ export async function getTeamsForUser(uid: string): Promise<TeamData[]> {
     return [];
   }
 }
+
+export async function checkTeamNameExists(uid: string, teamName: string): Promise<boolean> {
+  try {
+    const teams = await getTeamsForUser(uid);
+    return teams.some(team => team.name.toLowerCase() === teamName.toLowerCase());
+  } catch (error) {
+    console.error('Error checking team name:', error);
+    return false;
+  }
+}

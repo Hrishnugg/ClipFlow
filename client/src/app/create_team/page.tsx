@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
-import { createTeam } from '@/firebase/firestore';
+import { createTeam, checkTeamNameExists } from '@/firebase/firestore';
 
 export default function CreateTeamPage() {
   const [teamName, setTeamName] = useState('');
@@ -29,8 +29,17 @@ export default function CreateTeamPage() {
     setSuccess(null);
     
     try {
+      const teamExists = await checkTeamNameExists(user.uid, teamName);
+      if (teamExists) {
+        setError('You are already part of a team with the same name. Please choose a different name.');
+        setIsCreating(false);
+        return;
+      }
+      
       const memberEmails = emails.trim() ? 
-        emails.split(',').map(email => email.trim()).filter(email => email !== '') : 
+        emails.split(',')
+          .map(email => email.trim())
+          .filter(email => email !== '' && email.toLowerCase() !== user.email?.toLowerCase()) : 
         [];
       
       const result = await createTeam({
@@ -100,6 +109,9 @@ export default function CreateTeamPage() {
               placeholder="user1@example.com, user2@example.com"
               rows={4}
             />
+            <p className="text-sm text-gray-500 mt-1">
+              You will automatically be added as a member. No need to include your own email.
+            </p>
           </div>
           
           <button
