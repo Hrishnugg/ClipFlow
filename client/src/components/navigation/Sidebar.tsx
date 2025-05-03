@@ -81,6 +81,8 @@ export default function Sidebar() {
   const handleTeamSelect = async (teamId: string) => {
     if (!user) return;
     
+    if (selectedTeam === teamId) return;
+    
     try {
       await updateUserSelectedTeam(user.uid, teamId);
       setSelectedTeam(teamId);
