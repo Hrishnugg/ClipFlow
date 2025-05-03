@@ -89,7 +89,7 @@ export default function Sidebar() {
       console.log('Team selected:', teamId);
       
       const currentPath = window.location.pathname;
-      if (currentPath === '/rosters' || currentPath === '/students') {
+      if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video') {
         window.location.reload();
       } else if (currentPath.startsWith('/rosters/')) {
         window.location.href = '/rosters';
