@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
-import { getTeamsForUser } from '@/firebase/firestore';
+import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam } from '@/firebase/firestore';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const { user } = useAuth();
   
   useEffect(() => {
@@ -38,6 +39,31 @@ export default function Sidebar() {
   }, [user, fetchTeams]);
   
   useEffect(() => {
+    const fetchSelectedTeam = async () => {
+      if (!user) return;
+      
+      try {
+        const userSelectedTeam = await getUserSelectedTeam(user.uid);
+        setSelectedTeam(userSelectedTeam);
+      } catch (error) {
+        console.error('Error fetching selected team:', error);
+      }
+    };
+    
+    fetchSelectedTeam();
+  }, [user]);
+  
+  useEffect(() => {
+    if (user && teams.length === 1 && !selectedTeam) {
+      handleTeamSelect(teams[0].id);
+    }
+  }, [user, teams, selectedTeam]);
+  
+  useEffect(() => {
+    console.log('Selected Team:', selectedTeam);
+  }, [selectedTeam]);
+  
+  useEffect(() => {
     const handleRefreshTeams = () => {
       fetchTeams();
     };
@@ -49,6 +75,22 @@ export default function Sidebar() {
     };
   }, [fetchTeams]);
   
+  const handleTeamSelect = async (teamId: string) => {
+    if (!user) return;
+    
+    try {
+      await updateUserSelectedTeam(user.uid, teamId);
+      setSelectedTeam(teamId);
+      console.log('Team selected:', teamId);
+    } catch (error) {
+      console.error('Error updating selected team:', error);
+    }
+  };
+  
+  const isTeamSelected = (teamId: string) => {
+    return selectedTeam === teamId;
+  };
+
   const isActive = (path: string) => {
     return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
   };
@@ -75,21 +117,25 @@ export default function Sidebar() {
             {isTeamsExpanded && (
               <ul className="ml-4">
                 <li className="mb-2">
-                  <Link 
-                    href="/create_team" 
-                    className={`flex items-center px-6 py-2 ${isActive('/create_team')} transition-colors`}
+                  <div 
+                    onClick={() => {
+                      window.location.href = "/create_team";
+                    }}
+                    className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer ${isActive('/create_team')}`}
                   >
                     <span>+ Create Team</span>
-                  </Link>
+                    {teams.length === 0 && selectedTeam === null && <span className="ml-2 font-bold text-blue-600">✓</span>}
+                  </div>
                 </li>
                 {teams.map((team) => (
                   <li key={team.id} className="mb-2">
-                    <Link 
-                      href={`/teams/${team.id}`} 
-                      className={`flex items-center px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
+                    <div 
+                      onClick={() => handleTeamSelect(team.id)}
+                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer`}
                     >
                       <span>{team.name}</span>
-                    </Link>
+                      {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
+                    </div>
                   </li>
                 ))}
               </ul>
