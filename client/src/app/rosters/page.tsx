@@ -117,18 +117,13 @@ export default function Rosters() {
     try {
       const selectedTeam = await getUserSelectedTeam(user.uid);
       
-      if (!selectedTeam) {
-        setError('Please select a team before uploading a roster');
-        return;
-      }
-      
       const reader = new FileReader();
       
       reader.onload = async (e) => {
         const csvText = e.target?.result as string;
         const students = parseCSV(csvText);
         
-        const result = await processRoster(students, user.uid, selectedTeam);
+        const result = await processRoster(students, user.uid, selectedTeam as string);
         
         if (!result.success) {
           setError(result.error || 'Failed to process roster');
