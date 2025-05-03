@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 
 interface Student {
   name: string;
@@ -17,6 +18,7 @@ interface Roster {
   id: string;
   name: string;
   userUID: string;
+  teamID: string; // We're keeping this as string since rosters belong to only one team
   students: Student[];
 }
 
@@ -38,8 +40,9 @@ export default function RosterDetail() {
       
       if (rosterSnap.exists()) {
         const data = rosterSnap.data();
+        const selectedTeam = await getUserSelectedTeam(user.uid);
         
-        if (data.userUID !== user.uid) {
+        if (data.teamID !== selectedTeam) {
           console.error('Unauthorized access to roster');
           router.push('/rosters');
           return;
@@ -49,6 +52,7 @@ export default function RosterDetail() {
           id: rosterSnap.id,
           name: data.name,
           userUID: data.userUID,
+          teamID: data.teamID,
           students: data.students || []
         });
       } else {

@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { processRoster } from '@/firebase/students';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 
 interface Student {
   name: string;
@@ -20,6 +21,7 @@ interface Roster {
   id: string;
   name: string;
   userUID: string;
+  teamID: string;
   students: Student[];
 }
 
@@ -28,6 +30,7 @@ export default function Rosters() {
   const [rosters, setRosters] = useState<Roster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchRosters = useCallback(async () => {
@@ -35,8 +38,18 @@ export default function Rosters() {
     
     try {
       setLoading(true);
+      const selectedTeam = await getUserSelectedTeam(user.uid);
+      
+      if (!selectedTeam) {
+        setRosters([]);
+        return;
+      }
+      
       const rostersRef = collection(db, 'rosters');
-      const q = query(rostersRef, where('userUID', '==', user.uid));
+      const q = query(
+        rostersRef, 
+        where('teamID', '==', selectedTeam)
+      );
       const querySnapshot = await getDocs(q);
       
       const fetchedRosters: Roster[] = [];
@@ -46,6 +59,7 @@ export default function Rosters() {
           id: doc.id,
           name: data.name,
           userUID: data.userUID,
+          teamID: data.teamID,
           students: data.students || []
         });
       });
@@ -63,6 +77,21 @@ export default function Rosters() {
       fetchRosters();
     }
   }, [user, fetchRosters]);
+  
+  useEffect(() => {
+    const fetchSelectedTeam = async () => {
+      if (!user) return;
+      
+      try {
+        const userSelectedTeam = await getUserSelectedTeam(user.uid);
+        setSelectedTeam(userSelectedTeam);
+      } catch (error) {
+        console.error('Error fetching selected team:', error);
+      }
+    };
+    
+    fetchSelectedTeam();
+  }, [user]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
@@ -85,13 +114,15 @@ export default function Rosters() {
     setError(null);
     
     try {
+      const selectedTeam = await getUserSelectedTeam(user.uid);
+      
       const reader = new FileReader();
       
       reader.onload = async (e) => {
         const csvText = e.target?.result as string;
         const students = parseCSV(csvText);
         
-        const result = await processRoster(students, user.uid);
+        const result = await processRoster(students, user.uid, selectedTeam as string);
         
         if (!result.success) {
           setError(result.error || 'Failed to process roster');
@@ -101,6 +132,7 @@ export default function Rosters() {
         const rosterData = {
           name: rosterName,
           userUID: user.uid,
+          teamID: selectedTeam,
           students,
           studentIds: result.studentIds,
           createdAt: new Date()
@@ -124,12 +156,14 @@ export default function Rosters() {
       <div className="p-8 w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Rosters</h1>
-          <button
-            onClick={handleUpload}
-            className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
-          >
-            Upload Roster
-          </button>
+          {selectedTeam ? (
+            <button
+              onClick={handleUpload}
+              className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+            >
+              Upload Roster
+            </button>
+          ) : null}
         </div>
         
         {error && (
@@ -144,7 +178,11 @@ export default function Rosters() {
           </div>
         ) : rosters.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
-            <p className="mb-4">No rosters found. Upload a roster to get started.</p>
+            <p className="mb-4">
+              {selectedTeam 
+                ? "No rosters found. Upload a roster to get started." 
+                : "Please create and select a team before uploading a roster."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

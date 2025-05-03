@@ -6,17 +6,19 @@ import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import VideoPlaylist from '@/components/video/VideoPlaylist';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import TranscriptSection from '@/components/video/TranscriptSection';
 import StudentInfoSidebarWithReassign from '@/components/video/StudentInfoSidebarWithReassign';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 
 interface Student {
   id: string;
   name: string;
   email: string;
   parentEmail: string;
+  teamID?: string[];
 }
 
 interface Video {
@@ -33,6 +35,7 @@ interface Video {
 
 export default function StudentDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const studentId = params.id as string;
   const { user } = useAuth();
   const [student, setStudent] = useState<Student | null>(null);
@@ -51,6 +54,16 @@ export default function StudentDetailPage() {
         
         if (studentSnap.exists()) {
           const data = studentSnap.data();
+          const selectedTeam = await getUserSelectedTeam(user.uid);
+          
+          const teamIDs = Array.isArray(data.teamID) ? data.teamID : [data.teamID];
+          
+          if (!teamIDs.includes(selectedTeam)) {
+            console.error('Unauthorized access to student');
+            router.push('/students');
+            return;
+          }
+          
           const studentData = {
             id: studentSnap.id,
             name: data.name,

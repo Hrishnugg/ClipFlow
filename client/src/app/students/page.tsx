@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import { getUserSelectedTeam } from '../../firebase/firestore';
 import Link from 'next/link';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 
@@ -13,19 +14,34 @@ interface Student {
   email: string;
   parentEmail: string;
   user_uid?: string;
+  teamID?: string[];
 }
 
 export default function StudentsPage() {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
       if (!user) return;
       
       try {
-        const studentsQuery = query(collection(db, 'students'), where('user_uid', '==', user.uid));
+        setLoading(true);
+        
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        
+        if (!selectedTeam) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+        
+        const studentsQuery = query(
+          collection(db, 'students'), 
+          where('teamID', 'array-contains', selectedTeam)
+        );
         const studentsSnapshot = await getDocs(studentsQuery);
         
         const studentsData: Student[] = [];
@@ -36,7 +52,8 @@ export default function StudentsPage() {
             name: data.name,
             email: data.email,
             parentEmail: data.parentEmail,
-            user_uid: data.user_uid
+            user_uid: data.user_uid,
+            teamID: data.teamID
           });
         });
         
@@ -50,6 +67,21 @@ export default function StudentsPage() {
 
     fetchStudents();
   }, [user]);
+  
+  useEffect(() => {
+    const fetchSelectedTeam = async () => {
+      if (!user) return;
+      
+      try {
+        const userSelectedTeam = await getUserSelectedTeam(user.uid);
+        setSelectedTeam(userSelectedTeam);
+      } catch (error) {
+        console.error('Error fetching selected team:', error);
+      }
+    };
+    
+    fetchSelectedTeam();
+  }, [user]);
 
   return (
     <AuthenticatedLayout>
@@ -61,7 +93,11 @@ export default function StudentsPage() {
             <p>Loading students...</p>
           </div>
         ) : students.length === 0 ? (
-          <p>No students found. Upload a roster to add students.</p>
+          <p>
+            {selectedTeam 
+              ? "No students found. Upload a roster to add students." 
+              : "Please create a team and upload a roster to view students."}
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {students.map((student) => (

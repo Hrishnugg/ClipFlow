@@ -81,10 +81,21 @@ export default function Sidebar() {
   const handleTeamSelect = async (teamId: string) => {
     if (!user) return;
     
+    if (selectedTeam === teamId) return;
+    
     try {
       await updateUserSelectedTeam(user.uid, teamId);
       setSelectedTeam(teamId);
       console.log('Team selected:', teamId);
+      
+      const currentPath = window.location.pathname;
+      if (currentPath === '/rosters' || currentPath === '/students') {
+        window.location.reload();
+      } else if (currentPath.startsWith('/rosters/')) {
+        window.location.href = '/rosters';
+      } else if (currentPath.startsWith('/students/')) {
+        window.location.href = '/students';
+      }
     } catch (error) {
       console.error('Error updating selected team:', error);
     }
@@ -129,7 +140,6 @@ export default function Sidebar() {
                     className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer ${isActive('/create_team')}`}
                   >
                     <span>+ Create Team</span>
-                    {teams.length === 0 && selectedTeam === null && <span className="ml-2 font-bold text-blue-600">✓</span>}
                   </div>
                 </li>
                 {teams.map((team) => (
