@@ -25,10 +25,6 @@ export async function addOrUpdateStudent(student: Student, user_uid: string, tea
       
       let teamIDs = existingStudent.teamID || [];
       
-      if (typeof teamIDs === 'string') {
-        teamIDs = [teamIDs];
-      }
-      
       if (!teamIDs.includes(teamID)) {
         teamIDs.push(teamID);
       }
