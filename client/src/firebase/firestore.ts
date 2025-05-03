@@ -9,6 +9,7 @@ export interface UserData {
   name: string | null;
   email: string | null;
   createdAt: string;
+  selectedTeam?: string;
 }
 
 export async function addUser(userData: UserData): Promise<void> {
@@ -157,4 +158,20 @@ export async function checkTeamNameExists(uid: string, teamName: string): Promis
     console.error('Error checking team name:', error);
     return false;
   }
+}
+
+export async function updateUserSelectedTeam(uid: string, teamId: string): Promise<boolean> {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, uid);
+    await setDoc(userRef, { selectedTeam: teamId }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error updating selected team for user:', error);
+    return false;
+  }
+}
+
+export async function getUserSelectedTeam(uid: string): Promise<string | null> {
+  const userData = await getUser(uid);
+  return userData?.selectedTeam || null;
 }
