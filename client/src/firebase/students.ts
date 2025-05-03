@@ -12,7 +12,7 @@ interface Student {
  * Adds a student to the students collection if they don't already exist,
  * or updates their parent email if they do exist.
  */
-export async function addOrUpdateStudent(student: Student, user_uid: string): Promise<string> {
+export async function addOrUpdateStudent(student: Student, user_uid: string, teamID: string): Promise<string> {
   try {
     const studentsRef = collection(db, 'students');
     const q = query(studentsRef, where('email', '==', student.email));
@@ -25,7 +25,8 @@ export async function addOrUpdateStudent(student: Student, user_uid: string): Pr
       if (existingStudent.parentEmail !== student.parentEmail) {
         await setDoc(doc(db, 'students', existingStudentDoc.id), {
           ...existingStudent,
-          parentEmail: student.parentEmail
+          parentEmail: student.parentEmail,
+          teamID: teamID // Update teamID when updating other fields
         }, { merge: true });
       }
       
@@ -37,6 +38,7 @@ export async function addOrUpdateStudent(student: Student, user_uid: string): Pr
         email: student.email,
         parentEmail: student.parentEmail,
         user_uid: user_uid,
+        teamID: teamID,
         createdAt: new Date().toISOString()
       });
       
@@ -98,7 +100,7 @@ export async function validateRoster(students: Student[]): Promise<{ valid: bool
  * Processes a roster of students, validating and adding each student to the database.
  * Returns the IDs of the students that were added or updated.
  */
-export async function processRoster(students: Student[], user_uid: string): Promise<{ success: boolean; studentIds?: string[]; error?: string }> {
+export async function processRoster(students: Student[], user_uid: string, teamID: string): Promise<{ success: boolean; studentIds?: string[]; error?: string }> {
   const validation = await validateRoster(students);
   if (!validation.valid) {
     return { success: false, error: validation.error };
@@ -107,7 +109,7 @@ export async function processRoster(students: Student[], user_uid: string): Prom
   try {
     const studentIds: string[] = [];
     for (const student of students) {
-      const studentId = await addOrUpdateStudent(student, user_uid);
+      const studentId = await addOrUpdateStudent(student, user_uid, teamID);
       studentIds.push(studentId);
     }
     

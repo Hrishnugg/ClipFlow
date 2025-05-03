@@ -17,6 +17,7 @@ interface Roster {
   id: string;
   name: string;
   userUID: string;
+  teamID: string;
   students: Student[];
 }
 
@@ -49,6 +50,7 @@ export default function RosterDetail() {
           id: rosterSnap.id,
           name: data.name,
           userUID: data.userUID,
+          teamID: data.teamID,
           students: data.students || []
         });
       } else {
