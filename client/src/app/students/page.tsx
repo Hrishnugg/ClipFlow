@@ -40,7 +40,6 @@ export default function StudentsPage() {
         
         const studentsQuery = query(
           collection(db, 'students'), 
-          where('user_uid', '==', user.uid),
           where('teamID', '==', selectedTeam)
         );
         const studentsSnapshot = await getDocs(studentsQuery);
