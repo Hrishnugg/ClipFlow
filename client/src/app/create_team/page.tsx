@@ -5,6 +5,12 @@ import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
 import { createTeam, checkTeamNameExists } from '@/firebase/firestore';
 
+const refreshTeamsList = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('refresh-teams'));
+  }
+};
+
 export default function CreateTeamPage() {
   const [teamName, setTeamName] = useState('');
   const [emails, setEmails] = useState('');
@@ -53,6 +59,8 @@ export default function CreateTeamPage() {
         setSuccess('Team created successfully!');
         setTeamName('');
         setEmails('');
+        
+        refreshTeamsList();
       } else {
         setError(result.error || 'Failed to create team');
       }

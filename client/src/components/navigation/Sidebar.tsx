@@ -37,6 +37,18 @@ export default function Sidebar() {
     }
   }, [user, fetchTeams]);
   
+  useEffect(() => {
+    const handleRefreshTeams = () => {
+      fetchTeams();
+    };
+    
+    window.addEventListener('refresh-teams', handleRefreshTeams);
+    
+    return () => {
+      window.removeEventListener('refresh-teams', handleRefreshTeams);
+    };
+  }, [fetchTeams]);
+  
   const isActive = (path: string) => {
     return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
   };
