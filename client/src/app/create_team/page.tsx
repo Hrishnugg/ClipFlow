@@ -5,6 +5,11 @@ import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
 import { createTeam, checkTeamNameExists } from '@/firebase/firestore';
 
+const isValidEmail = (email: string): boolean => {
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return regex.test(email);
+};
+
 const refreshTeamsList = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('refresh-teams'));
@@ -47,6 +52,13 @@ export default function CreateTeamPage() {
           .map(email => email.trim())
           .filter(email => email !== '' && email.toLowerCase() !== user.email?.toLowerCase()) : 
         [];
+      
+      const invalidEmails = memberEmails.filter(email => !isValidEmail(email));
+      if (invalidEmails.length > 0) {
+        setError(`Invalid email format: ${invalidEmails.join(', ')}. Please correct these emails.`);
+        setIsCreating(false);
+        return;
+      }
       
       const result = await createTeam({
         name: teamName,

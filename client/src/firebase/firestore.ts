@@ -10,6 +10,7 @@ export interface UserData {
   email: string | null;
   createdAt: string;
   selectedTeam?: string;
+  isCoach?: boolean;
 }
 
 export async function addUser(userData: UserData): Promise<void> {
@@ -18,6 +19,27 @@ export async function addUser(userData: UserData): Promise<void> {
     await setDoc(userRef, userData);
   } catch (error) {
     console.error('Error adding user to Firestore:', error);
+    throw error;
+  }
+}
+
+export async function addNonExistentUser(email: string): Promise<string> {
+  try {
+    const uid = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    
+    const userData: UserData = {
+      uid: uid,
+      email: email,
+      name: null,
+      isCoach: true,
+      createdAt: new Date().toISOString()
+    };
+    
+    const userRef = doc(db, USERS_COLLECTION, uid);
+    await setDoc(userRef, userData);
+    return uid;
+  } catch (error) {
+    console.error('Error adding non-existent user to Firestore:', error);
     throw error;
   }
 }
@@ -72,6 +94,16 @@ export async function getUserByEmail(email: string): Promise<UserData | null> {
   }
 }
 
+export async function updateUserIsCoach(uid: string): Promise<void> {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, uid);
+    await setDoc(userRef, { isCoach: true }, { merge: true });
+  } catch (error) {
+    console.error('Error updating user isCoach status:', error);
+    throw error;
+  }
+}
+
 export async function ensureTeamsCollection(): Promise<boolean> {
   try {
     const teamsRef = collection(db, TEAMS_COLLECTION);
@@ -95,12 +127,20 @@ export async function createTeam(teamData: Omit<TeamData, 'memberIds'>): Promise
   try {
     await ensureTeamsCollection();
     
-    const memberIdsPromises = teamData.members.map(async (email) => {
-      const user = await getUserByEmail(email);
-      return user?.uid || null;
-    });
+    const memberIds: string[] = [];
     
-    const memberIds = (await Promise.all(memberIdsPromises)).filter(id => id !== null) as string[];
+    for (const email of teamData.members) {
+      const existingUser = await getUserByEmail(email);
+      
+      if (existingUser) {
+        await updateUserIsCoach(existingUser.uid);
+        
+        memberIds.push(existingUser.uid);
+      } else {
+        await addNonExistentUser(email);
+        
+      }
+    }
     
     const teamDocData: TeamData = {
       ...teamData,
