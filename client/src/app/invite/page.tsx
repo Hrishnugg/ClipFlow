@@ -4,17 +4,37 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
 import { useAuth } from '@/context/AuthContext';
 
+const isValidEmail = (email: string): boolean => {
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return regex.test(email);
+};
+
 export default function InvitePage() {
   const [emails, setEmails] = useState('');
+  const [error, setError] = useState<string | null>(null);
   useAuth(); // Keep authentication check without unused variable
 
   const handleEmailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEmails(e.target.value);
+    setError(null);
   };
 
-  const handleAddMember = () => {
-    console.log('Invite emails:', emails);
+  const handleAddMembers = () => {
+    if (!emails.trim()) {
+      return;
+    }
+    
+    const emailList = emails.trim().split(',').map(email => email.trim()).filter(email => email !== '');
+    
+    const invalidEmails = emailList.filter(email => !isValidEmail(email));
+    if (invalidEmails.length > 0) {
+      setError(`Invalid email format: ${invalidEmails.join(', ')}. Please correct these emails.`);
+      return;
+    }
+    
+    console.log('Invite emails:', emailList);
     setEmails('');
+    setError(null);
   };
 
   return (
@@ -38,16 +58,22 @@ export default function InvitePage() {
             />
           </div>
           
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p>{error}</p>
+            </div>
+          )}
+          
           <button
-            onClick={handleAddMember}
-            disabled={!emails}
+            onClick={handleAddMembers}
+            disabled={!emails.trim()}
             className={`px-4 py-2 rounded ${
-              emails
+              emails.trim()
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-blue-400 text-white cursor-not-allowed'
             }`}
           >
-            Add Member
+            Add Members
           </button>
         </div>
       </div>
