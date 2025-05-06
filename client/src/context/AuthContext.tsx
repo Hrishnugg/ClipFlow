@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { getUserByEmail, updateExistingUserUid, updateTeamMemberIds } from '@/firebase/firestore';
+import { getUserByEmail, updateExistingUserUid, updateTeamMemberIds, setFirstTeamAsSelected } from '@/firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -53,7 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (existingUser.uid !== user.uid) {
           await updateExistingUserUid(existingUser, user.uid, user.displayName);
           
-          await updateTeamMemberIds(userEmail, user.uid);
+          const updatedTeams = await updateTeamMemberIds(userEmail, user.uid);
+          
+          if (updatedTeams.length > 0) {
+            await setFirstTeamAsSelected(user.uid);
+            
+            if (typeof window !== 'undefined') {
+              window.location.reload();
+            }
+          }
         }
       } else {
         const userRef = doc(db, 'users', user.uid);
