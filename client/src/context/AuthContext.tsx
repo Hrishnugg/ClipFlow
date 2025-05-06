@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (existingUser.uid !== user.uid) {
           await updateExistingUserUid(existingUser, user.uid, user.displayName);
           
-          const updatedTeams = await updateTeamMemberIds(userEmail, user.uid);
+          const updatedTeams = await updateTeamMemberIds(userEmail, user.uid, existingUser.uid);
           
           if (updatedTeams.length > 0) {
             await setFirstTeamAsSelected(user.uid);
