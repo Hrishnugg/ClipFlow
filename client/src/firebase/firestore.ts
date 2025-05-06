@@ -1,5 +1,5 @@
 import { db } from './config';
-import { collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, limit } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, limit, updateDoc } from 'firebase/firestore';
 
 const USERS_COLLECTION = 'users';
 const TEAMS_COLLECTION = 'teams';
@@ -214,4 +214,85 @@ export async function updateUserSelectedTeam(uid: string, teamId: string): Promi
 export async function getUserSelectedTeam(uid: string): Promise<string | null> {
   const userData = await getUser(uid);
   return userData?.selectedTeam || null;
+}
+
+export async function getTeamById(teamId: string): Promise<(TeamData & { id: string }) | null> {
+  try {
+    const teamRef = doc(db, TEAMS_COLLECTION, teamId);
+    const teamSnap = await getDoc(teamRef);
+    
+    if (teamSnap.exists()) {
+      return { ...teamSnap.data() as TeamData, id: teamId };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting team by ID:', error);
+    return null;
+  }
+}
+
+export async function addMembersToTeam(
+  teamId: string, 
+  newEmails: string[]
+): Promise<{ 
+  success: boolean; 
+  error?: string; 
+  alreadyMembers?: string[];
+}> {
+  try {
+    const team = await getTeamById(teamId);
+    if (!team) {
+      return { success: false, error: 'Team not found' };
+    }
+    
+    const alreadyMembers = newEmails.filter(email => 
+      team.members.map(m => m.toLowerCase()).includes(email.toLowerCase())
+    );
+    
+    if (alreadyMembers.length === newEmails.length) {
+      return { 
+        success: false, 
+        error: 'All emails are already members of this team',
+        alreadyMembers
+      };
+    }
+    
+    const emailsToAdd = newEmails.filter(email => 
+      !team.members.map(m => m.toLowerCase()).includes(email.toLowerCase())
+    );
+    
+    const memberIds = [...team.memberIds];
+    const members = [...team.members];
+    
+    for (const email of emailsToAdd) {
+      const existingUser = await getUserByEmail(email);
+      
+      if (existingUser) {
+        await updateUserIsCoach(existingUser.uid);
+        members.push(email);
+        memberIds.push(existingUser.uid);
+      } else {
+        await addNonExistentUser(email);
+        members.push(email);
+      }
+    }
+    
+    const teamRef = doc(db, TEAMS_COLLECTION, teamId);
+    await updateDoc(teamRef, {
+      members,
+      memberIds
+    });
+    
+    return { 
+      success: true, 
+      alreadyMembers: alreadyMembers.length > 0 ? alreadyMembers : undefined 
+    };
+  } catch (error) {
+    console.error('Error adding members to team:', error);
+    return { 
+      success: false, 
+      error: 'An error occurred while adding members to the team. Please try again.' 
+    };
+  }
 }
