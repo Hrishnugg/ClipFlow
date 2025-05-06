@@ -1,5 +1,5 @@
 import { db } from './config';
-import { collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, limit, updateDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, limit, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const USERS_COLLECTION = 'users';
 const TEAMS_COLLECTION = 'teams';
@@ -121,6 +121,7 @@ export interface TeamData {
   memberIds: string[];
   owner_uid: string;
   createdAt: string;
+  id?: string;
 }
 
 export async function createTeam(teamData: Omit<TeamData, 'memberIds'>): Promise<{ success: boolean; teamId?: string; error?: string }> {
@@ -294,5 +295,101 @@ export async function addMembersToTeam(
       success: false, 
       error: 'An error occurred while adding members to the team. Please try again.' 
     };
+  }
+}
+
+export async function getTeamsByMemberEmail(email: string): Promise<TeamData[]> {
+  try {
+    const teamsRef = collection(db, TEAMS_COLLECTION);
+    const q = query(teamsRef, where('members', 'array-contains', email));
+    const querySnapshot = await getDocs(q);
+    
+    const teams: TeamData[] = [];
+    querySnapshot.forEach((doc) => {
+      teams.push({ ...doc.data() as TeamData, id: doc.id });
+    });
+    
+    return teams;
+  } catch (error) {
+    console.error('Error getting teams by member email:', error);
+    return [];
+  }
+}
+
+export async function updateTeamMemberIds(email: string, newUid: string, oldUid: string): Promise<TeamData[]> {
+  try {
+    const teams = await getTeamsByMemberEmail(email);
+    const updatedTeams: TeamData[] = [];
+    
+    for (const team of teams) {
+      if (team.id) {
+        const teamRef = doc(db, TEAMS_COLLECTION, team.id);
+        
+        const filteredMemberIds = team.memberIds.filter(id => id !== oldUid);
+        const updatedMemberIds = filteredMemberIds.includes(newUid) 
+          ? filteredMemberIds 
+          : [...filteredMemberIds, newUid];
+        
+        if (JSON.stringify(updatedMemberIds) !== JSON.stringify(team.memberIds)) {
+          await updateDoc(teamRef, {
+            memberIds: updatedMemberIds
+          });
+          
+          console.log(`Updated memberIds for team ${team.id}: removed ${oldUid}, added ${newUid}`);
+          updatedTeams.push({...team, memberIds: updatedMemberIds});
+        } else {
+          updatedTeams.push(team);
+        }
+      }
+    }
+    
+    return updatedTeams;
+  } catch (error) {
+    console.error('Error updating team memberIds:', error);
+    return [];
+  }
+}
+
+export async function setFirstTeamAsSelected(uid: string): Promise<boolean> {
+  try {
+    const teams = await getTeamsForUser(uid);
+    
+    if (teams.length > 0) {
+      const firstTeam = teams[0];
+      if (firstTeam.id) {
+        await updateUserSelectedTeam(uid, firstTeam.id);
+        console.log(`Set first team ${firstTeam.id} as selected for user ${uid}`);
+        return true;
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error setting first team as selected:', error);
+    return false;
+  }
+}
+
+export async function updateExistingUserUid(existingUser: UserData, newUid: string, newName: string | null = null): Promise<void> {
+  try {
+    const newUserRef = doc(db, USERS_COLLECTION, newUid);
+    
+    const updatedName = (newName && (existingUser.name === null)) ? newName : existingUser.name;
+    
+    await setDoc(newUserRef, {
+      ...existingUser,
+      uid: newUid,
+      name: updatedName
+    });
+    
+    const oldUserRef = doc(db, USERS_COLLECTION, existingUser.uid);
+    await deleteDoc(oldUserRef);
+    
+    console.log(`Updated user UID from ${existingUser.uid} to ${newUid}`);
+    if (updatedName !== existingUser.name) {
+      console.log(`Updated user name from ${existingUser.name} to ${updatedName}`);
+    }
+  } catch (error) {
+    console.error('Error updating user UID:', error);
   }
 }

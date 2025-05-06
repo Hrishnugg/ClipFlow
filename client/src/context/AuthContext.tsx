@@ -9,7 +9,8 @@ import {
   User
 } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { getUserByEmail, updateExistingUserUid, updateTeamMemberIds } from '@/firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -40,16 +41,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      const existingUser = await getUserByEmail(user.email);
       
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
+      if (existingUser) {
+        if (existingUser.uid !== user.uid) {
+          await updateExistingUserUid(existingUser, user.uid);
+          
+          await updateTeamMemberIds(user.email, user.uid);
+        }
+      } else {
+        const userRef = doc(db, 'users', user.uid);
+        const userData = {
           uid: user.uid,
           name: user.displayName,
           email: user.email,
-          createdAt: new Date().toISOString()
-        });
+          createdAt: new Date().toISOString(),
+          isCoach: false
+        };
+        
+        await setDoc(userRef, userData);
       }
     } catch (error) {
       console.error('Error signing in with Google:', error);
