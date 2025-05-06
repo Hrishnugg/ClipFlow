@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (existingUser) {
         if (existingUser.uid !== user.uid) {
-          await updateExistingUserUid(existingUser, user.uid);
+          await updateExistingUserUid(existingUser, user.uid, user.displayName);
           
           await updateTeamMemberIds(userEmail, user.uid);
         }
