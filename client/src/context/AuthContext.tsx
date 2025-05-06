@@ -9,7 +9,8 @@ import {
   User
 } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { getUserByEmail, updateExistingUserUid, updateTeamMemberIds, setFirstTeamAsSelected } from '@/firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -40,16 +41,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      const userEmail = user.email || '';
+      if (!userEmail) {
+        console.error('User email is null or undefined');
+        return;
+      }
       
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
+      const existingUser = await getUserByEmail(userEmail);
+      
+      if (existingUser) {
+        if (existingUser.uid !== user.uid) {
+          await updateExistingUserUid(existingUser, user.uid, user.displayName);
+          
+          const updatedTeams = await updateTeamMemberIds(userEmail, user.uid, existingUser.uid);
+          
+          if (updatedTeams.length > 0) {
+            await setFirstTeamAsSelected(user.uid);
+            
+            if (typeof window !== 'undefined') {
+              window.location.reload();
+            }
+          }
+        }
+      } else {
+        const userRef = doc(db, 'users', user.uid);
+        const userData = {
           uid: user.uid,
           name: user.displayName,
           email: user.email,
-          createdAt: new Date().toISOString()
-        });
+          createdAt: new Date().toISOString(),
+          isCoach: false
+        };
+        
+        await setDoc(userRef, userData);
       }
     } catch (error) {
       console.error('Error signing in with Google:', error);
