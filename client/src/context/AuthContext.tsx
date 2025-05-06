@@ -41,13 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const existingUser = await getUserByEmail(user.email);
+      const userEmail = user.email || '';
+      if (!userEmail) {
+        console.error('User email is null or undefined');
+        return;
+      }
+      
+      const existingUser = await getUserByEmail(userEmail);
       
       if (existingUser) {
         if (existingUser.uid !== user.uid) {
           await updateExistingUserUid(existingUser, user.uid);
           
-          await updateTeamMemberIds(user.email, user.uid);
+          await updateTeamMemberIds(userEmail, user.uid);
         }
       } else {
         const userRef = doc(db, 'users', user.uid);
