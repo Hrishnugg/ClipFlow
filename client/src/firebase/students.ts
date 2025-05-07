@@ -83,10 +83,10 @@ export async function validateRoster(students: Student[]): Promise<{ valid: bool
     }
     emails.add(student.email);
     
-    if (!student.name || !student.email || !student.parentEmail) {
+    if (!student.name || !student.email) {
       return { 
         valid: false, 
-        error: 'All students must have a name, email, and parent email.' 
+        error: 'All students must have a name and email.' 
       };
     }
 
@@ -97,7 +97,7 @@ export async function validateRoster(students: Student[]): Promise<{ valid: bool
       };
     }
 
-    if (!isValidEmail(student.parentEmail)) {
+    if (student.parentEmail && !isValidEmail(student.parentEmail)) {
       return {
         valid: false,
         error: `Invalid parent email format: ${student.parentEmail}. Please ensure all emails are valid.`
@@ -185,7 +185,9 @@ export async function processRoster(students: Student[], user_uid: string, teamI
       
       await createOrUpdateUser(student.email, student.name, true, false);
       
-      await createOrUpdateUser(student.parentEmail, null, false, true);
+      if (student.parentEmail && student.parentEmail.trim() !== '') {
+        await createOrUpdateUser(student.parentEmail, null, false, true);
+      }
     }
     
     return { success: true, studentIds };
