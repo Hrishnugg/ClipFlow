@@ -14,23 +14,14 @@ export default function AuthenticatedLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [userData, setUserData] = useState<any>(null);
+  const [loadingUserData, setLoadingUserData] = useState(true);
 
   React.useEffect(() => {
     if (!loading && !user) {
       router.push('/');
     }
   }, [user, loading, router]);
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return null; // This will not be rendered as the useEffect will redirect
-  }
-
-  const [userData, setUserData] = useState<any>(null);
-  const [loadingUserData, setLoadingUserData] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,6 +42,14 @@ export default function AuthenticatedLayout({
 
     fetchUserData();
   }, [user]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return null; // This will not be rendered as the useEffect will redirect
+  }
 
   if (loadingUserData) {
     return <div className="flex justify-center items-center min-h-screen">Loading user data...</div>;
