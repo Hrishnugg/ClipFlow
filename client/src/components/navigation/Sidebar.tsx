@@ -93,6 +93,12 @@ export default function Sidebar() {
           }
           
           setSelectedView(defaultView);
+          
+          if (defaultView && !userData.selectedView) {
+            updateUserSelectedView(user.uid, defaultView)
+              .then(() => console.log('Default view saved to database:', defaultView))
+              .catch(error => console.error('Error saving default view to database:', error));
+          }
         }
       } catch (error) {
         console.error('Error fetching user roles:', error);
