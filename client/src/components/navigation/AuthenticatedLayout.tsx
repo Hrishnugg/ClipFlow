@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/firebase/config';
 
 export default function AuthenticatedLayout({ 
   children 
@@ -12,6 +14,8 @@ export default function AuthenticatedLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [userData, setUserData] = useState<any>(null);
+  const [loadingUserData, setLoadingUserData] = useState(true);
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -19,12 +23,52 @@ export default function AuthenticatedLayout({
     }
   }, [user, loading, router]);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } finally {
+          setLoadingUserData(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   if (!user) {
     return null; // This will not be rendered as the useEffect will redirect
+  }
+
+  if (loadingUserData) {
+    return <div className="flex justify-center items-center min-h-screen">Loading user data...</div>;
+  }
+
+  const hasNoRoles = 
+    (!userData?.isCoach || userData.isCoach === false) && 
+    (!userData?.isStudent || userData.isStudent === false) && 
+    (!userData?.isParent || userData.isParent === false);
+
+  if (hasNoRoles) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center p-8 max-w-md">
+          <h2 className="text-xl font-bold mb-4">No Team Access</h2>
+          <p>You do not belong to a team. Please contact an admin to get set up.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

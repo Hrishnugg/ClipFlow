@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
-import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam } from '@/firebase/firestore';
+import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView } from '@/firebase/firestore';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<{isCoach?: boolean; isStudent?: boolean; isParent?: boolean}>({});
+  const [selectedView, setSelectedView] = useState<string>('');
   const { user } = useAuth();
   
   useEffect(() => {
@@ -67,6 +69,46 @@ export default function Sidebar() {
   }, [selectedTeam]);
   
   useEffect(() => {
+    const fetchUserRoles = async () => {
+      if (!user) return;
+      
+      try {
+        const userData = await getUser(user.uid);
+        if (userData) {
+          setUserRoles({
+            isCoach: userData.isCoach,
+            isStudent: userData.isStudent,
+            isParent: userData.isParent
+          });
+          
+          let defaultView = '';
+          if (userData.selectedView) {
+            defaultView = userData.selectedView;
+          } else if (userData.isCoach) {
+            defaultView = 'Coach View';
+          } else if (userData.isStudent) {
+            defaultView = 'Student View';
+          } else if (userData.isParent) {
+            defaultView = 'Parent View';
+          }
+          
+          setSelectedView(defaultView);
+          
+          if (defaultView && !userData.selectedView) {
+            updateUserSelectedView(user.uid, defaultView)
+              .then(() => console.log('Default view saved to database:', defaultView))
+              .catch(error => console.error('Error saving default view to database:', error));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user roles:', error);
+      }
+    };
+    
+    fetchUserRoles();
+  }, [user]);
+  
+  useEffect(() => {
     const handleRefreshTeams = () => {
       fetchTeams();
     };
@@ -103,6 +145,21 @@ export default function Sidebar() {
   
   const isTeamSelected = (teamId: string) => {
     return selectedTeam === teamId;
+  };
+  
+  const handleViewSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!user) return;
+    
+    const newView = e.target.value;
+    if (selectedView === newView) return;
+    
+    try {
+      await updateUserSelectedView(user.uid, newView);
+      setSelectedView(newView);
+      console.log('View selected:', newView);
+    } catch (error) {
+      console.error('Error updating selected view:', error);
+    }
   };
 
   const isActive = (path: string) => {
@@ -199,6 +256,28 @@ export default function Sidebar() {
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        {(userRoles.isCoach || userRoles.isStudent || userRoles.isParent) && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">
+              Select View
+            </label>
+            <select
+              value={selectedView}
+              onChange={handleViewSelect}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-4"
+            >
+              {userRoles.isCoach && (
+                <option value="Coach View">Coach View</option>
+              )}
+              {userRoles.isStudent && (
+                <option value="Student View">Student View</option>
+              )}
+              {userRoles.isParent && (
+                <option value="Parent View">Parent View</option>
+              )}
+            </select>
+          </div>
+        )}
         <SignOutButton />
       </div>
     </div>

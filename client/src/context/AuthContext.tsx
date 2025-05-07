@@ -70,7 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: user.displayName,
           email: user.email,
           createdAt: new Date().toISOString(),
-          isCoach: false
+          isCoach: false,
+          isStudent: false,
+          isParent: false
         };
         
         await setDoc(userRef, userData);

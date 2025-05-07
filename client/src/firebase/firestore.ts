@@ -11,6 +11,9 @@ export interface UserData {
   createdAt: string;
   selectedTeam?: string;
   isCoach?: boolean;
+  isStudent?: boolean;
+  isParent?: boolean;
+  selectedView?: string;
 }
 
 export async function addUser(userData: UserData): Promise<void> {
@@ -392,4 +395,20 @@ export async function updateExistingUserUid(existingUser: UserData, newUid: stri
   } catch (error) {
     console.error('Error updating user UID:', error);
   }
+}
+
+export async function updateUserSelectedView(uid: string, view: string): Promise<boolean> {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, uid);
+    await setDoc(userRef, { selectedView: view }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error updating selected view for user:', error);
+    return false;
+  }
+}
+
+export async function getUserSelectedView(uid: string): Promise<string | null> {
+  const userData = await getUser(uid);
+  return userData?.selectedView || null;
 }
