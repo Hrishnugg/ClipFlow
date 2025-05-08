@@ -444,3 +444,35 @@ export async function getTeamsForStudent(email: string): Promise<TeamData[]> {
     return [];
   }
 }
+
+export async function getTeamsForParent(email: string): Promise<TeamData[]> {
+  try {
+    const rostersRef = collection(db, 'rosters');
+    const rosterTeamIDs: string[] = [];
+    
+    const querySnapshot = await getDocs(rostersRef);
+    querySnapshot.forEach((doc) => {
+      const rosterData = doc.data();
+      const students = rosterData.students || [];
+      
+      const isParentInRoster = students.some((student: any) => 
+        student.parentEmail === email
+      );
+      
+      if (isParentInRoster && rosterData.teamID) {
+        rosterTeamIDs.push(rosterData.teamID);
+      }
+    });
+    
+    const teams: TeamData[] = [];
+    for (const teamId of rosterTeamIDs) {
+      const team = await getTeamById(teamId);
+      if (team) teams.push(team);
+    }
+    
+    return teams;
+  } catch (error) {
+    console.error('Error getting teams for parent:', error);
+    return [];
+  }
+}

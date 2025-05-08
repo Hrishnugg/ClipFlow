@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
-import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent } from '@/firebase/firestore';
+import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -32,10 +32,14 @@ export default function Sidebar() {
       if (selectedView === 'Student View' && user.email) {
         const studentTeams = await getTeamsForStudent(user.email);
         setTeams(studentTeams);
+      } else if (selectedView === 'Parent View' && user.email) {
+        const parentTeams = await getTeamsForParent(user.email);
+        setTeams(parentTeams);
       } else {
         const userTeams = await getTeamsForUser(user.uid);
         setTeams(userTeams);
       }
+
     } catch (error) {
       console.error('Error fetching teams:', error);
       setTeams([]);
@@ -166,6 +170,8 @@ export default function Sidebar() {
       let newTeams: any[] = [];
       if (newView === 'Student View' && user.email) {
         newTeams = await getTeamsForStudent(user.email);
+      } else if (newView === 'Parent View' && user.email) {
+        newTeams = await getTeamsForParent(user.email);
       } else {
         newTeams = await getTeamsForUser(user.uid);
       }
@@ -207,7 +213,7 @@ export default function Sidebar() {
             </div>
             {isTeamsExpanded && (
               <ul className="ml-4">
-                {selectedView !== 'Student View' && (
+                {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
                   <li className="mb-2">
                     <div 
                       onClick={() => {
@@ -241,7 +247,7 @@ export default function Sidebar() {
               <span>Dashboard</span>
             </Link>
           </li>
-          {selectedView !== 'Student View' && (
+          {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
             <>
               <li className="mb-2">
                 <Link 
