@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
-import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView } from '@/firebase/firestore';
+import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent } from '@/firebase/firestore';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -29,19 +29,24 @@ export default function Sidebar() {
     if (!user) return;
     
     try {
-      const userTeams = await getTeamsForUser(user.uid);
-      setTeams(userTeams);
+      if (selectedView === 'Student View' && user.email) {
+        const studentTeams = await getTeamsForStudent(user.email);
+        setTeams(studentTeams);
+      } else {
+        const userTeams = await getTeamsForUser(user.uid);
+        setTeams(userTeams);
+      }
     } catch (error) {
       console.error('Error fetching teams:', error);
       setTeams([]);
     }
-  }, [user]);
+  }, [user, selectedView]);
   
   useEffect(() => {
     if (user) {
       fetchTeams();
     }
-  }, [user, fetchTeams]);
+  }, [user, fetchTeams, selectedView]);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {
@@ -157,6 +162,19 @@ export default function Sidebar() {
       await updateUserSelectedView(user.uid, newView);
       setSelectedView(newView);
       console.log('View selected:', newView);
+      
+      let newTeams: any[] = [];
+      if (newView === 'Student View' && user.email) {
+        newTeams = await getTeamsForStudent(user.email);
+      } else {
+        newTeams = await getTeamsForUser(user.uid);
+      }
+      
+      if (newTeams.length > 0) {
+        await updateUserSelectedTeam(user.uid, newTeams[0].id);
+      }
+      
+      window.location.reload();
     } catch (error) {
       console.error('Error updating selected view:', error);
     }
@@ -189,16 +207,18 @@ export default function Sidebar() {
             </div>
             {isTeamsExpanded && (
               <ul className="ml-4">
-                <li className="mb-2">
-                  <div 
-                    onClick={() => {
-                      window.location.href = "/create_team";
-                    }}
-                    className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer ${isActive('/create_team')}`}
-                  >
-                    <span>+ Create Team</span>
-                  </div>
-                </li>
+                {selectedView !== 'Student View' && (
+                  <li className="mb-2">
+                    <div 
+                      onClick={() => {
+                        window.location.href = "/create_team";
+                      }}
+                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer ${isActive('/create_team')}`}
+                    >
+                      <span>+ Create Team</span>
+                    </div>
+                  </li>
+                )}
                 {teams.map((team) => (
                   <li key={team.id} className="mb-2">
                     <div 
@@ -221,38 +241,42 @@ export default function Sidebar() {
               <span>Dashboard</span>
             </Link>
           </li>
-          <li className="mb-2">
-            <Link 
-              href="/rosters" 
-              className={`flex items-center px-6 py-3 ${isActive('/rosters')} transition-colors`}
-            >
-              <span>Rosters</span>
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link 
-              href="/students" 
-              className={`flex items-center px-6 py-3 ${isActive('/students')} transition-colors`}
-            >
-              <span>Students</span>
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link 
-              href="/process_video" 
-              className={`flex items-center px-6 py-3 ${isActive('/process_video')} transition-colors`}
-            >
-              <span>Process Video</span>
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link 
-              href="/invite" 
-              className={`flex items-center px-6 py-3 ${isActive('/invite')} transition-colors`}
-            >
-              <span>Invite</span>
-            </Link>
-          </li>
+          {selectedView !== 'Student View' && (
+            <>
+              <li className="mb-2">
+                <Link 
+                  href="/rosters" 
+                  className={`flex items-center px-6 py-3 ${isActive('/rosters')} transition-colors`}
+                >
+                  <span>Rosters</span>
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  href="/students" 
+                  className={`flex items-center px-6 py-3 ${isActive('/students')} transition-colors`}
+                >
+                  <span>Students</span>
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  href="/process_video" 
+                  className={`flex items-center px-6 py-3 ${isActive('/process_video')} transition-colors`}
+                >
+                  <span>Process Video</span>
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link 
+                  href="/invite" 
+                  className={`flex items-center px-6 py-3 ${isActive('/invite')} transition-colors`}
+                >
+                  <span>Invite</span>
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">

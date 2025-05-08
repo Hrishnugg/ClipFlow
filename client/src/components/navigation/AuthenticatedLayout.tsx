@@ -42,6 +42,27 @@ export default function AuthenticatedLayout({
 
     fetchUserData();
   }, [user]);
+  
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (user && !loadingUserData && userData) {
+        const userSelectedView = userData.selectedView;
+        
+        const restrictedPaths = ['/rosters', '/students', '/process_video', '/invite', '/create_team'];
+        const currentPath = window.location.pathname;
+        
+        if (userSelectedView === 'Student View' && 
+            (restrictedPaths.includes(currentPath) || 
+             currentPath.startsWith('/rosters/') || 
+             currentPath.startsWith('/students/'))) {
+          console.log('Redirecting student from restricted page');
+          router.push('/dashboard');
+        }
+      }
+    };
+    
+    checkAccess();
+  }, [user, loadingUserData, userData, router]);
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
