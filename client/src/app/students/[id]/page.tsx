@@ -102,9 +102,6 @@ export default function StudentDetailPage() {
           });
           
           setVideos(videosData);
-          if (videosData.length > 0) {
-            setSelectedVideo(videosData[0]);
-          }
         }
       } catch (error) {
         console.error('Error fetching student details:', error);
