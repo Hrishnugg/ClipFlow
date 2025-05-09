@@ -27,6 +27,7 @@ interface Video {
   asset: string;
   transcript: string;
   identifiedStudent: string;
+  identifiedStudentEmail?: string;
   confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
@@ -76,7 +77,7 @@ export default function StudentDetailPage() {
           const videosQuery = query(
             collection(db, 'videos'),
             where('isReviewed', '==', true),
-            where('identifiedStudent', '==', data.name),
+            where('identifiedStudentEmail', '==', data.email),
             where('teamID', '==', selectedTeam)
           );
           
@@ -91,6 +92,7 @@ export default function StudentDetailPage() {
               asset: data.asset,
               transcript: data.transcript,
               identifiedStudent: data.identifiedStudent,
+              identifiedStudentEmail: data.identifiedStudentEmail || '',
               confidenceLevel: data.confidenceLevel || 100, // Default to 100 for reviewed videos
               isReviewed: data.isReviewed,
               uploadDate: data.uploadDate,
