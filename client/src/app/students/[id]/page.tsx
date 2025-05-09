@@ -101,6 +101,12 @@ export default function StudentDetailPage() {
             });
           });
           
+          videosData.sort((a, b) => {
+            const dateA = new Date(a.uploadDate).getTime();
+            const dateB = new Date(b.uploadDate).getTime();
+            return dateB - dateA; // Descending order (newest first)
+          });
+          
           setVideos(videosData);
         }
       } catch (error) {
