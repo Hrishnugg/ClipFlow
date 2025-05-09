@@ -37,7 +37,6 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
         const rostersRef = collection(db, 'rosters');
         const q = query(
           rostersRef, 
-          where('userUID', '==', user.uid),
           where('teamID', '==', selectedTeam)
         );
         const querySnapshot = await getDocs(q);
