@@ -21,9 +21,10 @@ interface VideoPlaylistProps {
   selectedVideoId: string | null;
   onSelectVideo: (video: Video) => void;
   title?: string; // Add title prop
+  isStudentView?: boolean; // Add prop to indicate Student View
 }
 
-export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos" }: VideoPlaylistProps) {
+export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false }: VideoPlaylistProps) {
   if (videos.length === 0) {
     return <div className="p-4">No videos available</div>;
   }
@@ -54,17 +55,24 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
           >
             {/* make this div shrinkable */}
             <div className="w-full max-w-full min-w-0 flex items-center">
-              {!video.identifiedStudent && (
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
-                     title="Low confidence - Could not identify any student"></div>
-              )}
-              {video.identifiedStudent && video.duplicateStudent && (
-                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2 flex-shrink-0" 
-                     title="Warning - Multiple students with this name found"></div>
-              )}
-              {video.identifiedStudent && !video.duplicateStudent && (
+              {isStudentView ? (
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
-                     title="Student identified with confidence"></div>
+                     title="Your video"></div>
+              ) : (
+                <>
+                  {!video.identifiedStudent && (
+                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
+                         title="Low confidence - Could not identify any student"></div>
+                  )}
+                  {video.identifiedStudent && video.duplicateStudent && (
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2 flex-shrink-0" 
+                         title="Warning - Multiple students with this name found"></div>
+                  )}
+                  {video.identifiedStudent && !video.duplicateStudent && (
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
+                         title="Student identified with confidence"></div>
+                  )}
+                </>
               )}
               {/* now truncate will work reliably */}
               <p className="font-medium truncate">

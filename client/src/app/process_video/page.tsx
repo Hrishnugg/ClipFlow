@@ -88,12 +88,8 @@ export default function ProcessVideo() {
           const updatedSelectedVideo = sortedVideosData.find(video => video.id === selectedVideo.id);
           if (updatedSelectedVideo) {
             setSelectedVideo(updatedSelectedVideo);
-          } else if (sortedVideosData.length > 0) {
-            setSelectedVideo(sortedVideosData[0]);
           }
           setIsStudentUpdate(false);
-        } else if (sortedVideosData.length > 0) {
-          setSelectedVideo(sortedVideosData[0]);
         }
         
         const rostersRef = collection(db, 'rosters');
@@ -113,6 +109,12 @@ export default function ProcessVideo() {
     
     fetchVideos();
   }, [user, isProcessing, refreshTrigger]);
+
+  useEffect(() => {
+    if (videos.length > 0) {
+      setSelectedVideo(videos[0]);
+    }
+  }, [videos]);
 
   const handleUpload = () => {
     setIsModalOpen(true);

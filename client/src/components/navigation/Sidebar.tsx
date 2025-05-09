@@ -140,7 +140,7 @@ export default function Sidebar() {
       console.log('Team selected:', teamId);
       
       const currentPath = window.location.pathname;
-      if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video') {
+      if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video' || currentPath === '/videos') {
         window.location.reload();
       } else if (currentPath.startsWith('/rosters/')) {
         window.location.href = '/rosters';
@@ -282,6 +282,16 @@ export default function Sidebar() {
                 </Link>
               </li>
             </>
+          )}
+          {selectedView === 'Student View' && (
+            <li className="mb-2">
+              <Link 
+                href="/videos" 
+                className={`flex items-center px-6 py-3 ${isActive('/videos')} transition-colors`}
+              >
+                <span>Videos</span>
+              </Link>
+            </li>
           )}
         </ul>
       </nav>
