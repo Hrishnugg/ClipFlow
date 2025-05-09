@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase/config';
-import { useAuth } from '../../context/AuthContext';
-import { getUserSelectedTeam } from '../../firebase/firestore';
-import AuthenticatedLayout from '../../components/navigation/AuthenticatedLayout';
-import VideoPlaylist from '../../components/video/VideoPlaylist';
-import VideoPlayer from '../../components/video/VideoPlayer';
-import TranscriptSection from '../../components/video/TranscriptSection';
-import StudentInfoSidebarReadOnly from '../../components/video/StudentInfoSidebarReadOnly';
+import { db } from '@/firebase/config';
+import { useAuth } from '@/context/AuthContext';
+import { getUserSelectedTeam } from '@/firebase/firestore';
+import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
+import VideoPlaylist from '@/components/video/VideoPlaylist';
+import VideoPlayer from '@/components/video/VideoPlayer';
+import TranscriptSection from '@/components/video/TranscriptSection';
+import StudentInfoSidebarReadOnly from '@/components/video/StudentInfoSidebarReadOnly';
 
 interface Video {
   id: string;

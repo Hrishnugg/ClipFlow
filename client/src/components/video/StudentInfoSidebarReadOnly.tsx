@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// import { getStudentNamesFromRoster } from '../../firebase/llm';
+// import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { db } from '@/firebase/config';
 
 interface StudentInfoSidebarReadOnlyProps {
   identifiedStudent: string | null;
