@@ -416,7 +416,7 @@ export async function getUserSelectedView(uid: string): Promise<string | null> {
 export async function getTeamsForStudent(email: string): Promise<TeamData[]> {
   try {
     const rostersRef = collection(db, 'rosters');
-    const rosterTeamIDs: string[] = [];
+    const rosterTeamIDs: Set<string> = new Set(); // Changed from array to Set for deduplication
     
     const querySnapshot = await getDocs(rostersRef);
     querySnapshot.forEach((doc) => {
@@ -428,12 +428,12 @@ export async function getTeamsForStudent(email: string): Promise<TeamData[]> {
       );
       
       if (isStudentInRoster && rosterData.teamID) {
-        rosterTeamIDs.push(rosterData.teamID);
+        rosterTeamIDs.add(rosterData.teamID); // Changed push to add for Set
       }
     });
     
     const teams: TeamData[] = [];
-    for (const teamId of rosterTeamIDs) {
+    for (const teamId of rosterTeamIDs) { // Set is iterable
       const team = await getTeamById(teamId);
       if (team) teams.push(team);
     }
@@ -448,7 +448,7 @@ export async function getTeamsForStudent(email: string): Promise<TeamData[]> {
 export async function getTeamsForParent(email: string): Promise<TeamData[]> {
   try {
     const rostersRef = collection(db, 'rosters');
-    const rosterTeamIDs: string[] = [];
+    const rosterTeamIDs: Set<string> = new Set(); // Changed from array to Set for deduplication
     
     const querySnapshot = await getDocs(rostersRef);
     querySnapshot.forEach((doc) => {
@@ -460,12 +460,12 @@ export async function getTeamsForParent(email: string): Promise<TeamData[]> {
       );
       
       if (isParentInRoster && rosterData.teamID) {
-        rosterTeamIDs.push(rosterData.teamID);
+        rosterTeamIDs.add(rosterData.teamID); // Changed push to add for Set
       }
     });
     
     const teams: TeamData[] = [];
-    for (const teamId of rosterTeamIDs) {
+    for (const teamId of rosterTeamIDs) { // Set is iterable
       const team = await getTeamById(teamId);
       if (team) teams.push(team);
     }
