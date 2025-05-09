@@ -3,7 +3,6 @@ import { db } from './config';
 
 interface IdentificationResult {
   identifiedStudent: string;
-  identifiedStudentEmail: string;
   confidence: number;
   error?: string;
 }
@@ -40,34 +39,16 @@ export async function identifyStudentViaLLM(
 
     const result = await response.json();
     
-    let identifiedStudent = '';
-    let identifiedStudentEmail = '';
-    
-    if (result.confidence >= 70 && result.identifiedStudent) {
-      const matchingOption = studentNames.find(nameWithEmail => {
-        const match = nameWithEmail.match(/(.*) \((.*)\)/);
-        return match && match[1] === result.identifiedStudent;
-      });
-      
-      if (matchingOption) {
-        const match = matchingOption.match(/(.*) \((.*)\)/);
-        if (match) {
-          identifiedStudent = match[1];
-          identifiedStudentEmail = match[2];
-        }
-      }
-    }
+    const identifiedStudent = (result.confidence >= 70) ? result.identifiedStudent : '';
     
     return {
-      identifiedStudent: identifiedStudent,
-      identifiedStudentEmail: identifiedStudentEmail,
+      identifiedStudent: identifiedStudent || '',
       confidence: result.confidence || 0,
     };
   } catch (error) {
     console.error('Error identifying student via LLM:', error);
     return {
       identifiedStudent: '',
-      identifiedStudentEmail: '',
       confidence: 0,
       error: error instanceof Error ? error.message : 'Unknown error',
     };

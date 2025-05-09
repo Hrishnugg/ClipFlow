@@ -27,7 +27,6 @@ export async function processVideo(
       if (studentNames.length > 0) {
         const identification = await identifyStudentViaLLM(studentNames, transcript);
         identifiedStudent = identification.identifiedStudent;
-        identifiedStudentEmail = identification.identifiedStudentEmail;
         confidenceLevel = identification.confidence;
         
         if (identifiedStudent) {
@@ -35,7 +34,15 @@ export async function processVideo(
             const match = nameWithEmail.match(/(.*) \((.*)\)/);
             return match && match[1] === identifiedStudent;
           });
+          
           duplicateStudent = nameMatches.length > 1;
+          
+          if (nameMatches.length > 0) {
+            const match = nameMatches[0].match(/(.*) \((.*)\)/);
+            if (match) {
+              identifiedStudentEmail = match[2];
+            }
+          }
         }
       }
     }
