@@ -75,6 +75,12 @@ export default function VideosPage() {
         });
       });
       
+      videosData.sort((a, b) => {
+        const dateA = new Date(a.uploadDate).getTime();
+        const dateB = new Date(b.uploadDate).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+      
       setVideos(videosData);
       if (videosData.length > 0) {
         setSelectedVideo(videosData[0]);
