@@ -260,6 +260,7 @@ export default function StudentDetailPage() {
               selectedVideoId={selectedVideo?.id || null} 
               onSelectVideo={handleSelectVideo}
               title="Student Videos"
+              isStudentView={true}
             />
           </div>
           
