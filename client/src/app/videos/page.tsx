@@ -82,11 +82,6 @@ export default function VideosPage() {
       });
       
       setVideos(videosData);
-      if (videosData.length > 0) {
-        setSelectedVideo(videosData[0]);
-      } else {
-        setSelectedVideo(null);
-      }
     } catch (error) {
       console.error('Error fetching videos:', error);
     } finally {
