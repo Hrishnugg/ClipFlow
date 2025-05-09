@@ -44,8 +44,16 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
   }, [rosterId]);
 
   useEffect(() => {
-    setSelectedStudent(identifiedStudent || '');
-  }, [identifiedStudent]);
+    if (identifiedStudent && studentNames.length > 0) {
+      const matchingOption = studentNames.find(option => {
+        const match = option.match(/(.*) \((.*)\)/);
+        return match && match[1] === identifiedStudent;
+      });
+      setSelectedStudent(matchingOption || '');
+    } else {
+      setSelectedStudent('');
+    }
+  }, [identifiedStudent, studentNames]);
 
   const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.target.value;

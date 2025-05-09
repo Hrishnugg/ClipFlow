@@ -50,8 +50,16 @@ export default function StudentInfoSidebarWithReassign({
   }, [rosterId]);
 
   useEffect(() => {
-    setSelectedStudent(identifiedStudent || '');
-  }, [identifiedStudent]);
+    if (identifiedStudent && studentNames.length > 0) {
+      const matchingOption = studentNames.find(option => {
+        const match = option.match(/(.*) \((.*)\)/);
+        return match && match[1] === identifiedStudent;
+      });
+      setSelectedStudent(matchingOption || '');
+    } else {
+      setSelectedStudent('');
+    }
+  }, [identifiedStudent, studentNames]);
 
   const handleStudentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSelectedStudent = e.target.value;
