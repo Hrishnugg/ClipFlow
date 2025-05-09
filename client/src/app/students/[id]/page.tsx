@@ -116,6 +116,12 @@ export default function StudentDetailPage() {
     fetchStudentDetails();
   }, [user, studentId, refreshTrigger]);
 
+  useEffect(() => {
+    if (videos.length > 0) {
+      setSelectedVideo(videos[0]);
+    }
+  }, [videos]);
+
   const handleSelectVideo = (video: Video) => {
     setSelectedVideo(video);
   };

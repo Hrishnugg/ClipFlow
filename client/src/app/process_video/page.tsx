@@ -114,6 +114,12 @@ export default function ProcessVideo() {
     fetchVideos();
   }, [user, isProcessing, refreshTrigger]);
 
+  useEffect(() => {
+    if (videos.length > 0) {
+      setSelectedVideo(videos[0]);
+    }
+  }, [videos]);
+
   const handleUpload = () => {
     setIsModalOpen(true);
   };
