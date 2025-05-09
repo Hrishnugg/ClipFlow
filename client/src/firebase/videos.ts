@@ -18,7 +18,9 @@ export async function processVideo(
     
     let identifiedStudent = '';
     let confidenceLevel = 0;
-    
+    let identifiedStudentEmail = '';
+    let duplicateStudent = false;
+
     if (transcript && rosterId) {
       const studentNames = await getStudentNamesFromRoster(rosterId);
       
@@ -26,6 +28,22 @@ export async function processVideo(
         const identification = await identifyStudentViaLLM(studentNames, transcript);
         identifiedStudent = identification.identifiedStudent;
         confidenceLevel = identification.confidence;
+        
+        if (identifiedStudent) {
+          const nameMatches = studentNames.filter(nameWithEmail => {
+            const match = nameWithEmail.match(/(.*) \((.*)\)/);
+            return match && match[1] === identifiedStudent;
+          });
+          
+          duplicateStudent = nameMatches.length > 1;
+          
+          if (nameMatches.length > 0) {
+            const match = nameMatches[0].match(/(.*) \((.*)\)/);
+            if (match) {
+              identifiedStudentEmail = match[2];
+            }
+          }
+        }
       }
     }
     
@@ -43,6 +61,8 @@ export async function processVideo(
       transcript: transcript,
       user_uid: user_uid,
       identifiedStudent: identifiedStudent,
+      identifiedStudentEmail: identifiedStudentEmail,
+      duplicateStudent: duplicateStudent,
       confidenceLevel: confidenceLevel,
       teamID: teamID
     };

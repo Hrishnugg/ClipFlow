@@ -11,13 +11,15 @@ interface StudentInfoSidebarWithReassignProps {
   rosterId?: string;
   videoId?: string;
   onStudentUpdate?: () => void;
+  duplicateStudent?: boolean;
 }
 
 export default function StudentInfoSidebarWithReassign({ 
   identifiedStudent, 
   rosterId, 
   videoId, 
-  onStudentUpdate 
+  onStudentUpdate,
+  duplicateStudent
 }: StudentInfoSidebarWithReassignProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
@@ -27,8 +29,17 @@ export default function StudentInfoSidebarWithReassign({
     const fetchStudentNames = async () => {
       if (rosterId) {
         try {
-          const names = await getStudentNamesFromRoster(rosterId);
-          setStudentNames(names);
+          const rosterRef = doc(db, 'rosters', rosterId);
+          const rosterSnap = await getDoc(rosterRef);
+          
+          if (rosterSnap.exists()) {
+            const data = rosterSnap.data();
+            const students = data.students || [];
+            const formattedNames = students.map((student: { name: string, email: string }) => 
+              `${student.name} (${student.email})`
+            );
+            setStudentNames(formattedNames);
+          }
         } catch (error) {
           console.error('Error fetching student names:', error);
         }
@@ -39,8 +50,16 @@ export default function StudentInfoSidebarWithReassign({
   }, [rosterId]);
 
   useEffect(() => {
-    setSelectedStudent(identifiedStudent || '');
-  }, [identifiedStudent]);
+    if (identifiedStudent && studentNames.length > 0) {
+      const matchingOption = studentNames.find(option => {
+        const match = option.match(/(.*) \((.*)\)/);
+        return match && match[1] === identifiedStudent;
+      });
+      setSelectedStudent(matchingOption || '');
+    } else {
+      setSelectedStudent('');
+    }
+  }, [identifiedStudent, studentNames]);
 
   const handleStudentSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSelectedStudent = e.target.value;
@@ -51,6 +70,15 @@ export default function StudentInfoSidebarWithReassign({
     if (videoId && selectedStudent) {
       setIsReassigning(true);
       try {
+        const nameMatch = selectedStudent.match(/(.*) \((.*)\)/);
+        if (!nameMatch) {
+          setIsReassigning(false);
+          return;
+        }
+        
+        const studentName = nameMatch[1];
+        const studentEmail = nameMatch[2];
+        
         const videoRef = doc(db, 'videos', videoId);
         
         const videoDoc = await getDoc(videoRef);
@@ -58,12 +86,20 @@ export default function StudentInfoSidebarWithReassign({
           const videoData = videoDoc.data();
           const createdDate = videoData.uploadDate || new Date().toISOString().split('T')[0];
           
+          const duplicateNames = studentNames.filter(option => {
+            const match = option.match(/(.*) \((.*)\)/);
+            return match && match[1] === studentName;
+          });
+          const hasDuplicates = duplicateNames.length > 1;
+          
           await updateDoc(videoRef, {
-            identifiedStudent: selectedStudent,
-            title: `${selectedStudent} ${createdDate}`
+            identifiedStudent: studentName,
+            identifiedStudentEmail: studentEmail,
+            duplicateStudent: hasDuplicates,
+            title: `${studentName} ${createdDate}`
           });
           
-          console.log('Updated video with new student and title:', selectedStudent, createdDate);
+          console.log('Updated video with new student and title:', studentName, createdDate);
         }
         
         if (onStudentUpdate) {
@@ -119,6 +155,11 @@ export default function StudentInfoSidebarWithReassign({
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
+      {duplicateStudent && identifiedStudent && (
+        <div className="mb-2 p-2 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300">
+          <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
+        </div>
+      )}
       <div className="mt-2">
         <select 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium"
@@ -126,9 +167,9 @@ export default function StudentInfoSidebarWithReassign({
           onChange={handleStudentSelect}
         >
           <option value="">Select a student</option>
-          {studentNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
+          {studentNames.map((nameWithEmail) => (
+            <option key={nameWithEmail} value={nameWithEmail}>
+              {nameWithEmail}
             </option>
           ))}
         </select>

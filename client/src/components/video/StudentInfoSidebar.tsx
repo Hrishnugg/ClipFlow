@@ -12,9 +12,10 @@ interface StudentInfoSidebarProps {
   rosterId?: string;
   videoId?: string;
   onStudentUpdate?: () => void;
+  duplicateStudent?: boolean;
 }
 
-export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId, onStudentUpdate }: StudentInfoSidebarProps) {
+export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel, rosterId, videoId, onStudentUpdate, duplicateStudent }: StudentInfoSidebarProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
   
@@ -22,8 +23,17 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
     const fetchStudentNames = async () => {
       if (rosterId) {
         try {
-          const names = await getStudentNamesFromRoster(rosterId);
-          setStudentNames(names);
+          const rosterRef = doc(db, 'rosters', rosterId);
+          const rosterSnap = await getDoc(rosterRef);
+          
+          if (rosterSnap.exists()) {
+            const data = rosterSnap.data();
+            const students = data.students || [];
+            const formattedNames = students.map((student: { name: string, email: string }) => 
+              `${student.name} (${student.email})`
+            );
+            setStudentNames(formattedNames);
+          }
         } catch (error) {
           console.error('Error fetching student names:', error);
         }
@@ -34,20 +44,43 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
   }, [rosterId]);
 
   useEffect(() => {
-    setSelectedStudent(identifiedStudent || '');
-  }, [identifiedStudent]);
+    if (identifiedStudent && studentNames.length > 0) {
+      const matchingOption = studentNames.find(option => {
+        const match = option.match(/(.*) \((.*)\)/);
+        return match && match[1] === identifiedStudent;
+      });
+      setSelectedStudent(matchingOption || '');
+    } else {
+      setSelectedStudent('');
+    }
+  }, [identifiedStudent, studentNames]);
 
   const handleStudentSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSelectedStudent = e.target.value;
-    setSelectedStudent(newSelectedStudent);
+    const selectedOption = e.target.value;
+    setSelectedStudent(selectedOption);
     
     if (videoId) {
       try {
+        const nameMatch = selectedOption.match(/(.*) \((.*)\)/);
+        if (!nameMatch) return;
+        
+        const studentName = nameMatch[1];
+        const studentEmail = nameMatch[2];
+        
+        const duplicateNames = studentNames.filter(option => {
+          const match = option.match(/(.*) \((.*)\)/);
+          return match && match[1] === studentName;
+        });
+        const hasDuplicates = duplicateNames.length > 1;
+        
         const videoRef = doc(db, 'videos', videoId);
         await updateDoc(videoRef, {
-          identifiedStudent: newSelectedStudent
+          identifiedStudent: studentName,
+          identifiedStudentEmail: studentEmail,
+          duplicateStudent: hasDuplicates
         });
-        console.log('Updated student in video document:', newSelectedStudent);
+        
+        console.log('Updated student in video document:', studentName, studentEmail, hasDuplicates);
         if (onStudentUpdate) {
           onStudentUpdate();
         }
@@ -127,6 +160,11 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
+      {duplicateStudent && identifiedStudent && (
+        <div className="mb-2 p-2 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300">
+          <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
+        </div>
+      )}
       <div className="mt-2">
         <select 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium"
@@ -134,9 +172,9 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           onChange={handleStudentSelect}
         >
           <option value="">Select a student</option>
-          {studentNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
+          {studentNames.map((nameWithEmail) => (
+            <option key={nameWithEmail} value={nameWithEmail}>
+              {nameWithEmail}
             </option>
           ))}
         </select>

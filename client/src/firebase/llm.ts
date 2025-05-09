@@ -16,13 +16,18 @@ export async function identifyStudentViaLLM(
   transcript: string
 ): Promise<IdentificationResult> {
   try {
+    const namesOnly = studentNames.map(nameWithEmail => {
+      const match = nameWithEmail.match(/(.*) \((.*)\)/);
+      return match ? match[1] : nameWithEmail;
+    });
+    
     const response = await fetch('/api/llm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        studentNames,
+        studentNames: namesOnly,
         transcript,
       }),
     });
@@ -51,7 +56,7 @@ export async function identifyStudentViaLLM(
 }
 
 /**
- * Fetches student names from a roster
+ * Fetches student names from a roster with email format: "Name (Email)"
  */
 export async function getStudentNamesFromRoster(rosterId: string): Promise<string[]> {
   try {
@@ -65,7 +70,9 @@ export async function getStudentNamesFromRoster(rosterId: string): Promise<strin
     const data = rosterSnap.data();
     const students = data.students || [];
     
-    return students.map((student: { name: string }) => student.name);
+    return students.map((student: { name: string; email: string }) => 
+      `${student.name} (${student.email})`
+    );
   } catch (error) {
     console.error('Error fetching student names from roster:', error);
     return [];

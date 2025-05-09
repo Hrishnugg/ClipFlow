@@ -19,6 +19,8 @@ interface Video {
   asset: string;
   transcript: string;
   identifiedStudent: string;
+  identifiedStudentEmail?: string;
+  duplicateStudent?: boolean;
   confidenceLevel: number;
   isReviewed: boolean;
   uploadDate: string;
@@ -62,6 +64,8 @@ export default function ProcessVideo() {
             asset: data.asset,
             transcript: data.transcript,
             identifiedStudent: data.identifiedStudent,
+            identifiedStudentEmail: data.identifiedStudentEmail || '',
+            duplicateStudent: data.duplicateStudent || false,
             confidenceLevel: data.confidenceLevel,
             isReviewed: data.isReviewed,
             uploadDate: data.uploadDate,
@@ -70,8 +74,13 @@ export default function ProcessVideo() {
           });
         });
         
-        // Sort videos by confidence level (lowest to highest) - same as in VideoPlaylist
-        const sortedVideosData = [...videosData].sort((a, b) => a.confidenceLevel - b.confidenceLevel);
+        // Sort videos: duplicateStudent=true videos first, then by confidence level (lowest to highest)
+        const sortedVideosData = [...videosData].sort((a, b) => {
+          if (a.duplicateStudent && !b.duplicateStudent) return -1;
+          if (!a.duplicateStudent && b.duplicateStudent) return 1;
+          
+          return a.confidenceLevel - b.confidenceLevel;
+        });
         
         setVideos(sortedVideosData);
         
@@ -196,6 +205,7 @@ export default function ProcessVideo() {
                 rosterId={selectedVideo?.rosterId}
                 videoId={selectedVideo?.id}
                 onStudentUpdate={handleStudentUpdate}
+                duplicateStudent={selectedVideo?.duplicateStudent}
               />
             </div>
             
