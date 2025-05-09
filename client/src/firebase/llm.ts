@@ -3,6 +3,7 @@ import { db } from './config';
 
 interface IdentificationResult {
   identifiedStudent: string;
+  identifiedStudentEmail: string;
   confidence: number;
   error?: string;
 }
@@ -16,13 +17,18 @@ export async function identifyStudentViaLLM(
   transcript: string
 ): Promise<IdentificationResult> {
   try {
+    const namesOnly = studentNames.map(nameWithEmail => {
+      const match = nameWithEmail.match(/(.*) \((.*)\)/);
+      return match ? match[1] : nameWithEmail;
+    });
+    
     const response = await fetch('/api/llm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        studentNames,
+        studentNames: namesOnly,
         transcript,
       }),
     });
@@ -34,16 +40,34 @@ export async function identifyStudentViaLLM(
 
     const result = await response.json();
     
-    const identifiedStudent = (result.confidence >= 70) ? result.identifiedStudent : '';
+    let identifiedStudent = '';
+    let identifiedStudentEmail = '';
+    
+    if (result.confidence >= 70 && result.identifiedStudent) {
+      const matchingOption = studentNames.find(nameWithEmail => {
+        const match = nameWithEmail.match(/(.*) \((.*)\)/);
+        return match && match[1] === result.identifiedStudent;
+      });
+      
+      if (matchingOption) {
+        const match = matchingOption.match(/(.*) \((.*)\)/);
+        if (match) {
+          identifiedStudent = match[1];
+          identifiedStudentEmail = match[2];
+        }
+      }
+    }
     
     return {
-      identifiedStudent: identifiedStudent || '',
+      identifiedStudent: identifiedStudent,
+      identifiedStudentEmail: identifiedStudentEmail,
       confidence: result.confidence || 0,
     };
   } catch (error) {
     console.error('Error identifying student via LLM:', error);
     return {
       identifiedStudent: '',
+      identifiedStudentEmail: '',
       confidence: 0,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
@@ -51,7 +75,7 @@ export async function identifyStudentViaLLM(
 }
 
 /**
- * Fetches student names from a roster
+ * Fetches student names from a roster with email format: "Name (Email)"
  */
 export async function getStudentNamesFromRoster(rosterId: string): Promise<string[]> {
   try {
@@ -65,61 +89,11 @@ export async function getStudentNamesFromRoster(rosterId: string): Promise<strin
     const data = rosterSnap.data();
     const students = data.students || [];
     
-    return students.map((student: { name: string }) => student.name);
+    return students.map((student: { name: string; email: string }) => 
+      `${student.name} (${student.email})`
+    );
   } catch (error) {
     console.error('Error fetching student names from roster:', error);
     return [];
-  }
-}
-
-/**
- * Finds a student's email by name from a roster
- */
-export async function getStudentEmailByName(rosterId: string, studentName: string): Promise<string> {
-  try {
-    const rosterRef = doc(db, 'rosters', rosterId);
-    const rosterSnap = await getDoc(rosterRef);
-    
-    if (!rosterSnap.exists()) {
-      throw new Error('Roster not found');
-    }
-    
-    const data = rosterSnap.data();
-    const students = data.students || [];
-    
-    const student = students.find((student: { name: string; email: string }) => 
-      student.name === studentName
-    );
-    
-    return student ? student.email : '';
-  } catch (error) {
-    console.error('Error finding student email by name:', error);
-    return '';
-  }
-}
-
-/**
- * Checks if there are multiple students with the same name in a roster
- */
-export async function hasStudentDuplicates(rosterId: string, studentName: string): Promise<boolean> {
-  try {
-    const rosterRef = doc(db, 'rosters', rosterId);
-    const rosterSnap = await getDoc(rosterRef);
-    
-    if (!rosterSnap.exists()) {
-      return false;
-    }
-    
-    const data = rosterSnap.data();
-    const students = data.students || [];
-    
-    const matchingStudents = students.filter((student: { name: string }) => 
-      student.name === studentName
-    );
-    
-    return matchingStudents.length > 1;
-  } catch (error) {
-    console.error('Error checking for student duplicates:', error);
-    return false;
   }
 }

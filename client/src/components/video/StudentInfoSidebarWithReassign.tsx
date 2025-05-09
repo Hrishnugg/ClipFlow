@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStudentNamesFromRoster, getStudentEmailByName, hasStudentDuplicates } from '@/firebase/llm';
+import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
@@ -29,8 +29,17 @@ export default function StudentInfoSidebarWithReassign({
     const fetchStudentNames = async () => {
       if (rosterId) {
         try {
-          const names = await getStudentNamesFromRoster(rosterId);
-          setStudentNames(names);
+          const rosterRef = doc(db, 'rosters', rosterId);
+          const rosterSnap = await getDoc(rosterRef);
+          
+          if (rosterSnap.exists()) {
+            const data = rosterSnap.data();
+            const students = data.students || [];
+            const formattedNames = students.map((student: { name: string, email: string }) => 
+              `${student.name} (${student.email})`
+            );
+            setStudentNames(formattedNames);
+          }
         } catch (error) {
           console.error('Error fetching student names:', error);
         }
@@ -53,6 +62,15 @@ export default function StudentInfoSidebarWithReassign({
     if (videoId && selectedStudent) {
       setIsReassigning(true);
       try {
+        const nameMatch = selectedStudent.match(/(.*) \((.*)\)/);
+        if (!nameMatch) {
+          setIsReassigning(false);
+          return;
+        }
+        
+        const studentName = nameMatch[1];
+        const studentEmail = nameMatch[2];
+        
         const videoRef = doc(db, 'videos', videoId);
         
         const videoDoc = await getDoc(videoRef);
@@ -60,22 +78,20 @@ export default function StudentInfoSidebarWithReassign({
           const videoData = videoDoc.data();
           const createdDate = videoData.uploadDate || new Date().toISOString().split('T')[0];
           
-          let studentEmail = '';
-          let hasDuplicates = false;
-          
-          if (selectedStudent && rosterId) {
-            studentEmail = await getStudentEmailByName(rosterId, selectedStudent);
-            hasDuplicates = await hasStudentDuplicates(rosterId, selectedStudent);
-          }
+          const duplicateNames = studentNames.filter(option => {
+            const match = option.match(/(.*) \((.*)\)/);
+            return match && match[1] === studentName;
+          });
+          const hasDuplicates = duplicateNames.length > 1;
           
           await updateDoc(videoRef, {
-            identifiedStudent: selectedStudent,
+            identifiedStudent: studentName,
             identifiedStudentEmail: studentEmail,
             duplicateStudent: hasDuplicates,
-            title: `${selectedStudent} ${createdDate}`
+            title: `${studentName} ${createdDate}`
           });
           
-          console.log('Updated video with new student and title:', selectedStudent, createdDate);
+          console.log('Updated video with new student and title:', studentName, createdDate);
         }
         
         if (onStudentUpdate) {
@@ -143,9 +159,9 @@ export default function StudentInfoSidebarWithReassign({
           onChange={handleStudentSelect}
         >
           <option value="">Select a student</option>
-          {studentNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
+          {studentNames.map((nameWithEmail) => (
+            <option key={nameWithEmail} value={nameWithEmail}>
+              {nameWithEmail}
             </option>
           ))}
         </select>
