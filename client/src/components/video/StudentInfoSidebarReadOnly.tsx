@@ -9,14 +9,12 @@ interface StudentInfoSidebarReadOnlyProps {
   identifiedStudent: string | null;
   confidenceLevel?: number;
   rosterId?: string;
-  duplicateStudent?: boolean;
 }
 
 export default function StudentInfoSidebarReadOnly({ 
   identifiedStudent, 
   confidenceLevel, 
-  rosterId, 
-  duplicateStudent 
+  rosterId
 }: StudentInfoSidebarReadOnlyProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');

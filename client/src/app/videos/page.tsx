@@ -188,7 +188,6 @@ export default function VideosPage() {
                 identifiedStudent={selectedVideo?.identifiedStudent || null}
                 confidenceLevel={selectedVideo?.confidenceLevel}
                 rosterId={selectedVideo?.rosterId}
-                duplicateStudent={selectedVideo?.duplicateStudent}
               />
             </div>
           </div>
