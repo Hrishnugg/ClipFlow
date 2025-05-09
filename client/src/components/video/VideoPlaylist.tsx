@@ -30,6 +30,8 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
   }
   
   const sortedVideos = [...videos].sort((a, b) => {
+    if (isStudentView) return 0;
+    
     if (a.duplicateStudent && !b.duplicateStudent) return -1;
     if (!a.duplicateStudent && b.duplicateStudent) return 1;
     
