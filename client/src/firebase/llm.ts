@@ -71,3 +71,55 @@ export async function getStudentNamesFromRoster(rosterId: string): Promise<strin
     return [];
   }
 }
+
+/**
+ * Finds a student's email by name from a roster
+ */
+export async function getStudentEmailByName(rosterId: string, studentName: string): Promise<string> {
+  try {
+    const rosterRef = doc(db, 'rosters', rosterId);
+    const rosterSnap = await getDoc(rosterRef);
+    
+    if (!rosterSnap.exists()) {
+      throw new Error('Roster not found');
+    }
+    
+    const data = rosterSnap.data();
+    const students = data.students || [];
+    
+    const student = students.find((student: { name: string; email: string }) => 
+      student.name === studentName
+    );
+    
+    return student ? student.email : '';
+  } catch (error) {
+    console.error('Error finding student email by name:', error);
+    return '';
+  }
+}
+
+/**
+ * Checks if there are multiple students with the same name in a roster
+ */
+export async function hasStudentDuplicates(rosterId: string, studentName: string): Promise<boolean> {
+  try {
+    const rosterRef = doc(db, 'rosters', rosterId);
+    const rosterSnap = await getDoc(rosterRef);
+    
+    if (!rosterSnap.exists()) {
+      return false;
+    }
+    
+    const data = rosterSnap.data();
+    const students = data.students || [];
+    
+    const matchingStudents = students.filter((student: { name: string }) => 
+      student.name === studentName
+    );
+    
+    return matchingStudents.length > 1;
+  } catch (error) {
+    console.error('Error checking for student duplicates:', error);
+    return false;
+  }
+}

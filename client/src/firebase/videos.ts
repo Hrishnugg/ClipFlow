@@ -1,7 +1,7 @@
 import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './config';
-import { identifyStudentViaLLM, getStudentNamesFromRoster } from './llm';
+import { identifyStudentViaLLM, getStudentNamesFromRoster, getStudentEmailByName, hasStudentDuplicates } from './llm';
 
 /**
  * Process a single video by uploading it to Firebase Storage and adding it to Firestore
@@ -18,7 +18,9 @@ export async function processVideo(
     
     let identifiedStudent = '';
     let confidenceLevel = 0;
-    
+    let identifiedStudentEmail = '';
+    let duplicateStudent = false;
+
     if (transcript && rosterId) {
       const studentNames = await getStudentNamesFromRoster(rosterId);
       
@@ -26,6 +28,11 @@ export async function processVideo(
         const identification = await identifyStudentViaLLM(studentNames, transcript);
         identifiedStudent = identification.identifiedStudent;
         confidenceLevel = identification.confidence;
+        
+        if (identifiedStudent) {
+          identifiedStudentEmail = await getStudentEmailByName(rosterId, identifiedStudent);
+          duplicateStudent = await hasStudentDuplicates(rosterId, identifiedStudent);
+        }
       }
     }
     
@@ -43,6 +50,8 @@ export async function processVideo(
       transcript: transcript,
       user_uid: user_uid,
       identifiedStudent: identifiedStudent,
+      identifiedStudentEmail: identifiedStudentEmail,
+      duplicateStudent: duplicateStudent,
       confidenceLevel: confidenceLevel,
       teamID: teamID
     };

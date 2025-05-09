@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStudentNamesFromRoster } from '@/firebase/llm';
+import { getStudentNamesFromRoster, getStudentEmailByName, hasStudentDuplicates } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
@@ -11,13 +11,15 @@ interface StudentInfoSidebarWithReassignProps {
   rosterId?: string;
   videoId?: string;
   onStudentUpdate?: () => void;
+  duplicateStudent?: boolean;
 }
 
 export default function StudentInfoSidebarWithReassign({ 
   identifiedStudent, 
   rosterId, 
   videoId, 
-  onStudentUpdate 
+  onStudentUpdate,
+  duplicateStudent
 }: StudentInfoSidebarWithReassignProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>(identifiedStudent || '');
@@ -58,8 +60,18 @@ export default function StudentInfoSidebarWithReassign({
           const videoData = videoDoc.data();
           const createdDate = videoData.uploadDate || new Date().toISOString().split('T')[0];
           
+          let studentEmail = '';
+          let hasDuplicates = false;
+          
+          if (selectedStudent && rosterId) {
+            studentEmail = await getStudentEmailByName(rosterId, selectedStudent);
+            hasDuplicates = await hasStudentDuplicates(rosterId, selectedStudent);
+          }
+          
           await updateDoc(videoRef, {
             identifiedStudent: selectedStudent,
+            identifiedStudentEmail: studentEmail,
+            duplicateStudent: hasDuplicates,
             title: `${selectedStudent} ${createdDate}`
           });
           
@@ -119,6 +131,11 @@ export default function StudentInfoSidebarWithReassign({
   return (
     <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
+      {duplicateStudent && identifiedStudent && (
+        <div className="mb-2 p-2 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300">
+          <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
+        </div>
+      )}
       <div className="mt-2">
         <select 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium"
