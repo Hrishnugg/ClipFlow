@@ -5,6 +5,7 @@ import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
+import { formatVideoTitle } from '@/utils/formatting';
 
 interface StudentInfoSidebarWithReassignProps {
   identifiedStudent: string | null;
@@ -96,7 +97,7 @@ export default function StudentInfoSidebarWithReassign({
             identifiedStudent: studentName,
             identifiedStudentEmail: studentEmail,
             duplicateStudent: hasDuplicates,
-            title: `${studentName} ${createdDate}`
+            title: formatVideoTitle(studentName, studentEmail, createdDate)
           });
           
           console.log('Updated video with new student and title:', studentName, createdDate);

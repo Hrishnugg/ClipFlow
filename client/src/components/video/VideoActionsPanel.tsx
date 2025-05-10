@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, writeBatch, doc, getDoc, deleteDoc }
 import { db, storage } from '../../firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
 import ConfirmationModal from '../../components/modals/ConfirmationModal';
+import { formatVideoTitle } from '../../utils/formatting';
 
 interface VideoActionsPanelProps {
   userUid: string;
@@ -44,11 +45,11 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
         const videoRef = doc(db, 'videos', document.id);
         const videoData = document.data();
         const identifiedStudent = videoData.identifiedStudent;
+        const identifiedStudentEmail = videoData.identifiedStudentEmail;
         
-        if (identifiedStudent) {
+        if (identifiedStudent && identifiedStudentEmail) {
           const creationDate = videoData.createdAt || videoData.uploadDate;
-          const formattedDate = new Date(creationDate).toLocaleDateString();
-          const newTitle = `${identifiedStudent} ${formattedDate}`;
+          const newTitle = formatVideoTitle(identifiedStudent, identifiedStudentEmail, creationDate);
           
           batch.update(videoRef, { 
             isReviewed: true,
