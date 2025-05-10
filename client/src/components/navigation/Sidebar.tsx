@@ -139,6 +139,8 @@ export default function Sidebar() {
       setSelectedTeam(teamId);
       console.log('Team selected:', teamId);
       
+      window.dispatchEvent(new Event('team-selected'));
+      
       const currentPath = window.location.pathname;
       if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video' || currentPath === '/videos') {
         window.location.reload();
@@ -146,6 +148,10 @@ export default function Sidebar() {
         window.location.href = '/rosters';
       } else if (currentPath.startsWith('/students/')) {
         window.location.href = '/students';
+      } else if (currentPath === '/student_videos') {
+        window.location.reload();
+      } else if (currentPath.startsWith('/student_videos/')) {
+        window.location.href = '/student_videos';
       }
     } catch (error) {
       console.error('Error updating selected team:', error);
@@ -290,6 +296,16 @@ export default function Sidebar() {
                 className={`flex items-center px-6 py-3 ${isActive('/videos')} transition-colors`}
               >
                 <span>Videos</span>
+              </Link>
+            </li>
+          )}
+          {selectedView === 'Parent View' && (
+            <li className="mb-2">
+              <Link 
+                href="/student_videos" 
+                className={`flex items-center px-6 py-3 ${isActive('/student_videos')} transition-colors`}
+              >
+                <span>Student Videos</span>
               </Link>
             </li>
           )}

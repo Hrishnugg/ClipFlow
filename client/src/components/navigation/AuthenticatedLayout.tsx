@@ -51,10 +51,18 @@ export default function AuthenticatedLayout({
         const restrictedPaths = ['/rosters', '/students', '/process_video', '/invite', '/create_team'];
         const currentPath = window.location.pathname;
         
-        if ((userSelectedView === 'Student View' || userSelectedView === 'Parent View') && 
+        if (userSelectedView === 'Student View' && 
             (restrictedPaths.includes(currentPath) || 
              currentPath.startsWith('/rosters/') || 
              currentPath.startsWith('/students/'))) {
+          console.log(`Redirecting ${userSelectedView} from restricted page`);
+          router.push('/dashboard');
+        }
+        
+        if (userSelectedView === 'Parent View' && 
+            (restrictedPaths.includes(currentPath) || 
+             currentPath.startsWith('/rosters/') || 
+             (currentPath.startsWith('/students/') && !currentPath.startsWith('/student_videos')))) {
           console.log(`Redirecting ${userSelectedView} from restricted page`);
           router.push('/dashboard');
         }
