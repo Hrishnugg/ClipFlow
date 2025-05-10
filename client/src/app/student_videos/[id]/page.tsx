@@ -62,6 +62,18 @@ export default function StudentVideoDetailPage() {
 
     fetchStudentDetails();
   }, [user, studentId, router]);
+  
+  useEffect(() => {
+    const handleTeamChange = () => {
+      router.push('/student_videos');
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, [router]);
 
   return (
     <AuthenticatedLayout>

@@ -31,6 +31,7 @@ export default function StudentVideosPage() {
         setLoading(true);
         
         const selectedTeam = await getUserSelectedTeam(user.uid);
+        setSelectedTeam(selectedTeam);
         
         if (!selectedTeam) {
           setStudents([]);
@@ -71,6 +72,18 @@ export default function StudentVideosPage() {
 
     fetchStudents();
   }, [user]);
+  
+  useEffect(() => {
+    const handleTeamChange = () => {
+      window.location.reload();
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, []);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {

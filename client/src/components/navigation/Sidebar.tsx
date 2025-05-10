@@ -139,6 +139,8 @@ export default function Sidebar() {
       setSelectedTeam(teamId);
       console.log('Team selected:', teamId);
       
+      window.dispatchEvent(new Event('team-selected'));
+      
       const currentPath = window.location.pathname;
       if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video' || currentPath === '/videos') {
         window.location.reload();
@@ -146,6 +148,10 @@ export default function Sidebar() {
         window.location.href = '/rosters';
       } else if (currentPath.startsWith('/students/')) {
         window.location.href = '/students';
+      } else if (currentPath === '/student_videos') {
+        window.location.reload();
+      } else if (currentPath.startsWith('/student_videos/')) {
+        window.location.href = '/student_videos';
       }
     } catch (error) {
       console.error('Error updating selected team:', error);
