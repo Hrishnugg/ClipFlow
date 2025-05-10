@@ -186,7 +186,7 @@ export default function Sidebar() {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
       }
       
-      window.location.reload();
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Error updating selected view:', error);
     }
