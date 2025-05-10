@@ -186,12 +186,7 @@ export default function Sidebar() {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
       }
       
-      const currentPath = window.location.pathname;
-      if (currentPath.startsWith('/student_videos') && newView !== 'Parent View') {
-        window.location.href = '/dashboard';
-      } else {
-        window.location.reload();
-      }
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Error updating selected view:', error);
     }
