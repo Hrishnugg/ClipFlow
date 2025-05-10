@@ -293,6 +293,16 @@ export default function Sidebar() {
               </Link>
             </li>
           )}
+          {selectedView === 'Parent View' && (
+            <li className="mb-2">
+              <Link 
+                href="/student_videos" 
+                className={`flex items-center px-6 py-3 ${isActive('/student_videos')} transition-colors`}
+              >
+                <span>Student Videos</span>
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
