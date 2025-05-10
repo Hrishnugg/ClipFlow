@@ -5,6 +5,7 @@ import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
+import { formatVideoTitle } from '@/utils/formatting';
 
 interface StudentInfoSidebarProps {
   identifiedStudent: string | null;
@@ -99,8 +100,12 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
         if (videoDoc.exists()) {
           const videoData = videoDoc.data();
           const creationDate = videoData.createdAt || videoData.uploadDate;
-          const formattedDate = new Date(creationDate).toLocaleDateString();
-          const newTitle = `${selectedStudent} ${formattedDate}`;
+          const nameMatch = selectedStudent.match(/(.*) \((.*)\)/);
+          if (!nameMatch) return;
+          
+          const studentName = nameMatch[1];
+          const studentEmail = nameMatch[2];
+          const newTitle = formatVideoTitle(studentName, studentEmail, creationDate);
           
           await updateDoc(videoRef, {
             isReviewed: true,
