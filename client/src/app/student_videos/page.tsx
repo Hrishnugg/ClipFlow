@@ -17,6 +17,8 @@ interface Student {
   teamID?: string[];
 }
 
+
+
 export default function StudentVideosPage() {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
@@ -39,18 +41,18 @@ export default function StudentVideosPage() {
           return;
         }
 
+        // Step 1: Get all students with teamID matching selectedTeam
         const studentsQuery = query(
           collection(db, 'students'),
-          where('teamID', 'array-contains', selectedTeam),
-          where('parentEmail', '==', user.email)
+          where('teamID', 'array-contains', selectedTeam)
         );
         
         const studentsSnapshot = await getDocs(studentsQuery);
+        const initialStudents: Student[] = [];
         
-        const studentsData: Student[] = [];
         studentsSnapshot.forEach((doc) => {
           const data = doc.data();
-          studentsData.push({
+          initialStudents.push({
             id: doc.id,
             name: data.name,
             email: data.email,
@@ -60,9 +62,40 @@ export default function StudentVideosPage() {
           });
         });
         
-        studentsData.sort((a, b) => a.name.localeCompare(b.name));
-        
-        setStudents(studentsData);
+        // Step 2: Get all rosters with teamID matching selectedTeam
+        try {
+          const rostersRef = collection(db, 'rosters');
+          const rostersQuery = query(
+            rostersRef,
+            where('teamID', '==', selectedTeam)
+          );
+          const rostersSnapshot = await getDocs(rostersQuery);
+          
+          const filteredStudents = initialStudents.filter(student => {
+            for (const rosterDoc of rostersSnapshot.docs) {
+              const rosterData = rosterDoc.data();
+              const rosterStudents = rosterData.students || [];
+              
+              for (const rosterStudent of rosterStudents) {
+                if (rosterStudent.email === student.email && 
+                    rosterStudent.parentEmail === user.email) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          });
+          
+          filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+          setStudents(filteredStudents);
+        } catch (rosterError) {
+          console.error('Error fetching or processing rosters:', rosterError);
+          const fallbackStudents = initialStudents.filter(student => 
+            student.parentEmail === user.email
+          );
+          fallbackStudents.sort((a, b) => a.name.localeCompare(b.name));
+          setStudents(fallbackStudents);
+        }
       } catch (error) {
         console.error('Error fetching students:', error);
       } finally {
