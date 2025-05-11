@@ -104,11 +104,11 @@ export default function InvitePage() {
         </div>
         
         {hasSelectedTeam === null ? (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
             <p>Loading...</p>
           </div>
         ) : hasSelectedTeam ? (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 <p>{error}</p>

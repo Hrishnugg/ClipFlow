@@ -9,9 +9,9 @@ interface TranscriptSectionProps {
 export default function TranscriptSection({ transcript }: TranscriptSectionProps) {
   if (!transcript) {
     return (
-      <div className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow mt-4">
+      <div className="w-full p-4 bg-gray-800 rounded-lg shadow mt-4">
         <h3 className="text-lg font-semibold mb-2">Transcript</h3>
-        <p className="text-gray-500 dark:text-gray-400">No transcript available</p>
+        <p className="text-gray-400">No transcript available</p>
       </div>
     );
   }

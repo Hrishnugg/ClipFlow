@@ -142,9 +142,9 @@ export default function VideosPage() {
     if (videos.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-8">
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
             <h1 className="text-2xl font-bold mb-6 text-center">Your Videos</h1>
-            <p className="text-center text-gray-600 dark:text-gray-400">
+            <p className="text-center text-gray-400">
               No videos assigned to you yet.
             </p>
           </div>

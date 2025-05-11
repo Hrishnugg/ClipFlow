@@ -181,13 +181,13 @@ export default function StudentVideoDetailPage() {
           
           <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
             {/* Video Playlist (left sidebar) */}
-            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700">
-              <div className="w-full h-full bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-700">
+              <div className="w-full h-full bg-gray-800 border-r border-gray-700">
+                <div className="p-4 border-b border-gray-700">
                   <h2 className="text-lg font-semibold">Student Videos</h2>
                 </div>
                 <div className="p-8 flex flex-col items-center justify-center h-[calc(100%-60px)]">
-                  <div className="text-gray-500 dark:text-gray-400 text-center">
+                  <div className="text-gray-400 text-center">
                     <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                     </svg>
