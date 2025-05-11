@@ -16,6 +16,7 @@ export default function AuthenticatedLayout({
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -42,6 +43,22 @@ export default function AuthenticatedLayout({
 
     fetchUserData();
   }, [user]);
+  
+  useEffect(() => {
+    const storedState = localStorage.getItem('sidebarCollapsed');
+    if (storedState) {
+      setSidebarCollapsed(storedState === 'true');
+    }
+    
+    const handleSidebarCollapseChange = (e: any) => {
+      setSidebarCollapsed(e.detail.isCollapsed);
+    };
+    
+    window.addEventListener('sidebar-collapse-changed', handleSidebarCollapseChange);
+    return () => {
+      window.removeEventListener('sidebar-collapse-changed', handleSidebarCollapseChange);
+    };
+  }, []);
   
   useEffect(() => {
     const checkAccess = async () => {
@@ -103,7 +120,7 @@ export default function AuthenticatedLayout({
   return (
     <div className="flex">
       <Sidebar />
-      <div className="ml-64 w-full">
+      <div className={`${sidebarCollapsed ? 'ml-16' : 'ml-64'} w-full transition-all duration-300 ease-in-out`}>
         {children}
       </div>
     </div>

@@ -3,8 +3,9 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 
-export default function SignOutButton() {
+export default function SignOutButton({ collapsed = false }: { collapsed?: boolean }) {
   const { signOut } = useAuth();
   const router = useRouter();
 
@@ -16,9 +17,10 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="bg-red-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-red-700"
+      className="flex items-center text-gray-400 hover:text-white transition-colors"
     >
-      Sign Out
+      <LogOut className="h-4 w-4 mr-2" />
+      {!collapsed && <span>Sign Out</span>}
     </button>
   );
 }
