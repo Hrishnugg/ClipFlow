@@ -295,7 +295,7 @@ export default function Sidebar() {
               className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-400 hover:text-white`}
               title={isCollapsed ? "Dashboard" : undefined}
             >
-              <Home size={20} className={`${isCollapsed ? 'text-white' : 'mr-3'}`} />
+              <Home size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
               {!isCollapsed && <span>Dashboard</span>}
             </Link>
           </li>
@@ -373,7 +373,7 @@ export default function Sidebar() {
       {/* Collapse button */}
       <div className="hidden md:flex justify-center py-2">
         <button
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-800/60 text-gray-400 hover:text-white hover:bg-gray-700/60 transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-800/60 text-white hover:text-white hover:bg-gray-700/60 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             toggleCollapse();
