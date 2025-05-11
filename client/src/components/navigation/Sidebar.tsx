@@ -256,7 +256,7 @@ export default function Sidebar() {
             >
               {!isCollapsed && <span>Teams</span>}
               {isCollapsed ? (
-                <BookOpen size={20} className="text-gray-400" />
+                <BookOpen size={20} className="text-white" />
               ) : (
                 <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
               )}
@@ -295,7 +295,7 @@ export default function Sidebar() {
               className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-400 hover:text-white`}
               title={isCollapsed ? "Dashboard" : undefined}
             >
-              <Home size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+              <Home size={20} className={`${isCollapsed ? 'text-white' : 'mr-3'}`} />
               {!isCollapsed && <span>Dashboard</span>}
             </Link>
           </li>
@@ -307,7 +307,7 @@ export default function Sidebar() {
                   className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/rosters')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Rosters" : undefined}
                 >
-                  <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                  <FileText size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                   {!isCollapsed && <span>Rosters</span>}
                 </Link>
               </li>
@@ -317,7 +317,7 @@ export default function Sidebar() {
                   className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/students')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Students" : undefined}
                 >
-                  <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                  <User size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                   {!isCollapsed && <span>Students</span>}
                 </Link>
               </li>
@@ -327,7 +327,7 @@ export default function Sidebar() {
                   className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/process_video')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Process Video" : undefined}
                 >
-                  <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                  <FileText size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                   {!isCollapsed && <span>Process Video</span>}
                 </Link>
               </li>
@@ -337,7 +337,7 @@ export default function Sidebar() {
                   className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/invite')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Invite" : undefined}
                 >
-                  <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                  <User size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                   {!isCollapsed && <span>Invite</span>}
                 </Link>
               </li>
@@ -350,7 +350,7 @@ export default function Sidebar() {
                 className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/videos')} transition-colors text-gray-400 hover:text-white`}
                 title={isCollapsed ? "Videos" : undefined}
               >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                <FileText size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                 {!isCollapsed && <span>Videos</span>}
               </Link>
             </li>
@@ -362,7 +362,7 @@ export default function Sidebar() {
                 className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/student_videos')} transition-colors text-gray-400 hover:text-white`}
                 title={isCollapsed ? "Student Videos" : undefined}
               >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                <FileText size={20} className={`${isCollapsed ? 'text-white' : 'mr-3 text-gray-400'}`} />
                 {!isCollapsed && <span>Student Videos</span>}
               </Link>
             </li>
@@ -417,7 +417,7 @@ export default function Sidebar() {
               const signOutBtn = document.querySelector('button[class*="bg-red-600"]') as HTMLButtonElement;
               if (signOutBtn) signOutBtn.click();
             }} 
-            className="text-gray-400 hover:text-white cursor-pointer" 
+            className="text-white hover:text-white cursor-pointer" 
           />
         )}
       </div>
