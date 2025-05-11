@@ -25,17 +25,17 @@ export default function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         
         <div className="mb-6">
-          <p className="text-gray-700 dark:text-gray-300">{message}</p>
+          <p className="text-gray-300">{message}</p>
         </div>
         
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-700 text-gray-200 rounded hover:bg-gray-600"
           >
             {cancelButtonText}
           </button>

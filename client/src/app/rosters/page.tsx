@@ -177,7 +177,7 @@ export default function Rosters() {
             <p>Loading rosters...</p>
           </div>
         ) : rosters.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 text-center">
+          <div className="bg-gray-800 shadow-lg rounded-lg p-8 text-center">
             <p className="mb-4">
               {selectedTeam 
                 ? "No rosters found. Upload a roster to get started." 
@@ -192,9 +192,9 @@ export default function Rosters() {
                 key={roster.id}
                 className="block"
               >
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow">
+                <div className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow">
                   <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
-                  <p className="text-gray-600 dark:text-gray-400">{roster.students.length} students</p>
+                  <p className="text-gray-400">{roster.students.length} students</p>
                 </div>
               </Link>
             ))}

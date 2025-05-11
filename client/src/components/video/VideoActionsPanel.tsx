@@ -137,7 +137,7 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow p-4 mt-2">
+    <div className="w-full bg-gray-800 rounded-lg shadow p-4 mt-2">
       <h3 className="text-lg font-semibold mb-2">Batch Actions</h3>
       
       <div className="space-y-2">

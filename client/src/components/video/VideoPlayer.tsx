@@ -13,8 +13,8 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   if (!videoUrl) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400">Select a video to play</p>
+      <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg">
+        <p className="text-gray-400">Select a video to play</p>
       </div>
     );
   }

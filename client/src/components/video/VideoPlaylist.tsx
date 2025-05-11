@@ -39,11 +39,11 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
   });
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="w-full h-full overflow-y-auto bg-gray-800 border-r border-gray-700">
+      <div className="p-4 border-b border-gray-700">
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-gray-700">
         {sortedVideos.map((video) => (
           <button
             key={video.id}

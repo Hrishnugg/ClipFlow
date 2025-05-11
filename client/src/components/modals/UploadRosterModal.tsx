@@ -43,7 +43,7 @@ export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadR
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Upload a Roster</h2>
         
         <div className="mb-4">

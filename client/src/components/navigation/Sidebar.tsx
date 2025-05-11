@@ -221,7 +221,7 @@ export default function Sidebar() {
   };
 
   const isActive = (path: string) => {
-    return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
+    return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-700';
   };
 
   const toggleTeamsExpand = () => {

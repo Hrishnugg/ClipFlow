@@ -18,13 +18,13 @@ export default function Dashboard() {
   return (
     <AuthenticatedLayout>
       <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
           <div className="mb-6">
             <p className="text-lg mb-2">
               Welcome <span className="font-semibold">{user.displayName}</span>
             </p>
-            <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
+            <p className="text-gray-300">{user.email}</p>
           </div>
         </div>
       </div>
