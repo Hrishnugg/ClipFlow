@@ -9,7 +9,7 @@ import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, 
 import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, Settings, User, LogOut } from 'lucide-react';
 
 const SIDEBAR_EXPANDED_WIDTH = 'w-64';
-const SIDEBAR_COLLAPSED_WIDTH = 'w-16';
+const SIDEBAR_COLLAPSED_WIDTH = 'w-22';
 const CONTENT_MARGIN_EXPANDED = 'ml-64';
 const CONTENT_MARGIN_COLLAPSED = 'ml-16';
 
@@ -247,7 +247,7 @@ export default function Sidebar() {
           </Link>
         )}
       </div>
-      <nav className="mt-6 flex-grow overflow-y-auto py-6 px-3">
+      <nav className="flex-grow overflow-y-auto py-6 px-3">
         <ul className="space-y-1">
           <li className="mb-2">
             <div 
@@ -307,7 +307,7 @@ export default function Sidebar() {
                   className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/rosters')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Rosters" : undefined}
                 >
-                  <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                  <FileText size={24} className={`${isCollapsed ? '' : 'mr-3'}`} />
                   {!isCollapsed && <span>Rosters</span>}
                 </Link>
               </li>
