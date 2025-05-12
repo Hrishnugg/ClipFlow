@@ -6,12 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
 import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
-import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, Settings, User, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, User, LogOut } from 'lucide-react';
 
 const SIDEBAR_EXPANDED_WIDTH = 'w-64';
 const SIDEBAR_COLLAPSED_WIDTH = 'w-22';
-const CONTENT_MARGIN_EXPANDED = 'ml-64';
-const CONTENT_MARGIN_COLLAPSED = 'ml-16';
 
 const useSidebarCollapse = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -28,7 +26,6 @@ const useSidebarCollapse = () => {
     setIsCollapsed(newState);
     localStorage.setItem('sidebarCollapsed', newState.toString());
     
-    window.dispatchEvent(new CustomEvent('sidebar-collapse-changed', { detail: { isCollapsed: newState } }));
   }, [isCollapsed]);
 
   return { isCollapsed, toggleCollapse };
@@ -250,7 +247,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-30 relative`}>
+    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-40`}>
       {isViewChanging && (
         <div className="absolute inset-0 bg-gray-900 z-50 flex items-center justify-center">
           <div className="flex flex-col items-center">
