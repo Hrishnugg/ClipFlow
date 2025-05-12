@@ -215,6 +215,9 @@ export default function Sidebar() {
       
       if (newTeams.length > 0) {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
+        setSelectedTeam(newTeams[0].id);
+      } else {
+        setSelectedTeam(null);
       }
       
       router.push('/dashboard');
