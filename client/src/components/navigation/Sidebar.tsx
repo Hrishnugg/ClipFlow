@@ -42,6 +42,7 @@ export default function Sidebar() {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<{isCoach?: boolean; isStudent?: boolean; isParent?: boolean}>({});
   const [selectedView, setSelectedView] = useState<string>('');
+  const [isViewChanging, setIsViewChanging] = useState(false);
   const { isCollapsed, toggleCollapse } = useSidebarCollapse();
   const { user } = useAuth();
   
@@ -200,6 +201,8 @@ export default function Sidebar() {
     if (selectedView === newView) return;
     
     try {
+      setIsViewChanging(true);
+      
       await updateUserSelectedView(user.uid, newView);
       setSelectedView(newView);
       console.log('View selected:', newView);
@@ -224,8 +227,13 @@ export default function Sidebar() {
       localStorage.setItem('teamsExpanded', 'false');
       
       router.push('/dashboard');
+      
+      setTimeout(() => {
+        setIsViewChanging(false);
+      }, 300);
     } catch (error) {
       console.error('Error updating selected view:', error);
+      setIsViewChanging(false); // Reset loading state on error
     }
   };
 
@@ -242,7 +250,15 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-30`}>
+    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-30 relative`}>
+      {isViewChanging && (
+        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading view...</span>
+          </div>
+        </div>
+      )}
       <div className={`py-4 ${isCollapsed ? 'px-3 justify-center' : 'px-6 justify-start'} flex items-center border-b border-gray-800/50`}>
         {!isCollapsed ? (
           <Link href="/dashboard" className="flex items-center">
