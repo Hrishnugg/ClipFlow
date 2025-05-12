@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 // import { getTeamsForUser } from '@/firebase/firestore';
 import { useAuth } from './AuthContext';
 
@@ -11,7 +11,7 @@ interface TeamContextType {
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export function TeamProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  useAuth();
   
   const refreshTeams = useCallback(async () => {
     if (typeof window !== 'undefined') {

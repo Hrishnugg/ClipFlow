@@ -9,7 +9,7 @@ import {
   User
 } from 'firebase/auth';
 import { auth, db } from '@/firebase/config';
-import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { getUserByEmail, updateExistingUserUid, updateTeamMemberIds, setFirstTeamAsSelected } from '@/firebase/firestore';
 
 interface AuthContextType {

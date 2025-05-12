@@ -116,7 +116,7 @@ export default function StudentDetailPage() {
     };
 
     fetchStudentDetails();
-  }, [user, studentId, refreshTrigger]);
+  }, [user, studentId, refreshTrigger, router]);
 
   useEffect(() => {
     if (videos.length > 0) {

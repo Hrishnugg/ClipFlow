@@ -13,7 +13,7 @@ interface StudentInfoSidebarReadOnlyProps {
 
 export default function StudentInfoSidebarReadOnly({ 
   identifiedStudent, 
-  confidenceLevel, 
+  // confidenceLevel removed as it's unused
   rosterId
 }: StudentInfoSidebarReadOnlyProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);

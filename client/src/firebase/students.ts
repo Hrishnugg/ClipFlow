@@ -32,7 +32,7 @@ export async function addOrUpdateStudent(student: Student, user_uid: string, tea
       const existingStudentDoc = querySnapshot.docs[0];
       const existingStudent = existingStudentDoc.data();
       
-      let teamIDs = existingStudent.teamID || [];
+      const teamIDs = existingStudent.teamID || [];
       
       if (!teamIDs.includes(teamID)) {
         teamIDs.push(teamID);
@@ -139,7 +139,7 @@ async function createOrUpdateUser(
     
     if (existingUser) {
       const userRef = doc(db, 'users', existingUser.uid);
-      const updates: Record<string, any> = {};
+      const updates: Record<string, boolean> = {};
       
       if (isStudent) updates.isStudent = true;
       if (isParent) updates.isParent = true;

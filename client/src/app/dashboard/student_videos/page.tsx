@@ -6,7 +6,7 @@ import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContext';
 import { getUserSelectedTeam } from '../../../firebase/firestore';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 
 interface Student {
   id: string;
@@ -22,7 +22,6 @@ export default function StudentVideosPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchStudents = async () => {
