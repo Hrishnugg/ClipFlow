@@ -44,6 +44,26 @@ export default function InvitePage() {
     
     checkSelectedTeam();
   }, [user]);
+  
+  useEffect(() => {
+    const handleTeamChange = async () => {
+      if (!user) return;
+      
+      try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        setHasSelectedTeam(!!selectedTeam);
+      } catch (error) {
+        console.error('Error checking selected team:', error);
+        setHasSelectedTeam(false);
+      }
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, [user]);
 
   const handleAddMembers = async () => {
     if (!emails.trim() || !user) {

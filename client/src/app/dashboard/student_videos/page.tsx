@@ -104,8 +104,79 @@ export default function StudentVideosPage() {
   }, [user]);
   
   useEffect(() => {
-    const handleTeamChange = () => {
-      router.refresh();
+    const handleTeamChange = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        setSelectedTeam(selectedTeam);
+        
+        if (!selectedTeam) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+
+        const studentsQuery = query(
+          collection(db, 'students'),
+          where('teamID', 'array-contains', selectedTeam)
+        );
+        
+        const studentsSnapshot = await getDocs(studentsQuery);
+        const initialStudents: Student[] = [];
+        
+        studentsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          initialStudents.push({
+            id: doc.id,
+            name: data.name,
+            email: data.email,
+            parentEmail: data.parentEmail,
+            user_uid: data.user_uid,
+            teamID: data.teamID
+          });
+        });
+        
+        try {
+          const rostersRef = collection(db, 'rosters');
+          const rostersQuery = query(
+            rostersRef,
+            where('teamID', '==', selectedTeam)
+          );
+          const rostersSnapshot = await getDocs(rostersQuery);
+          
+          const filteredStudents = initialStudents.filter(student => {
+            for (const rosterDoc of rostersSnapshot.docs) {
+              const rosterData = rosterDoc.data();
+              const rosterStudents = rosterData.students || [];
+              
+              for (const rosterStudent of rosterStudents) {
+                if (rosterStudent.email === student.email && 
+                    rosterStudent.parentEmail === user.email) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          });
+          
+          filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+          setStudents(filteredStudents);
+        } catch (rosterError) {
+          console.error('Error fetching or processing rosters:', rosterError);
+          const fallbackStudents = initialStudents.filter(student => 
+            student.parentEmail === user.email
+          );
+          fallbackStudents.sort((a, b) => a.name.localeCompare(b.name));
+          setStudents(fallbackStudents);
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     window.addEventListener('team-selected', handleTeamChange);
@@ -113,7 +184,7 @@ export default function StudentVideosPage() {
     return () => {
       window.removeEventListener('team-selected', handleTeamChange);
     };
-  }, [router]);
+  }, [user]);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {
