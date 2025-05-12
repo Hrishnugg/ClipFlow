@@ -120,7 +120,7 @@ export default function AuthenticatedLayout({
   return (
     <div className="flex">
       <Sidebar />
-      <div className={`${sidebarCollapsed ? 'ml-16' : 'ml-64'} w-full transition-all duration-300 ease-in-out`}>
+      <div className={`${sidebarCollapsed ? 'ml-24' : 'ml-24'} w-full transition-all duration-300 ease-in-out`}>
         {children}
       </div>
     </div>
