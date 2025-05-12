@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import UploadVideoModal from '../../../components/modals/UploadVideoModal';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
@@ -38,7 +38,7 @@ export default function ProcessVideo() {
   const [hasMatchingRosters, setHasMatchingRosters] = useState(false);
   const { user } = useAuth();
 
-  const fetchVideos = async () => {
+  const fetchVideos = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -102,11 +102,11 @@ export default function ProcessVideo() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, isStudentUpdate, selectedVideo]);
   
   useEffect(() => {
     fetchVideos();
-  }, [user, isProcessing, refreshTrigger]);
+  }, [user, isProcessing, refreshTrigger, fetchVideos]);
   
   useEffect(() => {
     const handleTeamChange = () => {
@@ -118,7 +118,7 @@ export default function ProcessVideo() {
     return () => {
       window.removeEventListener('team-selected', handleTeamChange);
     };
-  }, []);
+  }, [fetchVideos]);
 
   useEffect(() => {
     if (videos.length > 0) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContext';
@@ -22,7 +22,7 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -61,11 +61,11 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchStudents();
-  }, [user]);
+  }, [user, fetchStudents]);
   
   useEffect(() => {
     const handleTeamChange = () => {
@@ -77,7 +77,7 @@ export default function StudentsPage() {
     return () => {
       window.removeEventListener('team-selected', handleTeamChange);
     };
-  }, []);
+  }, [fetchStudents]);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {

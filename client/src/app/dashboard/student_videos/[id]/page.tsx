@@ -78,7 +78,7 @@ export default function StudentVideoDetailPage() {
             collection(db, 'videos'),
             where('isReviewed', '==', true),
             where('identifiedStudentEmail', '==', data.email),
-            where('teamID', '==', selectedTeam)
+          where('teamID', '==', selectedTeam)
           );
           
           const videosSnapshot = await getDocs(videosQuery);
@@ -153,7 +153,7 @@ export default function StudentVideoDetailPage() {
     if (!student) {
       return (
         <div>
-          <p>Student not found or you don't have access to this student.</p>
+          <p>Student not found or you don&apos;t have access to this student.</p>
           <Link href="/dashboard/student_videos" className="text-blue-300 hover:underline mt-4 inline-block">
             Back to Student Videos
           </Link>
@@ -306,7 +306,7 @@ export default function StudentVideoDetailPage() {
   };
 
   return (
-    <div className="p-8 w-full">
+    <div className="p-8 w-full" data-team-id={selectedTeam}>
       {renderContent()}
     </div>
   );

@@ -14,7 +14,14 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [userData, setUserData] = useState<any>(null);
+  interface UserData {
+    isCoach?: boolean | null;
+    isStudent?: boolean | null;
+    isParent?: boolean | null;
+    selectedView?: string;
+    [key: string]: unknown;
+  }
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
   const [, setSidebarCollapsed] = useState(false);
 
@@ -93,9 +100,9 @@ export default function DashboardLayout({
   }
 
   const hasNoRoles = 
-    (!userData?.isCoach || userData.isCoach === false) && 
-    (!userData?.isStudent || userData.isStudent === false) && 
-    (!userData?.isParent || userData.isParent === false);
+    !userData?.isCoach && 
+    !userData?.isStudent && 
+    !userData?.isParent;
 
   if (hasNoRoles) {
     return (
