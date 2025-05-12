@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/navigation/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
@@ -16,7 +16,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [, setSidebarCollapsed] = useState(false);
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -49,15 +49,6 @@ export default function DashboardLayout({
     if (storedState) {
       setSidebarCollapsed(storedState === 'true');
     }
-    
-    const handleSidebarCollapseChange = (e: any) => {
-      setSidebarCollapsed(e.detail.isCollapsed);
-    };
-    
-    window.addEventListener('sidebar-collapse-changed', handleSidebarCollapseChange);
-    return () => {
-      window.removeEventListener('sidebar-collapse-changed', handleSidebarCollapseChange);
-    };
   }, []);
   
   useEffect(() => {
@@ -120,7 +111,7 @@ export default function DashboardLayout({
   return (
     <div className="flex">
       <Sidebar />
-      <div className={`${sidebarCollapsed ? 'ml-24' : 'ml-24'} w-full transition-all duration-300 ease-in-out`}>
+      <div className="w-full ml-24 transition-all duration-300 ease-in-out">
         {children}
       </div>
     </div>
