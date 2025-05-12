@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
 import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
@@ -36,6 +36,7 @@ const useSidebarCollapse = () => {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -169,17 +170,17 @@ export default function Sidebar() {
       
       window.dispatchEvent(new Event('team-selected'));
       
-      const currentPath = window.location.pathname;
+      const currentPath = pathname;
       if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video' || currentPath === '/videos') {
-        window.location.reload();
+        router.refresh(); // Use router.refresh() instead of window.location.reload()
       } else if (currentPath.startsWith('/rosters/')) {
-        window.location.href = '/rosters';
+        router.push('/rosters');
       } else if (currentPath.startsWith('/students/')) {
-        window.location.href = '/students';
+        router.push('/students');
       } else if (currentPath === '/student_videos') {
-        window.location.reload();
+        router.refresh(); // Use router.refresh() instead of window.location.reload()
       } else if (currentPath.startsWith('/student_videos/')) {
-        window.location.href = '/student_videos';
+        router.push('/student_videos');
       }
     } catch (error) {
       console.error('Error updating selected team:', error);
@@ -214,7 +215,7 @@ export default function Sidebar() {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
       }
       
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error updating selected view:', error);
     }
@@ -267,7 +268,7 @@ export default function Sidebar() {
                   <li className="mb-2">
                     <div 
                       onClick={() => {
-                        window.location.href = "/create_team";
+                        router.push("/create_team");
                       }}
                       className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/create_team')}`}
                     >
