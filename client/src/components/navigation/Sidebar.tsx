@@ -220,6 +220,9 @@ export default function Sidebar() {
         setSelectedTeam(null);
       }
       
+      setIsTeamsExpanded(false);
+      localStorage.setItem('teamsExpanded', 'false');
+      
       router.push('/dashboard');
     } catch (error) {
       console.error('Error updating selected view:', error);
