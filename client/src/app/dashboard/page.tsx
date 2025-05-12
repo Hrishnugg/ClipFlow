@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
-import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -16,18 +15,16 @@ export default function Dashboard() {
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
-          <div className="mb-6">
-            <p className="text-lg mb-2">
-              Welcome <span className="font-semibold">{user.displayName}</span>
-            </p>
-            <p className="text-gray-300">{user.email}</p>
-          </div>
+    <div className="flex flex-col items-center justify-center min-h-screen p-8">
+      <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
+        <div className="mb-6">
+          <p className="text-lg mb-2">
+            Welcome <span className="font-semibold">{user.displayName}</span>
+          </p>
+          <p className="text-gray-300">{user.email}</p>
         </div>
       </div>
-    </AuthenticatedLayout>
+    </div>
   );
 }
