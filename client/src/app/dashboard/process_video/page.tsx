@@ -38,75 +38,87 @@ export default function ProcessVideo() {
   const [hasMatchingRosters, setHasMatchingRosters] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      if (!user) return;
-      
-      try {
-        const selectedTeam = await getUserSelectedTeam(user.uid);
-        
-        const videosQuery = query(
-          collection(db, 'videos'), 
-          where('user_uid', '==', user.uid),
-          where('isReviewed', '==', false),
-          where('teamID', '==', selectedTeam)
-        );
-        
-        const querySnapshot = await getDocs(videosQuery);
-        
-        const videosData: Video[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          videosData.push({
-            id: doc.id,
-            title: data.title,
-            asset: data.asset,
-            transcript: data.transcript,
-            identifiedStudent: data.identifiedStudent,
-            identifiedStudentEmail: data.identifiedStudentEmail || '',
-            duplicateStudent: data.duplicateStudent || false,
-            confidenceLevel: data.confidenceLevel,
-            isReviewed: data.isReviewed,
-            uploadDate: data.uploadDate,
-            rosterId: data.rosterId,
-            teamID: data.teamID
-          });
-        });
-        
-        const sortedVideosData = [...videosData].sort((a, b) => {
-          if (a.duplicateStudent && !b.duplicateStudent) return -1;
-          if (!a.duplicateStudent && b.duplicateStudent) return 1;
-          
-          return a.confidenceLevel - b.confidenceLevel;
-        });
-        
-        setVideos(sortedVideosData);
-        
-        if (isStudentUpdate && selectedVideo) {
-          const updatedSelectedVideo = sortedVideosData.find(video => video.id === selectedVideo.id);
-          if (updatedSelectedVideo) {
-            setSelectedVideo(updatedSelectedVideo);
-          }
-          setIsStudentUpdate(false);
-        }
-        
-        const rostersRef = collection(db, 'rosters');
-        const rostersQuery = query(
-          rostersRef,
-          where('teamID', '==', selectedTeam)
-        );
-        const rostersSnapshot = await getDocs(rostersQuery);
-        setHasMatchingRosters(!rostersSnapshot.empty);
-        
-      } catch (error) {
-        console.error('Error fetching videos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVideos = async () => {
+    if (!user) return;
     
+    try {
+      const selectedTeam = await getUserSelectedTeam(user.uid);
+      
+      const videosQuery = query(
+        collection(db, 'videos'), 
+        where('user_uid', '==', user.uid),
+        where('isReviewed', '==', false),
+        where('teamID', '==', selectedTeam)
+      );
+      
+      const querySnapshot = await getDocs(videosQuery);
+      
+      const videosData: Video[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        videosData.push({
+          id: doc.id,
+          title: data.title,
+          asset: data.asset,
+          transcript: data.transcript,
+          identifiedStudent: data.identifiedStudent,
+          identifiedStudentEmail: data.identifiedStudentEmail || '',
+          duplicateStudent: data.duplicateStudent || false,
+          confidenceLevel: data.confidenceLevel,
+          isReviewed: data.isReviewed,
+          uploadDate: data.uploadDate,
+          rosterId: data.rosterId,
+          teamID: data.teamID
+        });
+      });
+      
+      const sortedVideosData = [...videosData].sort((a, b) => {
+        if (a.duplicateStudent && !b.duplicateStudent) return -1;
+        if (!a.duplicateStudent && b.duplicateStudent) return 1;
+        
+        return a.confidenceLevel - b.confidenceLevel;
+      });
+      
+      setVideos(sortedVideosData);
+      
+      if (isStudentUpdate && selectedVideo) {
+        const updatedSelectedVideo = sortedVideosData.find(video => video.id === selectedVideo.id);
+        if (updatedSelectedVideo) {
+          setSelectedVideo(updatedSelectedVideo);
+        }
+        setIsStudentUpdate(false);
+      }
+      
+      const rostersRef = collection(db, 'rosters');
+      const rostersQuery = query(
+        rostersRef,
+        where('teamID', '==', selectedTeam)
+      );
+      const rostersSnapshot = await getDocs(rostersQuery);
+      setHasMatchingRosters(!rostersSnapshot.empty);
+      
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchVideos();
   }, [user, isProcessing, refreshTrigger]);
+  
+  useEffect(() => {
+    const handleTeamChange = () => {
+      fetchVideos();
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (videos.length > 0) {

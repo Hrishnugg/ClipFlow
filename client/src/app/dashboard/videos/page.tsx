@@ -94,9 +94,11 @@ export default function VideosPage() {
     };
     
     window.addEventListener('refresh-teams', handleTeamChange);
+    window.addEventListener('team-selected', handleTeamChange);
     
     return () => {
       window.removeEventListener('refresh-teams', handleTeamChange);
+      window.removeEventListener('team-selected', handleTeamChange);
     };
   }, [fetchVideos]);
 

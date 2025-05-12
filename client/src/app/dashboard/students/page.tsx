@@ -22,50 +22,62 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      if (!user) return;
+  const fetchStudents = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
       
-      try {
-        setLoading(true);
-        
-        const selectedTeam = await getUserSelectedTeam(user.uid);
-        
-        if (!selectedTeam) {
-          setStudents([]);
-          setLoading(false);
-          return;
-        }
-        
-        const studentsQuery = query(
-          collection(db, 'students'), 
-          where('teamID', 'array-contains', selectedTeam)
-        );
-        const studentsSnapshot = await getDocs(studentsQuery);
-        
-        const studentsData: Student[] = [];
-        studentsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          studentsData.push({
-            id: doc.id,
-            name: data.name,
-            email: data.email,
-            parentEmail: data.parentEmail,
-            user_uid: data.user_uid,
-            teamID: data.teamID
-          });
-        });
-        
-        setStudents(studentsData);
-      } catch (error) {
-        console.error('Error fetching students:', error);
-      } finally {
+      const selectedTeam = await getUserSelectedTeam(user.uid);
+      
+      if (!selectedTeam) {
+        setStudents([]);
         setLoading(false);
+        return;
       }
-    };
+      
+      const studentsQuery = query(
+        collection(db, 'students'), 
+        where('teamID', 'array-contains', selectedTeam)
+      );
+      const studentsSnapshot = await getDocs(studentsQuery);
+      
+      const studentsData: Student[] = [];
+      studentsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        studentsData.push({
+          id: doc.id,
+          name: data.name,
+          email: data.email,
+          parentEmail: data.parentEmail,
+          user_uid: data.user_uid,
+          teamID: data.teamID
+        });
+      });
+      
+      setStudents(studentsData);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStudents();
   }, [user]);
+  
+  useEffect(() => {
+    const handleTeamChange = () => {
+      fetchStudents();
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, []);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {

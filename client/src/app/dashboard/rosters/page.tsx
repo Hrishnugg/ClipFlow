@@ -78,6 +78,18 @@ export default function Rosters() {
   }, [user, fetchRosters]);
   
   useEffect(() => {
+    const handleTeamChange = () => {
+      fetchRosters();
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, [fetchRosters]);
+  
+  useEffect(() => {
     const fetchSelectedTeam = async () => {
       if (!user) return;
       
