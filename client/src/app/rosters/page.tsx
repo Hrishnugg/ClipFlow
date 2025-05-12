@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
-import UploadRosterModal from '@/components/modals/UploadRosterModal';
-import { useAuth } from '@/context/AuthContext';
+import UploadRosterModal from '../../components/modals/UploadRosterModal';
+import { useAuth } from '../../context/AuthContext';
 import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/firebase/config';
-import { processRoster } from '@/firebase/students';
-import { getUserSelectedTeam } from '@/firebase/firestore';
+import { db } from '../../firebase/config';
+import { processRoster } from '../../firebase/students';
+import { getUserSelectedTeam } from '../../firebase/firestore';
 
 interface Student {
   name: string;
@@ -152,7 +151,7 @@ export default function Rosters() {
   };
 
   return (
-    <AuthenticatedLayout>
+    <>
       <div className="p-8 w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Rosters</h1>
@@ -208,6 +207,6 @@ export default function Rosters() {
         onUpload={handleFileUpload}
         error={error}
       />
-    </AuthenticatedLayout>
+    </>
   );
 }
