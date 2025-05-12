@@ -11,6 +11,7 @@ interface TeamContextType {
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export function TeamProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth(); // Add this back to fix the unused import warning
   
   const refreshTeams = useCallback(async () => {
     if (typeof window !== 'undefined') {
