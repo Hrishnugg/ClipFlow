@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
-import { useAuth } from '@/context/AuthContext';
-import { getUserSelectedTeam, addMembersToTeam } from '@/firebase/firestore';
+import { useAuth } from '../../../context/AuthContext';
+import { getUserSelectedTeam, addMembersToTeam } from '../../../firebase/firestore';
 
 const isValidEmail = (email: string): boolean => {
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -44,6 +43,26 @@ export default function InvitePage() {
     };
     
     checkSelectedTeam();
+  }, [user]);
+  
+  useEffect(() => {
+    const handleTeamChange = async () => {
+      if (!user) return;
+      
+      try {
+        const selectedTeam = await getUserSelectedTeam(user.uid);
+        setHasSelectedTeam(!!selectedTeam);
+      } catch (error) {
+        console.error('Error checking selected team:', error);
+        setHasSelectedTeam(false);
+      }
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
   }, [user]);
 
   const handleAddMembers = async () => {
@@ -97,66 +116,64 @@ export default function InvitePage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="p-8 w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Invite Members</h1>
-        </div>
-        
-        {hasSelectedTeam === null ? (
-          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
-            <p>Loading...</p>
-          </div>
-        ) : hasSelectedTeam ? (
-          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <p>{error}</p>
-              </div>
-            )}
-            
-            {success && (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                <p>{success}</p>
-              </div>
-            )}
-          
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
-                Enter email addresses (comma separated)
-              </label>
-              <textarea
-                value={emails}
-                onChange={handleEmailsChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="user1@example.com, user2@example.com"
-                rows={4}
-              />
-            </div>
-            
-            <button
-              onClick={handleAddMembers}
-              disabled={!emails.trim() || isProcessing}
-              className={`px-4 py-2 rounded ${
-                emails.trim() && !isProcessing
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-blue-400 text-white cursor-not-allowed'
-              }`}
-            >
-              {isProcessing ? 'Adding...' : 'Add Members'}
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
-            <div className="text-center">
-              <p className="mb-4">You have no teams. Please create a team to get started.</p>
-              <a href="/create_team" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Create Team
-              </a>
-            </div>
-          </div>
-        )}
+    <div className="p-8 w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Invite Members</h1>
       </div>
-    </AuthenticatedLayout>
+      
+      {hasSelectedTeam === null ? (
+        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+          <p>Loading...</p>
+        </div>
+      ) : hasSelectedTeam ? (
+        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p>{error}</p>
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+              <p>{success}</p>
+            </div>
+          )}
+        
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">
+              Enter email addresses (comma separated)
+            </label>
+            <textarea
+              value={emails}
+              onChange={handleEmailsChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="user1@example.com, user2@example.com"
+              rows={4}
+            />
+          </div>
+          
+          <button
+            onClick={handleAddMembers}
+            disabled={!emails.trim() || isProcessing}
+            className={`px-4 py-2 rounded ${
+              emails.trim() && !isProcessing
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-blue-400 text-white cursor-not-allowed'
+            }`}
+          >
+            {isProcessing ? 'Adding...' : 'Add Members'}
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+          <div className="text-center">
+            <p className="mb-4">You have no teams. Please create a team to get started.</p>
+            <a href="/dashboard/create_team" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              Create Team
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

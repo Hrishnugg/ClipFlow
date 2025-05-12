@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
-import UploadRosterModal from '@/components/modals/UploadRosterModal';
-import { useAuth } from '@/context/AuthContext';
+import UploadRosterModal from '../../../components/modals/UploadRosterModal';
+import { useAuth } from '../../../context/AuthContext';
 import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/firebase/config';
-import { processRoster } from '@/firebase/students';
-import { getUserSelectedTeam } from '@/firebase/firestore';
+import { db } from '../../../firebase/config';
+import { processRoster } from '../../../firebase/students';
+import { getUserSelectedTeam } from '../../../firebase/firestore';
 
 interface Student {
   name: string;
@@ -77,6 +76,18 @@ export default function Rosters() {
       fetchRosters();
     }
   }, [user, fetchRosters]);
+  
+  useEffect(() => {
+    const handleTeamChange = () => {
+      fetchRosters();
+    };
+    
+    window.addEventListener('team-selected', handleTeamChange);
+    
+    return () => {
+      window.removeEventListener('team-selected', handleTeamChange);
+    };
+  }, [fetchRosters]);
   
   useEffect(() => {
     const fetchSelectedTeam = async () => {
@@ -152,55 +163,53 @@ export default function Rosters() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="p-8 w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Rosters</h1>
-          {selectedTeam ? (
-            <button
-              onClick={handleUpload}
-              className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
-            >
-              Upload Roster
-            </button>
-          ) : null}
-        </div>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <p>{error}</p>
-          </div>
-        )}
-        
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <p>Loading rosters...</p>
-          </div>
-        ) : rosters.length === 0 ? (
-          <div className="bg-gray-800 shadow-lg rounded-lg p-8 text-center">
-            <p className="mb-4">
-              {selectedTeam 
-                ? "No rosters found. Upload a roster to get started." 
-                : "Please create and select a team before uploading a roster."}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rosters.map((roster) => (
-              <Link 
-                href={`/rosters/${roster.id}`} 
-                key={roster.id}
-                className="block"
-              >
-                <div className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow">
-                  <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
-                  <p className="text-gray-400">{roster.students.length} students</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+    <div className="p-8 w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Rosters</h1>
+        {selectedTeam ? (
+          <button
+            onClick={handleUpload}
+            className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+          >
+            Upload Roster
+          </button>
+        ) : null}
       </div>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p>{error}</p>
+        </div>
+      )}
+      
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <p>Loading rosters...</p>
+        </div>
+      ) : rosters.length === 0 ? (
+        <div className="bg-gray-800 shadow-lg rounded-lg p-8 text-center">
+          <p className="mb-4">
+            {selectedTeam 
+              ? "No rosters found. Upload a roster to get started." 
+              : "Please create and select a team before uploading a roster."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rosters.map((roster) => (
+            <Link 
+              href={`/dashboard/rosters/${roster.id}`} 
+              key={roster.id}
+              className="block"
+            >
+              <div className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow">
+                <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
+                <p className="text-gray-400">{roster.students.length} students</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
       
       <UploadRosterModal 
         isOpen={isModalOpen} 
@@ -208,6 +217,6 @@ export default function Rosters() {
         onUpload={handleFileUpload}
         error={error}
       />
-    </AuthenticatedLayout>
+    </div>
   );
 }

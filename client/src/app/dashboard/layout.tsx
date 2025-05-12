@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '@/components/navigation/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
-export default function AuthenticatedLayout({ 
+export default function DashboardLayout({ 
   children 
 }: { 
   children: React.ReactNode 
@@ -65,21 +65,21 @@ export default function AuthenticatedLayout({
       if (user && !loadingUserData && userData) {
         const userSelectedView = userData.selectedView;
         
-        const restrictedPaths = ['/rosters', '/students', '/process_video', '/invite', '/create_team'];
+        const restrictedPaths = ['/dashboard/rosters', '/dashboard/students', '/dashboard/process_video', '/dashboard/invite', '/dashboard/create_team'];
         const currentPath = window.location.pathname;
         
         if (userSelectedView === 'Student View' && 
             (restrictedPaths.includes(currentPath) || 
-             currentPath.startsWith('/rosters/') || 
-             currentPath.startsWith('/students/'))) {
+             currentPath.startsWith('/dashboard/rosters/') || 
+             currentPath.startsWith('/dashboard/students/'))) {
           console.log(`Redirecting ${userSelectedView} from restricted page`);
           router.push('/dashboard');
         }
         
         if (userSelectedView === 'Parent View' && 
             (restrictedPaths.includes(currentPath) || 
-             currentPath.startsWith('/rosters/') || 
-             (currentPath.startsWith('/students/') && !currentPath.startsWith('/student_videos')))) {
+             currentPath.startsWith('/dashboard/rosters/') || 
+             (currentPath.startsWith('/dashboard/students/') && !currentPath.startsWith('/dashboard/student_videos')))) {
           console.log(`Redirecting ${userSelectedView} from restricted page`);
           router.push('/dashboard');
         }

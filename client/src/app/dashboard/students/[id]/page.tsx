@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase/config';
-import { useAuth } from '@/context/AuthContext';
+import { db } from '../../../../firebase/config';
+import { useAuth } from '../../../../context/AuthContext';
 import Link from 'next/link';
-import AuthenticatedLayout from '@/components/navigation/AuthenticatedLayout';
-import { getUserSelectedTeam } from '@/firebase/firestore';
+import { useParams, useRouter } from 'next/navigation';
 import VideoPlaylist from '@/components/video/VideoPlaylist';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import TranscriptSection from '@/components/video/TranscriptSection';
-import StudentInfoSidebarReadOnly from '@/components/video/StudentInfoSidebarReadOnly';
+import StudentInfoSidebarWithReassign from '@/components/video/StudentInfoSidebarWithReassign';
+import { getUserSelectedTeam } from '@/firebase/firestore';
 
 interface Student {
   id: string;
@@ -35,7 +34,7 @@ interface Video {
   teamID?: string;
 }
 
-export default function StudentVideoDetailPage() {
+export default function StudentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const studentId = params.id as string;
@@ -44,7 +43,7 @@ export default function StudentVideoDetailPage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -57,13 +56,12 @@ export default function StudentVideoDetailPage() {
         if (studentSnap.exists()) {
           const data = studentSnap.data();
           const selectedTeam = await getUserSelectedTeam(user.uid);
-          setSelectedTeam(selectedTeam);
           
           const teamIDs = Array.isArray(data.teamID) ? data.teamID : [data.teamID];
           
           if (!teamIDs.includes(selectedTeam)) {
             console.error('Unauthorized access to student');
-            router.push('/student_videos');
+            router.push('/dashboard/students');
             return;
           }
           
@@ -118,30 +116,22 @@ export default function StudentVideoDetailPage() {
     };
 
     fetchStudentDetails();
-  }, [user, studentId, router]);
-  
+  }, [user, studentId, refreshTrigger]);
+
   useEffect(() => {
     if (videos.length > 0) {
       setSelectedVideo(videos[0]);
     }
   }, [videos]);
-  
-  useEffect(() => {
-    const handleTeamChange = () => {
-      router.push('/student_videos');
-    };
-    
-    window.addEventListener('team-selected', handleTeamChange);
-    
-    return () => {
-      window.removeEventListener('team-selected', handleTeamChange);
-    };
-  }, [router]);
-  
+
   const handleSelectVideo = (video: Video) => {
     setSelectedVideo(video);
   };
-  
+
+  const handleStudentUpdate = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -154,9 +144,9 @@ export default function StudentVideoDetailPage() {
     if (!student) {
       return (
         <div>
-          <p>Student not found or you don't have access to this student.</p>
-          <Link href="/student_videos" className="text-blue-300 hover:underline mt-4 inline-block">
-            Back to Student Videos
+          <p>Student not found.</p>
+          <Link href="/dashboard/students" className="text-blue-300 hover:underline mt-4 inline-block">
+            Back to Students
           </Link>
         </div>
       );
@@ -167,10 +157,10 @@ export default function StudentVideoDetailPage() {
         <>
           <div className="mb-6">
             <Link 
-              href="/student_videos" 
+              href="/dashboard/students" 
               className="text-blue-400 hover:text-blue-200 flex items-center"
             >
-              <span className="mr-1">←</span> Back to Student Videos
+              <span className="mr-1">←</span> Back to Students
             </Link>
           </div>
           
@@ -234,7 +224,7 @@ export default function StudentVideoDetailPage() {
                       No videos available for this student.
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                      Videos will appear here once they are reviewed and assigned to this student.
+                      Upload and review videos to assign them to this student.
                     </p>
                   </div>
                 </div>
@@ -249,10 +239,10 @@ export default function StudentVideoDetailPage() {
       <>
         <div className="mb-6">
           <Link 
-            href="/student_videos" 
+            href="/dashboard/students" 
             className="text-blue-400 hover:text-blue-200 flex items-center"
           >
-            <span className="mr-1">←</span> Back to Student Videos
+            <span className="mr-1">←</span> Back to Students
           </Link>
         </div>
         
@@ -293,10 +283,11 @@ export default function StudentVideoDetailPage() {
           <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
             <div className="flex flex-col h-full">
               <div className="flex-grow">
-                <StudentInfoSidebarReadOnly 
+                <StudentInfoSidebarWithReassign 
                   identifiedStudent={selectedVideo?.identifiedStudent || null} 
-                  confidenceLevel={selectedVideo?.confidenceLevel}
                   rosterId={selectedVideo?.rosterId}
+                  videoId={selectedVideo?.id}
+                  onStudentUpdate={handleStudentUpdate}
                 />
               </div>
             </div>
@@ -307,10 +298,8 @@ export default function StudentVideoDetailPage() {
   };
 
   return (
-    <AuthenticatedLayout>
-      <div className="p-8 w-full">
-        {renderContent()}
-      </div>
-    </AuthenticatedLayout>
+    <div className="p-8 w-full">
+      {renderContent()}
+    </div>
   );
 }

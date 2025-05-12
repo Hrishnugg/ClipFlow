@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
 import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
@@ -36,11 +36,13 @@ const useSidebarCollapse = () => {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<{isCoach?: boolean; isStudent?: boolean; isParent?: boolean}>({});
   const [selectedView, setSelectedView] = useState<string>('');
+  const [isViewChanging, setIsViewChanging] = useState(false);
   const { isCollapsed, toggleCollapse } = useSidebarCollapse();
   const { user } = useAuth();
   
@@ -169,17 +171,19 @@ export default function Sidebar() {
       
       window.dispatchEvent(new Event('team-selected'));
       
-      const currentPath = window.location.pathname;
-      if (currentPath === '/rosters' || currentPath === '/students' || currentPath === '/process_video' || currentPath === '/videos') {
-        window.location.reload();
-      } else if (currentPath.startsWith('/rosters/')) {
-        window.location.href = '/rosters';
-      } else if (currentPath.startsWith('/students/')) {
-        window.location.href = '/students';
-      } else if (currentPath === '/student_videos') {
-        window.location.reload();
-      } else if (currentPath.startsWith('/student_videos/')) {
-        window.location.href = '/student_videos';
+      const currentPath = pathname;
+      
+      if (currentPath === '/dashboard/rosters' || currentPath === '/dashboard/students' || 
+          currentPath === '/dashboard/process_video' || currentPath === '/dashboard/videos') {
+        router.refresh();
+      } else if (currentPath.startsWith('/dashboard/rosters/')) {
+        router.push('/dashboard/rosters');
+      } else if (currentPath.startsWith('/dashboard/students/')) {
+        router.push('/dashboard/students');
+      } else if (currentPath === '/dashboard/student_videos') {
+        router.refresh();
+      } else if (currentPath.startsWith('/dashboard/student_videos/')) {
+        router.push('/dashboard/student_videos');
       }
     } catch (error) {
       console.error('Error updating selected team:', error);
@@ -197,6 +201,8 @@ export default function Sidebar() {
     if (selectedView === newView) return;
     
     try {
+      setIsViewChanging(true);
+      
       await updateUserSelectedView(user.uid, newView);
       setSelectedView(newView);
       console.log('View selected:', newView);
@@ -212,16 +218,29 @@ export default function Sidebar() {
       
       if (newTeams.length > 0) {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
+        setSelectedTeam(newTeams[0].id);
+      } else {
+        setSelectedTeam(null);
       }
       
-      window.location.href = '/dashboard';
+      setIsTeamsExpanded(false);
+      localStorage.setItem('teamsExpanded', 'false');
+      
+      router.push('/dashboard');
+      
+      setTimeout(() => {
+        setIsViewChanging(false);
+      }, 300);
     } catch (error) {
       console.error('Error updating selected view:', error);
+      setIsViewChanging(false); // Reset loading state on error
     }
   };
 
   const isActive = (path: string) => {
-    return pathname === path ? 'bg-blue-600 text-white' : 'hover:bg-gray-700';
+    return pathname === path || (path !== '/dashboard' && pathname?.startsWith(path)) 
+      ? 'bg-blue-600 text-white' 
+      : 'hover:bg-gray-700';
   };
 
   const toggleTeamsExpand = () => {
@@ -231,7 +250,15 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-30`}>
+    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-30 relative`}>
+      {isViewChanging && (
+        <div className="absolute inset-0 bg-gray-900 z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading view...</span>
+          </div>
+        </div>
+      )}
       <div className={`py-4 ${isCollapsed ? 'px-3 justify-center' : 'px-6 justify-start'} flex items-center border-b border-gray-800/50`}>
         {!isCollapsed ? (
           <Link href="/dashboard" className="flex items-center">
@@ -267,9 +294,9 @@ export default function Sidebar() {
                   <li className="mb-2">
                     <div 
                       onClick={() => {
-                        window.location.href = "/create_team";
+                        router.push("/dashboard/create_team");
                       }}
-                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/create_team')}`}
+                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
                     >
                       <span>+ Create Team</span>
                     </div>
@@ -303,8 +330,8 @@ export default function Sidebar() {
             <>
               <li className="mb-2">
                 <Link 
-                  href="/rosters" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/rosters')} transition-colors text-gray-400 hover:text-white`}
+                  href="/dashboard/rosters" 
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/rosters')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Rosters" : undefined}
                 >
                   <FileText size={24} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -313,8 +340,8 @@ export default function Sidebar() {
               </li>
               <li className="mb-2">
                 <Link 
-                  href="/students" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/students')} transition-colors text-gray-400 hover:text-white`}
+                  href="/dashboard/students" 
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/students')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Students" : undefined}
                 >
                   <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -323,8 +350,8 @@ export default function Sidebar() {
               </li>
               <li className="mb-2">
                 <Link 
-                  href="/process_video" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/process_video')} transition-colors text-gray-400 hover:text-white`}
+                  href="/dashboard/process_video" 
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/process_video')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Process Video" : undefined}
                 >
                   <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -333,8 +360,8 @@ export default function Sidebar() {
               </li>
               <li className="mb-2">
                 <Link 
-                  href="/invite" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/invite')} transition-colors text-gray-400 hover:text-white`}
+                  href="/dashboard/invite" 
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/invite')} transition-colors text-gray-400 hover:text-white`}
                   title={isCollapsed ? "Invite" : undefined}
                 >
                   <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -346,8 +373,8 @@ export default function Sidebar() {
           {selectedView === 'Student View' && (
             <li className="mb-2">
               <Link 
-                href="/videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/videos')} transition-colors text-gray-400 hover:text-white`}
+                href="/dashboard/videos" 
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-400 hover:text-white`}
                 title={isCollapsed ? "Videos" : undefined}
               >
                 <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -358,8 +385,8 @@ export default function Sidebar() {
           {selectedView === 'Parent View' && (
             <li className="mb-2">
               <Link 
-                href="/student_videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/student_videos')} transition-colors text-gray-400 hover:text-white`}
+                href="/dashboard/student_videos" 
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-400 hover:text-white`}
                 title={isCollapsed ? "Student Videos" : undefined}
               >
                 <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
