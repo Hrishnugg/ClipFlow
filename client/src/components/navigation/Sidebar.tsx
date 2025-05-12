@@ -36,6 +36,7 @@ const useSidebarCollapse = () => {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -169,8 +170,7 @@ export default function Sidebar() {
       
       window.dispatchEvent(new Event('team-selected'));
       
-      const currentPath = window.location.pathname;
-      const router = useRouter();
+      const currentPath = pathname;
       
       if (currentPath === '/dashboard/rosters' || currentPath === '/dashboard/students' || 
           currentPath === '/dashboard/process_video' || currentPath === '/dashboard/videos') {
@@ -217,7 +217,6 @@ export default function Sidebar() {
         await updateUserSelectedTeam(user.uid, newTeams[0].id);
       }
       
-      const router = useRouter();
       router.push('/dashboard');
     } catch (error) {
       console.error('Error updating selected view:', error);
@@ -273,7 +272,6 @@ export default function Sidebar() {
                   <li className="mb-2">
                     <div 
                       onClick={() => {
-                        const router = useRouter();
                         router.push("/dashboard/create_team");
                       }}
                       className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
