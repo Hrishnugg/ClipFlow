@@ -274,46 +274,6 @@ export default function Sidebar() {
       <nav className="flex-grow overflow-y-auto py-6 px-3">
         <ul className="space-y-1">
           <li className="mb-2">
-            <div 
-              onClick={toggleTeamsExpand}
-              className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-6 py-3 cursor-pointer hover:bg-gray-800/30 transition-colors rounded-lg text-gray-400 hover:text-white`}
-            >
-              {!isCollapsed && <span>Teams</span>}
-              {isCollapsed ? (
-                <BookOpen size={20} className="text-gray-400" />
-              ) : (
-                <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
-              )}
-            </div>
-            {isTeamsExpanded && !isCollapsed && (
-              <ul className="ml-4">
-                {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
-                  <li className="mb-2">
-                    <div 
-                      onClick={() => {
-                        router.push("/dashboard/create_team");
-                      }}
-                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
-                    >
-                      <span>+ Create Team</span>
-                    </div>
-                  </li>
-                )}
-                {teams.map((team) => (
-                  <li key={team.id} className="mb-2">
-                    <div 
-                      onClick={() => handleTeamSelect(team.id)}
-                      className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white`}
-                    >
-                      <span>{team.name}</span>
-                      {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-          <li className="mb-2">
             <Link 
               href="/dashboard" 
               className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-400 hover:text-white`}
@@ -364,6 +324,44 @@ export default function Sidebar() {
                   <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
                   {!isCollapsed && <span>Invite</span>}
                 </Link>
+              </li>
+              <li className="mb-2">
+                {!isCollapsed && (
+                  <div 
+                    onClick={toggleTeamsExpand}
+                    className={`flex items-center justify-between px-6 py-3 cursor-pointer hover:bg-gray-800/30 transition-colors rounded-lg text-gray-400 hover:text-white`}
+                  >
+                    <span>Teams</span>
+                    <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
+                  </div>
+                )}
+                {isTeamsExpanded && !isCollapsed && (
+                  <ul className="ml-4">
+                    {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
+                      <li className="mb-2">
+                        <div 
+                          onClick={() => {
+                            router.push("/dashboard/create_team");
+                          }}
+                          className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
+                        >
+                          <span>+ Create Team</span>
+                        </div>
+                      </li>
+                    )}
+                    {teams.map((team) => (
+                      <li key={team.id} className="mb-2">
+                        <div 
+                          onClick={() => handleTeamSelect(team.id)}
+                          className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white`}
+                        >
+                          <span>{team.name}</span>
+                          {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             </>
           )}
