@@ -169,7 +169,7 @@ export default function Rosters() {
         {selectedTeam ? (
           <button
             onClick={handleUpload}
-            className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300"
           >
             Upload Roster
           </button>
