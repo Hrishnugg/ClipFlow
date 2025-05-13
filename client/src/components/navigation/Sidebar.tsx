@@ -236,8 +236,8 @@ export default function Sidebar() {
 
   const isActive = (path: string) => {
     return pathname === path || (path !== '/dashboard' && pathname?.startsWith(path)) 
-      ? 'bg-blue-600 text-white' 
-      : 'hover:bg-gray-700';
+      ? 'bg-gray-800/60 text-white' 
+      : 'hover:bg-gray-800/30 hover:text-white';
   };
 
   const toggleTeamsExpand = () => {
@@ -276,7 +276,7 @@ export default function Sidebar() {
           <li className="mb-2">
             <Link 
               href="/dashboard" 
-              className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-400 hover:text-white`}
+              className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors`}
               title={isCollapsed ? "Dashboard" : undefined}
             >
               <Home size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -288,7 +288,7 @@ export default function Sidebar() {
               <li className="mb-2">
                 <Link 
                   href="/dashboard/rosters" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/rosters')} transition-colors text-gray-400 hover:text-white`}
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/rosters')} transition-colors`}
                   title={isCollapsed ? "Rosters" : undefined}
                 >
                   <FileText size={24} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -298,7 +298,7 @@ export default function Sidebar() {
               <li className="mb-2">
                 <Link 
                   href="/dashboard/students" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/students')} transition-colors text-gray-400 hover:text-white`}
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/students')} transition-colors`}
                   title={isCollapsed ? "Students" : undefined}
                 >
                   <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -308,7 +308,7 @@ export default function Sidebar() {
               <li className="mb-2">
                 <Link 
                   href="/dashboard/process_video" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/process_video')} transition-colors text-gray-400 hover:text-white`}
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/process_video')} transition-colors`}
                   title={isCollapsed ? "Process Video" : undefined}
                 >
                   <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -318,7 +318,7 @@ export default function Sidebar() {
               <li className="mb-2">
                 <Link 
                   href="/dashboard/invite" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/invite')} transition-colors text-gray-400 hover:text-white`}
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/invite')} transition-colors`}
                   title={isCollapsed ? "Invite" : undefined}
                 >
                   <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -329,7 +329,7 @@ export default function Sidebar() {
                 {!isCollapsed && (
                   <div 
                     onClick={toggleTeamsExpand}
-                    className={`flex items-center justify-between px-6 py-3 cursor-pointer hover:bg-gray-800/30 transition-colors rounded-lg text-gray-400 hover:text-white`}
+                    className={`flex items-center justify-between px-6 py-3 cursor-pointer transition-colors rounded-lg text-gray-400 hover:bg-gray-800/30 hover:text-white`}
                   >
                     <div className="flex items-center">
                       <BookOpen size={20} className="mr-3" />
@@ -357,7 +357,7 @@ export default function Sidebar() {
                             onClick={() => {
                               router.push("/dashboard/create_team");
                             }}
-                            className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
+                            className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg ${isActive('/dashboard/create_team')}`}
                           >
                             <span>+ Create Team</span>
                           </div>
@@ -367,7 +367,7 @@ export default function Sidebar() {
                         <li key={team.id} className="mb-2">
                           <div 
                             onClick={() => handleTeamSelect(team.id)}
-                            className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white`}
+                            className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-400 hover:bg-gray-800/30 hover:text-white`}
                           >
                             <span>{team.name}</span>
                             {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
@@ -384,7 +384,7 @@ export default function Sidebar() {
             <li className="mb-2">
               <Link 
                 href="/dashboard/videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-400 hover:text-white`}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors`}
                 title={isCollapsed ? "Videos" : undefined}
               >
                 <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
@@ -396,7 +396,7 @@ export default function Sidebar() {
             <li className="mb-2">
               <Link 
                 href="/dashboard/student_videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-400 hover:text-white`}
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors`}
                 title={isCollapsed ? "Student Videos" : undefined}
               >
                 <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
