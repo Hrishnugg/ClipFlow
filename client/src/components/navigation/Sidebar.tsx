@@ -344,32 +344,38 @@ export default function Sidebar() {
                     <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
                   </div>
                 )}
-                {isTeamsExpanded && !isCollapsed && (
-                  <ul className="ml-4">
-                    {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
-                      <li className="mb-2">
-                        <div 
-                          onClick={() => {
-                            router.push("/dashboard/create_team");
-                          }}
-                          className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
-                        >
-                          <span>+ Create Team</span>
-                        </div>
-                      </li>
-                    )}
-                    {teams.map((team) => (
-                      <li key={team.id} className="mb-2">
-                        <div 
-                          onClick={() => handleTeamSelect(team.id)}
-                          className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white`}
-                        >
-                          <span>{team.name}</span>
-                          {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                {!isCollapsed && (
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isTeamsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <ul className="ml-4 transform transition-transform duration-300 ease-in-out">
+                      {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
+                        <li className="mb-2">
+                          <div 
+                            onClick={() => {
+                              router.push("/dashboard/create_team");
+                            }}
+                            className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white ${isActive('/dashboard/create_team')}`}
+                          >
+                            <span>+ Create Team</span>
+                          </div>
+                        </li>
+                      )}
+                      {teams.map((team) => (
+                        <li key={team.id} className="mb-2">
+                          <div 
+                            onClick={() => handleTeamSelect(team.id)}
+                            className={`flex items-center justify-between px-6 py-2 hover:bg-gray-800/30 transition-colors cursor-pointer rounded-lg text-gray-400 hover:text-white`}
+                          >
+                            <span>{team.name}</span>
+                            {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </li>
             </>
