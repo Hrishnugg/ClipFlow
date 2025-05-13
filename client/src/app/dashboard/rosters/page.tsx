@@ -202,7 +202,7 @@ export default function Rosters() {
               key={roster.id}
               className="block"
             >
-              <div className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow">
+              <div className="glass-card hover-lift h-full">
                 <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
                 <p className="text-gray-400">{roster.students.length} students</p>
               </div>

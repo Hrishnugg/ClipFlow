@@ -3,24 +3,59 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --glow-cyan: rgba(34, 211, 238, 0.5);
+  --glow-blue: rgba(59, 130, 246, 0.5);
+  --glow-purple: rgba(147, 51, 234, 0.5);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-figtree);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Figtree", Arial, Helvetica, sans-serif;
+  letter-spacing: -0.025em;
 }
 
 @supports (backdrop-filter: blur(10px)) {
   .backdrop-blur-lg {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Tatek-inspired styling */
+.glass-card {
+  @apply relative rounded-xl border border-gray-800/50 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-300;
+}
+
+.hover-lift {
+  @apply hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(34,211,238,0.15)];
+}
+
+.feature-icon {
+  @apply mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-inner shadow-gray-950/50;
+}
+
+.glow-effect {
+  @apply pointer-events-none absolute inset-0 rounded-xl opacity-30 blur-md;
+  background: linear-gradient(45deg, var(--glow-cyan), var(--glow-blue), var(--glow-purple));
+  background-size: 200% 200%;
+  animation: glowAnimation 10s ease infinite;
+}
+
+@keyframes glowAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
