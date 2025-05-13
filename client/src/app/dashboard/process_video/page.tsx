@@ -159,18 +159,18 @@ export default function ProcessVideo() {
     if (videos.length === 0 || isProcessing) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-8">
-          <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md w-full">
-            <h1 className="text-2xl font-bold mb-6 text-center">Process Video</h1>
+          <div className="glass-card max-w-md w-full">
+            <h1 className="text-2xl font-bold mb-6">Process Video</h1>
             <div className="flex justify-center">
               {hasMatchingRosters ? (
                 <button
                   onClick={handleUpload}
-                  className="bg-blue-600 text-white font-bold py-2 px-4 rounded shadow hover:bg-blue-700"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300"
                 >
                   Upload Videos
                 </button>
               ) : (
-                <p className="text-center text-gray-600 dark:text-gray-400">
+                <p className="text-center text-gray-400">
                   No rosters found. Upload a roster to get started.
                 </p>
               )}
