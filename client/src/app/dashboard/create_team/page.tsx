@@ -135,10 +135,8 @@ export default function CreateTeamPage() {
         <button
           onClick={handleCreateTeam}
           disabled={!teamName || isCreating}
-          className={`px-6 py-2 rounded-md shadow hover:shadow-lg transition-all duration-300 ${
-            teamName && !isCreating
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium'
-              : 'bg-blue-400/70 text-white cursor-not-allowed'
+          className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300 ${
+            !teamName || isCreating ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >
           {isCreating ? 'Creating...' : 'Create Team'}
