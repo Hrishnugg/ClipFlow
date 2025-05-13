@@ -116,17 +116,15 @@ export default function InvitePage() {
   };
 
   return (
-    <div className="p-8 w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Invite Members</h1>
-      </div>
-      
+    <div className="flex flex-col items-center justify-center min-h-screen p-8">
       {hasSelectedTeam === null ? (
-        <div className="glass-card max-w-md">
+        <div className="glass-card max-w-md w-full py-8">
+          <h1 className="text-2xl font-bold mb-6">Invite Members</h1>
           <p>Loading...</p>
         </div>
       ) : hasSelectedTeam ? (
-        <div className="glass-card max-w-md">
+        <div className="glass-card max-w-md w-full py-8">
+          <h1 className="text-2xl font-bold mb-6">Invite Members</h1>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               <p>{error}</p>
