@@ -331,7 +331,16 @@ export default function Sidebar() {
                     onClick={toggleTeamsExpand}
                     className={`flex items-center justify-between px-6 py-3 cursor-pointer hover:bg-gray-800/30 transition-colors rounded-lg text-gray-400 hover:text-white`}
                   >
-                    <span>Teams</span>
+                    <div className="flex items-center">
+                      <BookOpen size={20} className="mr-3" />
+                      <span>
+                        {selectedTeam 
+                          ? (teams.find(team => team.id === selectedTeam)?.name?.length > 15 
+                              ? teams.find(team => team.id === selectedTeam)?.name?.substring(0, 12) + '...' 
+                              : teams.find(team => team.id === selectedTeam)?.name)
+                          : "Teams"}
+                      </span>
+                    </div>
                     <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
                   </div>
                 )}
