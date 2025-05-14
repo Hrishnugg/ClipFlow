@@ -327,6 +327,30 @@ export default function Sidebar() {
               </li>
             </>
           )}
+          {selectedView === 'Student View' && (
+            <li className="mb-2">
+              <Link 
+                href="/dashboard/videos" 
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-200`}
+                title={isCollapsed ? "Videos" : undefined}
+              >
+                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                {!isCollapsed && <span>Videos</span>}
+              </Link>
+            </li>
+          )}
+          {selectedView === 'Parent View' && (
+            <li className="mb-2">
+              <Link 
+                href="/dashboard/student_videos" 
+                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-200`}
+                title={isCollapsed ? "Student Videos" : undefined}
+              >
+                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
+                {!isCollapsed && <span>Student Videos</span>}
+              </Link>
+            </li>
+          )}
           <li className="mb-2">
             {!isCollapsed && (
               <div 
@@ -380,30 +404,6 @@ export default function Sidebar() {
               </div>
             )}
           </li>
-          {selectedView === 'Student View' && (
-            <li className="mb-2">
-              <Link 
-                href="/dashboard/videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-200`}
-                title={isCollapsed ? "Videos" : undefined}
-              >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && <span>Videos</span>}
-              </Link>
-            </li>
-          )}
-          {selectedView === 'Parent View' && (
-            <li className="mb-2">
-              <Link 
-                href="/dashboard/student_videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-200`}
-                title={isCollapsed ? "Student Videos" : undefined}
-              >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && <span>Student Videos</span>}
-              </Link>
-            </li>
-          )}
         </ul>
       </nav>
       
