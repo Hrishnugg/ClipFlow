@@ -104,7 +104,7 @@ export default function UploadRosterModal({ isOpen, onClose, onUpload }: UploadR
           <button
             onClick={handleSubmit}
             disabled={!selectedFile || !rosterName}
-            className={`relative inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 px-6 py-2 font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            className={`relative inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 font-medium text-white transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
               !selectedFile || !rosterName ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
