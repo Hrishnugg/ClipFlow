@@ -249,7 +249,7 @@ export default function Sidebar() {
   return (
     <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-40`}>
       {isViewChanging && (
-        <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-900 z-50 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
             <span className="text-sm text-gray-300">Loading view...</span>
