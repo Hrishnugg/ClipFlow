@@ -210,7 +210,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           </button>
           <button 
             onClick={handleDeleteVideo}
-            className="w-full px-4 py-2 bg-black border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+            className="w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gradient-to-r from-red-600 to-orange-500 hover:shadow-lg"
           >
             Delete Video
           </button>
