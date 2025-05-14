@@ -171,7 +171,7 @@ export default function StudentDetailPage() {
           
           <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
             {/* Video Playlist (left sidebar) */}
-            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:p-4">
+            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full p-0 lg:p-4">
               <div className="w-full h-full bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
                 <div className="p-4 border-b border-gray-800/50">
                   <div>
@@ -195,13 +195,13 @@ export default function StudentDetailPage() {
             <div className="flex-1 p-4 overflow-y-auto">
               {/* Video player */}
               <div className="mb-4">
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg aspect-video">
+                <div className="w-full h-full flex items-center justify-center bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg aspect-video">
                   <div className="text-center p-8">
                     <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400">No Video Selected</h3>
-                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    <h3 className="text-lg font-medium text-gray-200">No Video Selected</h3>
+                    <p className="mt-2 text-sm text-gray-400">
                       This student has no reviewed videos available to display.
                     </p>
                   </div>
@@ -210,15 +210,15 @@ export default function StudentDetailPage() {
               
               {/* Transcript section */}
               <div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-medium mb-2">Transcript</h3>
-                  <p className="text-gray-500 dark:text-gray-400 italic">No transcript available.</p>
+                <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg p-4">
+                  <h3 className="text-lg font-medium mb-2 text-gray-200">Transcript</h3>
+                  <p className="text-gray-400 italic">No transcript available.</p>
                 </div>
               </div>
             </div>
             
             {/* Student info sidebar */}
-            <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
+            <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto">
               <div className="flex flex-col h-full">
                 <div className="flex-grow">
                   <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
@@ -281,7 +281,7 @@ export default function StudentDetailPage() {
           </div>
           
           {/* Student info sidebar */}
-          <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
+          <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto">
             <div className="flex flex-col h-full">
               <div className="flex-grow">
                 <StudentInfoSidebarWithReassign 
