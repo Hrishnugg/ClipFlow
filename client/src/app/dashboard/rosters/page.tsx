@@ -184,9 +184,12 @@ export default function Rosters() {
       
       {loading ? (
         <div className="flex justify-center py-8">
-          <p>Loading rosters...</p>
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading rosters...</span>
+          </div>
         </div>
-      ) : rosters.length === 0 ? (
+      ): rosters.length === 0 ? (
         <div className="bg-gray-800 shadow-lg rounded-lg p-8 text-center">
           <p className="mb-4">
             {selectedTeam 
