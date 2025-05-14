@@ -22,9 +22,11 @@ interface VideoPlaylistProps {
   onSelectVideo: (video: Video) => void;
   title?: string; // Add title prop
   isStudentView?: boolean; // Add prop to indicate Student View
+  studentName?: string; // Add student name prop
+  studentEmail?: string; // Add student email prop
 }
 
-export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false }: VideoPlaylistProps) {
+export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false, studentName, studentEmail }: VideoPlaylistProps) {
   if (videos.length === 0) {
     return <div className="p-4">No videos available</div>;
   }
@@ -41,7 +43,14 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
   return (
     <div className="w-full h-full overflow-y-auto bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
       <div className="p-4 border-b border-gray-800/50">
-        <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
+        {studentName ? (
+          <div>
+            <h2 className="text-lg font-semibold text-gray-200">{studentName}</h2>
+            <p className="text-sm text-gray-400">{studentEmail}</p>
+          </div>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
+        )}
       </div>
       <div className="divide-y divide-gray-800/50">
         {sortedVideos.map((video) => (
