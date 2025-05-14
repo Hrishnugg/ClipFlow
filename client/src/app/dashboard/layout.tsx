@@ -117,8 +117,8 @@ export default function DashboardLayout({
       </div>
       <div className="flex relative z-10 min-h-screen overflow-hidden">
         <Sidebar />
-        <main className="flex-1 ml-24 transition-all duration-300 ease-in-out flex flex-col">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-7xl w-full flex-1 flex">
+        <main className="flex-1 ml-24 transition-all duration-300 ease-in-out flex items-center justify-center">
+          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-7xl w-full">
             {children}
           </div>
         </main>
