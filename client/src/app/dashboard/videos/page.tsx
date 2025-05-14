@@ -146,8 +146,8 @@ export default function VideosPage() {
     if (videos.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-8">
-          <div className="glass-card max-w-md w-full py-8">
-            <h1 className="text-2xl font-bold mb-6 text-center pt-5">Your Videos</h1>
+          <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg max-w-md w-full py-8">
+            <h1 className="text-2xl font-bold mb-6 text-center pt-5 text-gray-200">Your Videos</h1>
             <p className="text-center text-gray-400 pb-5">
               No videos assigned to you yet.
             </p>
@@ -159,7 +159,7 @@ export default function VideosPage() {
     return (
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
         {/* Video Playlist (left sidebar) */}
-        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700">
+        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto p-0 lg:p-4">
           <VideoPlaylist 
             videos={videos} 
             selectedVideoId={selectedVideo?.id || null} 
@@ -186,7 +186,7 @@ export default function VideosPage() {
         </div>
         
         {/* Student info sidebar */}
-        <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
+        <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
               <StudentInfoSidebarReadOnly 
@@ -203,7 +203,6 @@ export default function VideosPage() {
 
   return (
     <div className="p-4 w-full">
-      <h1 className="text-2xl font-bold mb-6">Your Videos</h1>
       {renderContent()}
     </div>
   );
