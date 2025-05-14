@@ -95,7 +95,7 @@ export default function RosterDetail() {
           <p className="mb-4">Roster not found.</p>
         </div>
       ) : (
-        <div className="glass-card overflow-hidden bg-[#0f1729]">
+        <div className="glass-card overflow-hidden">
           {roster.students.length === 0 ? (
             <div className="p-8 text-center">
               <p>No students in this roster.</p>
@@ -116,7 +116,7 @@ export default function RosterDetail() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-[#0f1729]">
+                <tbody>
                   {roster.students.map((student, index) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-nowrap">
