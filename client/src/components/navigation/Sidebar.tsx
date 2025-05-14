@@ -325,61 +325,61 @@ export default function Sidebar() {
                   {!isCollapsed && <span>Invite</span>}
                 </Link>
               </li>
-              <li className="mb-2">
-                {!isCollapsed && (
-                  <div 
-                    onClick={toggleTeamsExpand}
-                    className={`flex items-center justify-between px-6 py-3 cursor-pointer transition-colors rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
-                  >
-                    <div className="flex items-center">
-                      <BookOpen size={20} className="mr-3" />
-                      <span>
-                        {selectedTeam 
-                          ? (teams.find(team => team.id === selectedTeam)?.name?.length > 15 
-                              ? teams.find(team => team.id === selectedTeam)?.name?.substring(0, 12) + '...' 
-                              : teams.find(team => team.id === selectedTeam)?.name)
-                          : "Teams"}
-                      </span>
-                    </div>
-                    <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
-                  </div>
-                )}
-                {!isCollapsed && (
-                  <div 
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isTeamsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                  >
-                    <ul className="ml-4 transform transition-transform duration-300 ease-in-out">
-                      {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
-                        <li className="mb-2">
-                          <div 
-                            onClick={() => {
-                              router.push("/dashboard/create_team");
-                            }}
-                            className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 ${isActive('/dashboard/create_team')}`}
-                          >
-                            <span>+ Create Team</span>
-                          </div>
-                        </li>
-                      )}
-                      {teams.map((team) => (
-                        <li key={team.id} className="mb-2">
-                          <div 
-                            onClick={() => handleTeamSelect(team.id)}
-                            className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
-                          >
-                            <span>{team.name}</span>
-                            {selectedTeam === team.id && <span className="text-[#2D9CDB] font-bold ml-2">✓</span>}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </li>
             </>
           )}
+          <li className="mb-2">
+            {!isCollapsed && (
+              <div 
+                onClick={toggleTeamsExpand}
+                className={`flex items-center justify-between px-6 py-3 cursor-pointer transition-colors rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
+              >
+                <div className="flex items-center">
+                  <BookOpen size={20} className="mr-3" />
+                  <span>
+                    {selectedTeam 
+                      ? (teams.find(team => team.id === selectedTeam)?.name?.length > 15 
+                          ? teams.find(team => team.id === selectedTeam)?.name?.substring(0, 12) + '...' 
+                          : teams.find(team => team.id === selectedTeam)?.name)
+                      : "Teams"}
+                  </span>
+                </div>
+                <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
+              </div>
+            )}
+            {!isCollapsed && (
+              <div 
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isTeamsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <ul className="ml-4 transform transition-transform duration-300 ease-in-out">
+                  {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
+                    <li className="mb-2">
+                      <div 
+                        onClick={() => {
+                          router.push("/dashboard/create_team");
+                        }}
+                        className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 ${isActive('/dashboard/create_team')}`}
+                      >
+                        <span>+ Create Team</span>
+                      </div>
+                    </li>
+                  )}
+                  {teams.map((team) => (
+                    <li key={team.id} className="mb-2">
+                      <div 
+                        onClick={() => handleTeamSelect(team.id)}
+                        className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
+                      >
+                        <span>{team.name}</span>
+                        {selectedTeam === team.id && <span className="text-[#2D9CDB] font-bold ml-2">✓</span>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </li>
           {selectedView === 'Student View' && (
             <li className="mb-2">
               <Link 
