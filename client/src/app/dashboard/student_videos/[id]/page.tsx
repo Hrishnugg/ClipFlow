@@ -157,7 +157,7 @@ export default function StudentVideoDetailPage() {
       return (
         <div>
           <p>Student not found or you don't have access to this student.</p>
-          <Link href="/dashboard/student_videos" className="text-blue-300 hover:underline mt-4 inline-block">
+          <Link href="/dashboard/student_videos" className="text-[#2D9CDB] hover:text-blue-400 hover:underline mt-4 inline-block">
             Back to Student Videos
           </Link>
         </div>
@@ -170,7 +170,7 @@ export default function StudentVideoDetailPage() {
           <div className="mb-6">
             <Link 
               href="/dashboard/student_videos" 
-              className="text-blue-400 hover:text-blue-200 flex items-center"
+              className="text-[#2D9CDB] hover:text-blue-400 flex items-center"
             >
               <span className="mr-1">←</span> Back to Student Videos
             </Link>
@@ -252,7 +252,7 @@ export default function StudentVideoDetailPage() {
         <div className="mb-6">
           <Link 
             href="/dashboard/student_videos" 
-            className="text-blue-400 hover:text-blue-200 flex items-center"
+            className="text-[#2D9CDB] hover:text-blue-400 flex items-center"
           >
             <span className="mr-1">←</span> Back to Student Videos
           </Link>

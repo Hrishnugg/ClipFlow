@@ -76,7 +76,7 @@ export default function RosterDetail() {
       <div className="mb-6">
         <button
           onClick={() => router.push('/dashboard/rosters')}
-          className="text-blue-600 hover:text-blue-800 flex items-center"
+          className="text-[#2D9CDB] hover:text-blue-400 flex items-center"
         >
           <span className="mr-1">←</span> Back to Rosters
         </button>

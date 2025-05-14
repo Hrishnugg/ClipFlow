@@ -148,7 +148,7 @@ export default function StudentDetailPage() {
       return (
         <div>
           <p>Student not found.</p>
-          <Link href="/dashboard/students" className="text-blue-300 hover:underline mt-4 inline-block">
+          <Link href="/dashboard/students" className="text-[#2D9CDB] hover:text-blue-400 hover:underline mt-4 inline-block">
             Back to Students
           </Link>
         </div>
@@ -161,7 +161,7 @@ export default function StudentDetailPage() {
           <div className="mb-6">
             <Link 
               href="/dashboard/students" 
-              className="text-blue-400 hover:text-blue-200 flex items-center"
+              className="text-[#2D9CDB] hover:text-blue-400 flex items-center"
             >
               <span className="mr-1">←</span> Back to Students
             </Link>
@@ -243,7 +243,7 @@ export default function StudentDetailPage() {
         <div className="mb-6">
           <Link 
             href="/dashboard/students" 
-            className="text-blue-400 hover:text-blue-200 flex items-center"
+            className="text-[#2D9CDB] hover:text-blue-400 flex items-center"
           >
             <span className="mr-1">←</span> Back to Students
           </Link>

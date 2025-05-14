@@ -370,7 +370,7 @@ export default function Sidebar() {
                             className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
                           >
                             <span>{team.name}</span>
-                            {selectedTeam === team.id && <span className="text-blue-600 font-bold ml-2">✓</span>}
+                            {selectedTeam === team.id && <span className="text-[#2D9CDB] font-bold ml-2">✓</span>}
                           </div>
                         </li>
                       ))}
