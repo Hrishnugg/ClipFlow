@@ -240,7 +240,7 @@ export default function ProcessVideo() {
   };
 
   return (
-    <>
+    <div className="min-h-[calc(100vh-64px)]">
       {renderContent()}
       
       <UploadVideoModal 
@@ -248,6 +248,6 @@ export default function ProcessVideo() {
         onClose={handleCloseModal} 
         onProcessingStatusChange={handleProcessingStatusChange}
       />
-    </>
+    </div>
   );
 }
