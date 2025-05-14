@@ -116,17 +116,15 @@ export default function InvitePage() {
   };
 
   return (
-    <div className="p-8 w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Invite Members</h1>
-      </div>
-      
+    <div className="flex flex-col items-center justify-center min-h-screen p-8">
       {hasSelectedTeam === null ? (
-        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+        <div className="glass-card max-w-md w-full py-8">
+          <h1 className="text-2xl font-bold mb-6">Invite Members</h1>
           <p>Loading...</p>
         </div>
       ) : hasSelectedTeam ? (
-        <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+        <div className="glass-card max-w-md w-full py-8">
+          <h1 className="text-2xl font-bold mb-6">Invite Members</h1>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               <p>{error}</p>
@@ -139,14 +137,14 @@ export default function InvitePage() {
             </div>
           )}
         
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-sm font-medium mb-2">
               Enter email addresses (comma separated)
             </label>
             <textarea
               value={emails}
               onChange={handleEmailsChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full px-3 py-2 bg-gray-900/60 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
               placeholder="user1@example.com, user2@example.com"
               rows={4}
             />
@@ -155,10 +153,8 @@ export default function InvitePage() {
           <button
             onClick={handleAddMembers}
             disabled={!emails.trim() || isProcessing}
-            className={`px-4 py-2 rounded ${
-              emails.trim() && !isProcessing
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-blue-400 text-white cursor-not-allowed'
+            className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300 ${
+              !emails.trim() || isProcessing ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
             {isProcessing ? 'Adding...' : 'Add Members'}

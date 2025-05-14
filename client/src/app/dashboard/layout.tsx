@@ -109,10 +109,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="w-full ml-24 transition-all duration-300 ease-in-out">
-        {children}
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
+      <div className="fixed inset-0 z-0">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-3xl"></div>
+      </div>
+      <div className="flex relative z-10">
+        <Sidebar />
+        <div className="w-full ml-24 transition-all duration-300 ease-in-out">
+          {children}
+        </div>
       </div>
     </div>
   );

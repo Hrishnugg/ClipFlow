@@ -114,10 +114,12 @@ export default function StudentsPage() {
             <Link 
               href={`/dashboard/students/${student.id}`} 
               key={student.id}
-              className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+              className="block"
             >
-              <h2 className="text-black text-lg font-semibold mb-2">{student.name}</h2>
-              <p className="text-gray-800 text-sm">{student.email}</p>
+              <div className="glass-card hover-lift h-full">
+                <h2 className="text-lg font-semibold mb-2">{student.name}</h2>
+                <p className="text-gray-400 text-sm">{student.email}</p>
+              </div>
             </Link>
           ))}
         </div>

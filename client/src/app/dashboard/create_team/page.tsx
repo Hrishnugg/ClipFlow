@@ -84,12 +84,9 @@ export default function CreateTeamPage() {
   };
 
   return (
-    <div className="p-8 w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Create Team</h1>
-      </div>
-      
-      <div className="bg-gray-800 shadow-lg rounded-lg p-8 max-w-md">
+    <div className="flex flex-col items-center justify-center min-h-screen p-8">
+      <div className="glass-card max-w-md w-full py-8">
+        <h1 className="text-2xl font-bold mb-6">Create Team</h1>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <p>{error}</p>
@@ -102,7 +99,7 @@ export default function CreateTeamPage() {
           </div>
         )}
         
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-sm font-medium mb-2">
             Team Name <span className="text-red-500">*</span>
           </label>
@@ -110,20 +107,20 @@ export default function CreateTeamPage() {
             type="text"
             value={teamName}
             onChange={handleTeamNameChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-3 py-2 bg-gray-900/60 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
             placeholder="Enter team name"
             required
           />
         </div>
         
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-sm font-medium mb-2">
             Member Emails (comma separated)
           </label>
           <textarea
             value={emails}
             onChange={handleEmailsChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-3 py-2 bg-gray-900/60 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
             placeholder="user1@example.com, user2@example.com"
             rows={4}
           />
@@ -135,10 +132,8 @@ export default function CreateTeamPage() {
         <button
           onClick={handleCreateTeam}
           disabled={!teamName || isCreating}
-          className={`px-4 py-2 rounded ${
-            teamName && !isCreating
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-blue-400 text-white cursor-not-allowed'
+          className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300 ${
+            !teamName || isCreating ? 'opacity-70 cursor-not-allowed' : ''
           }`}
         >
           {isCreating ? 'Creating...' : 'Create Team'}
