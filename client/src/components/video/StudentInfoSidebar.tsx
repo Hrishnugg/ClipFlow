@@ -202,7 +202,9 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           <button 
             onClick={handleSaveVideo}
             disabled={!selectedStudent}
-            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+            className={`w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg ${
+              !selectedStudent ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             Save Video
           </button>
