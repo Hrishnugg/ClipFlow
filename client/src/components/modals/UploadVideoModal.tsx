@@ -151,8 +151,8 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="glass-card w-full max-w-md relative">
         <h2 className="text-xl font-bold mb-4">Upload Videos</h2>
 
         <div className="mb-4">
@@ -162,7 +162,7 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
           <select
             value={selectedRosterId}
             onChange={handleRosterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
           >
             <option value="">Select a roster</option>
             {rosters.map((roster) => (
@@ -177,16 +177,35 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
           <label className="block text-sm font-medium mb-2">
             Select a ZIP file containing videos
           </label>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            accept=".zip"
-            className="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 focus:outline-none"
-            disabled={isUploading}
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            ZIP file should contain MP4 videos only.
-          </p>
+          <div className="mt-1">
+            <label 
+              htmlFor="zipFile" 
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 border border-emerald-700/70 bg-emerald-900/30 text-emerald-400 rounded-lg cursor-pointer hover:bg-emerald-800/40 transition-colors duration-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Browse Files</span>
+            </label>
+            <input
+              type="file"
+              id="zipFile"
+              onChange={handleFileChange}
+              accept=".zip"
+              className="hidden"
+              disabled={isUploading}
+            />
+            {selectedFile && (
+              <p className="mt-2 text-sm text-cyan-400">
+                Selected: {selectedFile.name}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-gray-400">
+              ZIP file should contain MP4 videos only.
+            </p>
+          </div>
         </div>
 
         {isUploading && (
@@ -194,19 +213,19 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
             <p className="text-sm mb-1">
               Processing videos: {processingCount.current} of {processingCount.total}
             </p>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
               <div
-                className="bg-blue-600 h-2.5 rounded-full"
+                className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 h-2.5 rounded-full"
                 style={{ width: `${(processingCount.current / processingCount.total) * 100}%` }}
               ></div>
             </div>
           </div>
         )}
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-3 mt-6">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="relative inline-flex h-10 items-center justify-center rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-sm px-6 py-2 font-medium text-white transition-all duration-300 hover:bg-gray-700/50 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             disabled={isUploading}
           >
             Cancel
@@ -214,10 +233,8 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
           <button
             onClick={handleSubmit}
             disabled={!selectedFile || !selectedRosterId || isUploading}
-            className={`px-4 py-2 rounded ${
-              selectedFile && selectedRosterId && !isUploading
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-blue-400 text-white cursor-not-allowed'
+            className={`relative inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 font-medium text-white transition-all duration-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              !selectedFile || !selectedRosterId || isUploading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isUploading ? 'Uploading...' : 'Upload'}

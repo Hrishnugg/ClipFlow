@@ -100,9 +100,12 @@ export default function StudentsPage() {
       
       {loading ? (
         <div className="flex justify-center py-8">
-          <p>Loading students...</p>
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading students...</span>
+          </div>
         </div>
-      ) : students.length === 0 ? (
+      ): students.length === 0 ? (
         <p>
           {selectedTeam 
             ? "No students found. Upload a roster to add students." 

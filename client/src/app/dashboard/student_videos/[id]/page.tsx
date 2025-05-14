@@ -144,8 +144,11 @@ export default function StudentVideoDetailPage() {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="text-black flex justify-center py-8">
-          <p>Loading student information...</p>
+        <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading student information...</span>
+          </div>
         </div>
       );
     }

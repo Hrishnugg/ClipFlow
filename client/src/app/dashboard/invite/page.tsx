@@ -120,7 +120,10 @@ export default function InvitePage() {
       {hasSelectedTeam === null ? (
         <div className="glass-card max-w-md w-full py-8">
           <h1 className="text-2xl font-bold mb-6">Invite Members</h1>
-          <p>Loading...</p>
+          <div className="flex flex-col items-center mt-4">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading...</span>
+          </div>
         </div>
       ) : hasSelectedTeam ? (
         <div className="glass-card max-w-md w-full py-8">

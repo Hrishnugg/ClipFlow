@@ -206,8 +206,11 @@ export default function StudentVideosPage() {
       <h1 className="text-2xl font-bold mb-6">Student Videos</h1>
       
       {loading ? (
-        <div className="flex justify-center py-8">
-          <p>Loading students...</p>
+        <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-2"></div>
+            <span className="text-sm text-gray-300">Loading students...</span>
+          </div>
         </div>
       ) : students.length === 0 ? (
         <p>
