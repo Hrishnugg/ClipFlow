@@ -117,9 +117,11 @@ export default function DashboardLayout({
       </div>
       <div className="flex relative z-10">
         <Sidebar />
-        <div className="w-full ml-24 transition-all duration-300 ease-in-out">
-          {children}
-        </div>
+        <main className="flex-1 overflow-auto ml-24 transition-all duration-300 ease-in-out">
+          <div className="container mx-auto px-6 md:px-8 lg:px-10 py-6 max-w-6xl">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
