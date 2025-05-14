@@ -186,7 +186,7 @@ export default function ProcessVideo() {
     return (
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
         {/* Video Playlist (left sidebar) */}
-        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:pt-4 lg:pl-4">
+        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:p-4">
           <VideoPlaylist 
             videos={videos} 
             selectedVideoId={selectedVideo?.id || null} 
@@ -195,7 +195,7 @@ export default function ProcessVideo() {
         </div>
         
         {/* Main content area */}
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className="flex-1 px-6 py-4 overflow-y-auto">
           {/* Video player */}
           <div className="mb-4">
             <VideoPlayer
