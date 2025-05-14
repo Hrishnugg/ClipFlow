@@ -163,8 +163,8 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
   };
 
   return (
-    <div className="w-full h-full p-4 bg-gray-800 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
+    <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
+      <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
       {duplicateStudent && identifiedStudent && (
         <div className="mb-2 p-2 bg-yellow-800 border-l-4 border-yellow-500 text-yellow-300">
           <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
@@ -172,7 +172,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
       )}
       <div className="mt-2">
         <select 
-          className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 text-white font-medium"
+          className="w-full px-3 py-2 border border-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/60 text-gray-200 font-medium"
           value={selectedStudent}
           onChange={handleStudentSelect}
         >
@@ -185,10 +185,10 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
         </select>
         {confidenceLevel !== undefined && (
           <div className="mt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">AI Confidence: {confidenceLevel}%</p>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-1 dark:bg-gray-700">
+            <p className="text-sm text-gray-400">AI Confidence: {confidenceLevel}%</p>
+            <div className="w-full bg-gray-800/60 rounded-full h-2 mt-1">
               <div
-                className="bg-blue-600 h-2 rounded-full"
+                className="h-2 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
                 style={{ width: `${confidenceLevel}%` }}
               ></div>
             </div>
@@ -202,13 +202,13 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
           <button 
             onClick={handleSaveVideo}
             disabled={!selectedStudent}
-            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
           >
             Save Video
           </button>
           <button 
             onClick={handleDeleteVideo}
-            className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-2 bg-black border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
           >
             Delete Video
           </button>
