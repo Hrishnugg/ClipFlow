@@ -115,10 +115,10 @@ export default function DashboardLayout({
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-3xl"></div>
       </div>
-      <div className="flex relative z-10">
+      <div className="flex relative z-10 min-h-screen overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-auto ml-24 transition-all duration-300 ease-in-out">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-7xl">
+        <main className="flex-1 ml-24 transition-all duration-300 ease-in-out">
+          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-7xl min-h-[calc(100vh-2rem)]">
             {children}
           </div>
         </main>
