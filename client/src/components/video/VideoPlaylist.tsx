@@ -39,20 +39,20 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
   });
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-gray-800 border-r border-gray-700">
-      <div className="p-4 border-b border-gray-700">
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <div className="w-full h-full overflow-y-auto bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
+      <div className="p-4 border-b border-gray-800/50">
+        <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
       </div>
-      <div className="divide-y divide-gray-700">
+      <div className="divide-y divide-gray-800/50">
         {sortedVideos.map((video) => (
           <button
             key={video.id}
             onClick={() => onSelectVideo(video)}
             className={`
-              w-full p-4 text-left 
-              hover:bg-gray-200 dark:hover:bg-gray-700 
+              w-full p-4 text-left text-gray-200
+              hover:bg-gray-800/30 hover:text-white
               transition-colors flex flex-col overflow-hidden 
-              ${selectedVideoId === video.id ? 'bg-gray-200 dark:bg-gray-700' : ''}
+              ${selectedVideoId === video.id ? 'bg-gray-800/60 text-white' : ''}
             `}
           >
             {/* make this div shrinkable */}
@@ -80,7 +80,7 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
               <p className="font-medium truncate">
                 {video.title}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-sm text-gray-400 truncate">
                 {new Date(video.uploadDate).toLocaleDateString()}
               </p>
             </div>

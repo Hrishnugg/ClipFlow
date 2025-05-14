@@ -137,24 +137,28 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
   };
 
   return (
-    <div className="w-full bg-gray-800 rounded-lg shadow p-4 mt-2">
-      <h3 className="text-lg font-semibold mb-2">Batch Actions</h3>
+    <div className="w-full bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow p-4 mt-2">
+      <h3 className="text-lg font-semibold mb-2 text-gray-200">Quick Actions</h3>
       
       <div className="space-y-2">
         <button 
           onClick={handleSaveAll}
           disabled={isSaving || !allVideosHaveIdentifiedStudents}
-          className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
+          className={`w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-[1.02] ${
+            isSaving || !allVideosHaveIdentifiedStudents ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          {isSaving ? 'Saving...' : 'Save All Videos'}
+          {isSaving ? 'Saving...' : 'Save All'}
         </button>
         
         <button 
           onClick={handleDeleteAll}
           disabled={isDeleting}
-          className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed"
+          className={`w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02] ${
+            isDeleting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          {isDeleting ? 'Deleting...' : 'Delete All Videos'}
+          {isDeleting ? 'Deleting...' : 'Delete All'}
         </button>
       </div>
       
