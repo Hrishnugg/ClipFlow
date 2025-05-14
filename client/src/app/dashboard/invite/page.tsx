@@ -156,7 +156,7 @@ export default function InvitePage() {
           <button
             onClick={handleAddMembers}
             disabled={!emails.trim() || isProcessing}
-            className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:shadow-lg transition-all duration-300 ${
+            className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-6 rounded-md shadow hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ${
               !emails.trim() || isProcessing ? 'opacity-70 cursor-not-allowed' : ''
             }`}
           >
