@@ -95,37 +95,42 @@ export default function RosterDetail() {
           <p className="mb-4">Roster not found.</p>
         </div>
       ) : (
-        <div className="bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+        <div className="glass-card overflow-hidden">
           {roster.students.length === 0 ? (
             <div className="p-8 text-center">
               <p>No students in this roster.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-gray-700">
+              <table className="min-w-full">
+                <thead>
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      Student Name
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
+                      Student
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                      Student Email
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
+                      Email
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
                       Parent Email
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
+                <tbody>
                   {roster.students.map((student, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {student.name}
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-gray-500 flex items-center justify-center text-white mr-3">
+                            {student.name.charAt(0)}
+                          </div>
+                          <span className="text-sm font-medium text-white">{student.name}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                         {student.email}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                         {student.parentEmail}
                       </td>
                     </tr>
