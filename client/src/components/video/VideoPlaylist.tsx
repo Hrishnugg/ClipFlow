@@ -39,7 +39,7 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
   });
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-gray-900/60 backdrop-blur-lg border-gray-800/50 rounded-lg">
+    <div className="w-full h-full overflow-y-auto bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
       <div className="p-4 border-b border-gray-800/50">
         <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
       </div>
