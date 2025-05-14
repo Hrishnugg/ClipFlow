@@ -167,17 +167,17 @@ export default function StudentDetailPage() {
             </Link>
           </div>
           
-          <div className="mb-6">
-            <h1 className="text-xl font-bold">{student.name}</h1>
-            <h2 className="text-md">{student.email}</h2>
-          </div>
+          {/* Student name and email removed from here and moved to playlist header */}
           
           <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
             {/* Video Playlist (left sidebar) */}
-            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-700">
-              <div className="w-full h-full bg-gray-800 border-r border-gray-700">
-                <div className="p-4 border-b border-gray-700">
-                  <h2 className="text-lg font-semibold">Student Videos</h2>
+            <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:p-4">
+              <div className="w-full h-full bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
+                <div className="p-4 border-b border-gray-800/50">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-200">{student.name}</h2>
+                    <p className="text-sm text-gray-400">{student.email}</p>
+                  </div>
                 </div>
                 <div className="p-8 flex flex-col items-center justify-center h-[calc(100%-60px)]">
                   <div className="text-gray-400 text-center">
@@ -221,12 +221,12 @@ export default function StudentDetailPage() {
             <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-l lg:border-t-0 border-gray-200 dark:border-gray-700">
               <div className="flex flex-col h-full">
                 <div className="flex-grow">
-                  <div className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-                    <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
+                    <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
+                    <p className="text-gray-400 mb-4">
                       No videos available for this student.
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    <p className="text-sm text-gray-400 mt-4">
                       Upload and review videos to assign them to this student.
                     </p>
                   </div>
@@ -249,19 +249,17 @@ export default function StudentDetailPage() {
           </Link>
         </div>
         
-        <div className="mb-6">
-          <h1 className="text-xl font-bold">{student.name}</h1>
-          <h2 className="text-md">{student.email}</h2>
-        </div>
+        {/* Student name and email removed from here and moved to playlist header */}
         
         <div className="flex flex-col lg:flex-row h-[calc(100vh-200px)]">
           {/* Video Playlist (left sidebar) */}
-          <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700">
+          <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-r lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:p-4">
             <VideoPlaylist 
               videos={videos} 
               selectedVideoId={selectedVideo?.id || null} 
               onSelectVideo={handleSelectVideo}
-              title="Student Videos"
+              studentName={student?.name}
+              studentEmail={student?.email}
               isStudentView={true}
             />
           </div>

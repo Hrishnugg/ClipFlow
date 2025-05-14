@@ -154,8 +154,8 @@ export default function StudentInfoSidebarWithReassign({
   };
 
   return (
-    <div className="w-full h-full p-4 bg-gray-800 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-2">Identified Student</h3>
+    <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
+      <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
       {duplicateStudent && identifiedStudent && (
         <div className="mb-2 p-2 bg-yellow-800 border-l-4 border-yellow-500 text-yellow-300">
           <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
@@ -163,7 +163,7 @@ export default function StudentInfoSidebarWithReassign({
       )}
       <div className="mt-2">
         <select 
-          className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 text-white font-medium"
+          className="w-full px-3 py-2 border border-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/60 text-gray-200 font-medium"
           value={selectedStudent}
           onChange={handleStudentSelect}
         >
@@ -178,7 +178,9 @@ export default function StudentInfoSidebarWithReassign({
         <button 
           onClick={handleReassignStudent}
           disabled={isReassigning || selectedStudent === identifiedStudent || !selectedStudent}
-          className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed mt-2"
+          className={`w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-[1.02] ${
+            isReassigning || selectedStudent === identifiedStudent || !selectedStudent ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           {isReassigning ? 'Reassigning...' : 'Reassign Video'}
         </button>
@@ -189,7 +191,7 @@ export default function StudentInfoSidebarWithReassign({
         <div className="mt-6">
           <button 
             onClick={handleDeleteVideo}
-            className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02]"
           >
             Delete Video
           </button>
