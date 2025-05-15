@@ -62,7 +62,7 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
         ) : (
           <div>
             <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
-            {onSearchChange && isStudentView && (
+            {onSearchChange && (
               <div className="relative w-full mt-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <input
