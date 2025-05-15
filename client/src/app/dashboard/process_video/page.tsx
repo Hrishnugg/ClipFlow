@@ -36,6 +36,7 @@ export default function ProcessVideo() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isStudentUpdate, setIsStudentUpdate] = useState(false);
   const [hasMatchingRosters, setHasMatchingRosters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
   const fetchVideos = async () => {
@@ -120,11 +121,26 @@ export default function ProcessVideo() {
     };
   }, []);
 
+  const filteredVideos = videos.filter(video => {
+    if (searchQuery.length < 2) return true;
+    return video.title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   useEffect(() => {
-    if (videos.length > 0) {
+    if (videos.length > 0 && !selectedVideo) {
       setSelectedVideo(videos[0]);
     }
-  }, [videos]);
+  }, [videos, selectedVideo]);
+  
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      if (filteredVideos.length > 0) {
+        setSelectedVideo(filteredVideos[0]);
+      } else {
+        setSelectedVideo(null);
+      }
+    }
+  }, [filteredVideos, searchQuery]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
@@ -188,9 +204,12 @@ export default function ProcessVideo() {
         {/* Video Playlist (left sidebar) */}
         <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto border-b lg:border-b-0 border-gray-200 dark:border-gray-700 p-0 lg:p-4">
           <VideoPlaylist 
-            videos={videos} 
+            videos={filteredVideos} 
             selectedVideoId={selectedVideo?.id || null} 
-            onSelectVideo={handleSelectVideo} 
+            onSelectVideo={handleSelectVideo}
+            title="Unreviewed Videos"
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
         </div>
         
@@ -198,37 +217,67 @@ export default function ProcessVideo() {
         <div className="flex-1 px-6 py-4 overflow-y-auto">
           {/* Video player */}
           <div className="mb-4">
-            <VideoPlayer
-              videoUrl={selectedVideo?.asset || null}
-              title={selectedVideo?.title || ''}
-            />
+            {selectedVideo ? (
+              <VideoPlayer
+                videoUrl={selectedVideo?.asset || null}
+                title={selectedVideo?.title || ''}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg aspect-video">
+                <div className="text-center p-8">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-200">No Video Selected</h3>
+                  <p className="mt-2 text-sm text-gray-400">
+                    {searchQuery.length >= 2 ? "No videos match your search query." : "Please select a video from the playlist."}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Transcript section */}
           <div>
-            <TranscriptSection transcript={selectedVideo?.transcript || null} />
+            {selectedVideo ? (
+              <TranscriptSection transcript={selectedVideo?.transcript || null} />
+            ) : (
+              <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2 text-gray-200">Transcript</h3>
+                <p className="text-gray-400 italic">No transcript available.</p>
+              </div>
+            )}
           </div>
         </div>
         
         {/* Student info sidebar */}
         <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto border-t lg:border-t-0 border-gray-200 dark:border-gray-700 flex flex-col">
           <div className="flex-grow">
-            <StudentInfoSidebar 
-              identifiedStudent={selectedVideo?.identifiedStudent || null} 
-              confidenceLevel={selectedVideo?.confidenceLevel}
-              rosterId={selectedVideo?.rosterId}
-              videoId={selectedVideo?.id}
-              onStudentUpdate={handleStudentUpdate}
-              duplicateStudent={selectedVideo?.duplicateStudent}
-            />
+            {selectedVideo ? (
+              <StudentInfoSidebar 
+                identifiedStudent={selectedVideo?.identifiedStudent || null} 
+                confidenceLevel={selectedVideo?.confidenceLevel}
+                rosterId={selectedVideo?.rosterId}
+                videoId={selectedVideo?.id}
+                onStudentUpdate={handleStudentUpdate}
+                duplicateStudent={selectedVideo?.duplicateStudent}
+              />
+            ) : (
+              <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
+                <p className="text-gray-400">
+                  {searchQuery.length >= 2 ? "No videos match your search query." : "No video selected."}
+                </p>
+              </div>
+            )}
           </div>
           
-          {videos.length > 0 && (
+          {filteredVideos.length > 0 && selectedVideo && (
             <div className="flex-shrink-0 mt-3">
               <VideoActionsPanel 
                 userUid={user?.uid || ''} 
                 onUpdate={handleStudentUpdate}
-                allVideosHaveIdentifiedStudents={videos.every(video => video.identifiedStudent !== "")}
+                allVideosHaveIdentifiedStudents={filteredVideos.every(video => video.identifiedStudent !== "")}
               />
             </div>
           )}
