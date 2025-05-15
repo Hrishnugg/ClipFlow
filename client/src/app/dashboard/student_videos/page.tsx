@@ -7,6 +7,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { getUserSelectedTeam } from '../../../firebase/firestore';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Search } from 'lucide-react';
 
 interface Student {
   id: string;
@@ -22,6 +23,7 @@ export default function StudentVideosPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -201,9 +203,31 @@ export default function StudentVideosPage() {
     fetchSelectedTeam();
   }, [user]);
 
+  const filteredStudents = students.filter(student => {
+    if (searchQuery.length < 2) return true;
+    
+    return student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           student.email.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
     <div className="p-8 w-full">
       <h1 className="text-2xl font-bold mb-6">Student Videos</h1>
+      
+      {selectedTeam && !loading && students.length > 0 && (
+        <div className="mb-6">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full rounded-lg border border-gray-800 bg-gray-900/50 px-3 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            />
+          </div>
+        </div>
+      )}
       
       {loading ? (
         <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
@@ -220,7 +244,7 @@ export default function StudentVideosPage() {
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {students.map((student) => (
+          {filteredStudents.map((student) => (
             <Link 
               href={`/dashboard/student_videos/${student.id}`} 
               key={student.id}
@@ -232,6 +256,11 @@ export default function StudentVideosPage() {
               </div>
             </Link>
           ))}
+          {searchQuery.length >= 2 && filteredStudents.length === 0 && (
+            <div className="col-span-full text-center p-8">
+              <p className="text-gray-400">No students match your search query.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

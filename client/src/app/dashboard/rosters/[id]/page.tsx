@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { getUserSelectedTeam } from '@/firebase/firestore';
+import { Search } from 'lucide-react';
 
 interface Student {
   name: string;
@@ -24,6 +25,7 @@ interface Roster {
 export default function RosterDetail() {
   const [roster, setRoster] = useState<Roster | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -71,6 +73,14 @@ export default function RosterDetail() {
     }
   }, [user, rosterId, fetchRosterDetails]);
 
+  const filteredStudents = roster?.students.filter(student => {
+    if (searchQuery.length < 2) return true;
+    
+    return student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           student.parentEmail.toLowerCase().includes(searchQuery.toLowerCase());
+  }) || [];
+
   return (
     <div className="p-8 w-full">
       <div className="mb-6">
@@ -104,23 +114,36 @@ export default function RosterDetail() {
               <p>No students in this roster.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
-                      Student
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
-                      Email
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
-                      Parent Email
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {roster.students.map((student, index) => (
+            <div>
+              <div className="p-4 border-b border-gray-800/50">
+                <div className="relative w-full sm:w-96">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search students..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-full rounded-lg border border-gray-800 bg-gray-900/50 px-3 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
+                        Student
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
+                        Email
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-white">
+                        Parent Email
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map((student, index) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -137,9 +160,15 @@ export default function RosterDetail() {
                         {student.parentEmail}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+                {searchQuery.length >= 2 && filteredStudents.length === 0 && (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-400">No students match your search query.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
