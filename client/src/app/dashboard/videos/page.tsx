@@ -140,7 +140,7 @@ export default function VideosPage() {
       } else {
         setSelectedVideo(null);
       }
-    } else if (searchQuery.length === 0 && filteredVideos.length > 0) {
+    } else if (searchQuery.length <= 1 && filteredVideos.length > 0) {
       setSelectedVideo(filteredVideos[0]);
     }
   }, [filteredVideos, searchQuery]);
