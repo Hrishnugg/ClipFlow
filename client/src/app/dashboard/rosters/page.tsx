@@ -8,6 +8,7 @@ import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 import { processRoster } from '../../../firebase/students';
 import { getUserSelectedTeam } from '../../../firebase/firestore';
+import { Search } from 'lucide-react';
 
 interface Student {
   name: string;
@@ -30,6 +31,7 @@ export default function Rosters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
   const fetchRosters = useCallback(async () => {
@@ -162,6 +164,13 @@ export default function Rosters() {
     }
   };
 
+  const filteredRosters = rosters.filter(roster => {
+    if (searchQuery.length < 2) return true;
+    
+    return roster.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           roster.students.length.toString().includes(searchQuery);
+  });
+
   return (
     <div className="p-8 w-full">
       <div className="flex justify-between items-center mb-6">
@@ -182,6 +191,21 @@ export default function Rosters() {
         </div>
       )}
       
+      {selectedTeam && !loading && rosters.length > 0 && (
+        <div className="mb-6">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search rosters..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full rounded-lg border border-gray-800 bg-gray-900/50 px-3 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            />
+          </div>
+        </div>
+      )}
+      
       {loading ? (
         <div className="flex justify-center py-8">
           <div className="flex flex-col items-center">
@@ -199,7 +223,7 @@ export default function Rosters() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rosters.map((roster) => (
+          {filteredRosters.map((roster) => (
             <Link 
               href={`/dashboard/rosters/${roster.id}`} 
               key={roster.id}
@@ -211,6 +235,11 @@ export default function Rosters() {
               </div>
             </Link>
           ))}
+          {searchQuery.length >= 2 && filteredRosters.length === 0 && (
+            <div className="col-span-full text-center p-8">
+              <p className="text-gray-400">No rosters match your search query.</p>
+            </div>
+          )}
         </div>
       )}
       
