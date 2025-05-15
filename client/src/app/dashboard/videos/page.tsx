@@ -30,6 +30,7 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
   const fetchVideos = useCallback(async () => {
@@ -127,6 +128,21 @@ export default function VideosPage() {
     }
   }, [videos]);
 
+  const filteredVideos = videos.filter(video => {
+    if (searchQuery.length < 2) return true;
+    return video.title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      if (filteredVideos.length > 0) {
+        setSelectedVideo(filteredVideos[0]);
+      } else {
+        setSelectedVideo(null);
+      }
+    }
+  }, [filteredVideos, searchQuery]);
+
   const handleSelectVideo = (video: Video) => {
     setSelectedVideo(video);
   };
@@ -161,11 +177,13 @@ export default function VideosPage() {
         {/* Video Playlist (left sidebar) */}
         <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full p-0 lg:p-4">
           <VideoPlaylist 
-            videos={videos} 
+            videos={filteredVideos} 
             selectedVideoId={selectedVideo?.id || null} 
             onSelectVideo={handleSelectVideo}
             title="Your Videos"
             isStudentView={true}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
         </div>
         
@@ -173,15 +191,36 @@ export default function VideosPage() {
         <div className="flex-1 p-4 overflow-y-auto">
           {/* Video player */}
           <div className="mb-4">
-            <VideoPlayer
-              videoUrl={selectedVideo?.asset || null}
-              title={selectedVideo?.title || ''}
-            />
+            {selectedVideo ? (
+              <VideoPlayer
+                videoUrl={selectedVideo?.asset || null}
+                title={selectedVideo?.title || ''}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg aspect-video">
+                <div className="text-center p-8">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-200">No Video Selected</h3>
+                  <p className="mt-2 text-sm text-gray-400">
+                    {searchQuery.length >= 2 ? "No videos match your search query." : "Please select a video from the playlist."}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Transcript section */}
           <div>
-            <TranscriptSection transcript={selectedVideo?.transcript || null} />
+            {selectedVideo ? (
+              <TranscriptSection transcript={selectedVideo?.transcript || null} />
+            ) : (
+              <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-2 text-gray-200">Transcript</h3>
+                <p className="text-gray-400 italic">No transcript available.</p>
+              </div>
+            )}
           </div>
         </div>
         
@@ -189,11 +228,20 @@ export default function VideosPage() {
         <div className="w-full lg:w-64 h-64 lg:h-full p-4 overflow-y-auto">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
-              <StudentInfoSidebarReadOnly 
-                identifiedStudent={selectedVideo?.identifiedStudent || null}
-                confidenceLevel={selectedVideo?.confidenceLevel}
-                rosterId={selectedVideo?.rosterId}
-              />
+              {selectedVideo ? (
+                <StudentInfoSidebarReadOnly 
+                  identifiedStudent={selectedVideo?.identifiedStudent || null}
+                  confidenceLevel={selectedVideo?.confidenceLevel}
+                  rosterId={selectedVideo?.rosterId}
+                />
+              ) : (
+                <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
+                  <p className="text-gray-400">
+                    {searchQuery.length >= 2 ? "No videos match your search query." : "No video selected."}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
