@@ -134,15 +134,19 @@ export default function ProcessVideo() {
   
   useEffect(() => {
     if (searchQuery.length >= 2) {
-      if (filteredVideos.length > 0) {
-        setSelectedVideo(filteredVideos[0]);
-      } else {
-        setSelectedVideo(null);
+      const isCurrentVideoInFiltered = selectedVideo && filteredVideos.some(video => video.id === selectedVideo.id);
+      
+      if (!isCurrentVideoInFiltered) {
+        if (filteredVideos.length > 0) {
+          setSelectedVideo(filteredVideos[0]);
+        } else {
+          setSelectedVideo(null);
+        }
       }
-    } else if (searchQuery.length <= 1 && filteredVideos.length > 0) {
+    } else if (searchQuery.length <= 1 && filteredVideos.length > 0 && !selectedVideo) {
       setSelectedVideo(filteredVideos[0]);
     }
-  }, [filteredVideos, searchQuery]);
+  }, [filteredVideos, searchQuery, selectedVideo]);
 
   const handleUpload = () => {
     setIsModalOpen(true);

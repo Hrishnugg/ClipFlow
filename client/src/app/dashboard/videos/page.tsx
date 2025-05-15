@@ -123,10 +123,10 @@ export default function VideosPage() {
   }, [fetchVideos, selectedTeam]);
 
   useEffect(() => {
-    if (videos.length > 0) {
+    if (videos.length > 0 && !selectedVideo) {
       setSelectedVideo(videos[0]);
     }
-  }, [videos]);
+  }, [videos, selectedVideo]);
 
   const filteredVideos = videos.filter(video => {
     if (searchQuery.length < 2) return true;
@@ -135,15 +135,19 @@ export default function VideosPage() {
 
   useEffect(() => {
     if (searchQuery.length >= 2) {
-      if (filteredVideos.length > 0) {
-        setSelectedVideo(filteredVideos[0]);
-      } else {
-        setSelectedVideo(null);
+      const isCurrentVideoInFiltered = selectedVideo && filteredVideos.some(video => video.id === selectedVideo.id);
+      
+      if (!isCurrentVideoInFiltered) {
+        if (filteredVideos.length > 0) {
+          setSelectedVideo(filteredVideos[0]);
+        } else {
+          setSelectedVideo(null);
+        }
       }
-    } else if (searchQuery.length <= 1 && filteredVideos.length > 0) {
+    } else if (searchQuery.length <= 1 && filteredVideos.length > 0 && !selectedVideo) {
       setSelectedVideo(filteredVideos[0]);
     }
-  }, [filteredVideos, searchQuery]);
+  }, [filteredVideos, searchQuery, selectedVideo]);
 
   const handleSelectVideo = (video: Video) => {
     setSelectedVideo(video);
