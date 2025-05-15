@@ -182,7 +182,7 @@ export default function StudentVideoDetailPage() {
             {/* Video Playlist (left sidebar) */}
             <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full p-0 lg:p-4">
               <div className="w-full h-full bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg">
-                <div className="p-4 border-b border-gray-800/50">
+                <div className="p-4">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-200">{student.name}</h2>
                     <p className="text-sm text-gray-400">{student.email}</p>

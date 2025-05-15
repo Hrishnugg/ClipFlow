@@ -159,7 +159,7 @@ export default function VideosPage() {
     return (
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
         {/* Video Playlist (left sidebar) */}
-        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto p-0 lg:p-4">
+        <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full p-0 lg:p-4">
           <VideoPlaylist 
             videos={videos} 
             selectedVideoId={selectedVideo?.id || null} 

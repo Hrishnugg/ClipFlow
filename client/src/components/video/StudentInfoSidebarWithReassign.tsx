@@ -188,7 +188,7 @@ export default function StudentInfoSidebarWithReassign({
       
       {/* Video action buttons */}
       {videoId && (
-        <div className="mt-6">
+        <div className="mt-4">
           <button 
             onClick={handleDeleteVideo}
             className="w-full px-4 py-2 font-medium rounded-lg text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02]"
