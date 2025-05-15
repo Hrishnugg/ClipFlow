@@ -445,18 +445,7 @@ export default function Sidebar() {
           </div>
         )}
         
-        {!isCollapsed ? (
-          <SignOutButton />
-        ) : (
-          <LogOut 
-            size={20} 
-            onClick={() => {
-              const signOutBtn = document.querySelector('button[class*="bg-red-600"]') as HTMLButtonElement;
-              if (signOutBtn) signOutBtn.click();
-            }} 
-            className="text-gray-400 hover:text-white cursor-pointer" 
-          />
-        )}
+        <SignOutButton collapsed={isCollapsed} />
       </div>
     </div>
   );
