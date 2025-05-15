@@ -30,10 +30,6 @@ interface VideoPlaylistProps {
 }
 
 export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false, studentName, studentEmail, searchQuery = "", onSearchChange }: VideoPlaylistProps) {
-  if (videos.length === 0) {
-    return <div className="p-4">No videos available</div>;
-  }
-  
   const sortedVideos = [...videos].sort((a, b) => {
     if (isStudentView) return 0;
     
@@ -68,54 +64,59 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
         )}
       </div>
       <div className="divide-y divide-gray-800/50">
-        {sortedVideos.map((video) => (
-          <button
-            key={video.id}
-            onClick={() => onSelectVideo(video)}
-            className={`
-              w-full p-4 text-left text-gray-200
-              hover:bg-gray-800/30 hover:text-white
-              transition-colors flex flex-col overflow-hidden 
-              ${selectedVideoId === video.id ? 'bg-gray-800/60 text-white' : ''}
-            `}
-          >
-            {/* make this div shrinkable */}
-            <div className="w-full max-w-full min-w-0 flex items-center">
-              {isStudentView ? (
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
-                     title="Your video"></div>
-              ) : (
-                <>
-                  {!video.identifiedStudent && (
-                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
-                         title="Low confidence - Could not identify any student"></div>
-                  )}
-                  {video.identifiedStudent && video.duplicateStudent && (
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2 flex-shrink-0" 
-                         title="Warning - Multiple students with this name found"></div>
-                  )}
-                  {video.identifiedStudent && !video.duplicateStudent && (
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
-                         title="Student identified with confidence"></div>
-                  )}
-                </>
-              )}
-              {/* now truncate will work reliably */}
-              <p className="font-medium truncate">
-                {video.title}
-              </p>
-              <p className="text-sm text-gray-400 truncate">
-                {new Date(video.uploadDate).toLocaleDateString()}
-              </p>
-            </div>
-          </button>
-        ))}
+        {sortedVideos.length > 0 ? (
+          sortedVideos.map((video) => (
+            <button
+              key={video.id}
+              onClick={() => onSelectVideo(video)}
+              className={`
+                w-full p-4 text-left text-gray-200
+                hover:bg-gray-800/30 hover:text-white
+                transition-colors flex flex-col overflow-hidden 
+                ${selectedVideoId === video.id ? 'bg-gray-800/60 text-white' : ''}
+              `}
+            >
+              {/* make this div shrinkable */}
+              <div className="w-full max-w-full min-w-0 flex items-center">
+                {isStudentView ? (
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
+                       title="Your video"></div>
+                ) : (
+                  <>
+                    {!video.identifiedStudent && (
+                      <div className="w-3 h-3 bg-red-500 rounded-full mr-2 flex-shrink-0" 
+                           title="Low confidence - Could not identify any student"></div>
+                    )}
+                    {video.identifiedStudent && video.duplicateStudent && (
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2 flex-shrink-0" 
+                           title="Warning - Multiple students with this name found"></div>
+                    )}
+                    {video.identifiedStudent && !video.duplicateStudent && (
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2 flex-shrink-0" 
+                           title="Student identified with confidence"></div>
+                    )}
+                  </>
+                )}
+                {/* now truncate will work reliably */}
+                <p className="font-medium truncate">
+                  {video.title}
+                </p>
+                <p className="text-sm text-gray-400 truncate">
+                  {new Date(video.uploadDate).toLocaleDateString()}
+                </p>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-gray-400">
+              {searchQuery && searchQuery.length >= 2 
+                ? "No videos match your search query." 
+                : "No videos available"}
+            </p>
+          </div>
+        )}
       </div>
-      {searchQuery && searchQuery.length >= 2 && sortedVideos.length === 0 && (
-        <div className="p-8 text-center">
-          <p className="text-gray-400">No videos match your search query.</p>
-        </div>
-      )}
     </div>
   );
 }

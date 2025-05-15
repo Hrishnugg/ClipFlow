@@ -127,6 +127,8 @@ export default function StudentDetailPage() {
     
     if (filtered.length > 0) {
       setSelectedVideo(filtered[0]);
+    } else if (searchQuery.length >= 2) {
+      setSelectedVideo(null);
     }
   }, [videos, searchQuery]);
 
