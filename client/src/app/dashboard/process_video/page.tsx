@@ -139,6 +139,8 @@ export default function ProcessVideo() {
       } else {
         setSelectedVideo(null);
       }
+    } else if (searchQuery.length === 0 && filteredVideos.length > 0) {
+      setSelectedVideo(filteredVideos[0]);
     }
   }, [filteredVideos, searchQuery]);
 
