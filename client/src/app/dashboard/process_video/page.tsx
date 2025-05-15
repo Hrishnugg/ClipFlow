@@ -127,22 +127,29 @@ export default function ProcessVideo() {
   });
 
   useEffect(() => {
-    if (videos.length > 0 && !selectedVideo) {
-      setSelectedVideo(videos[0]);
+    if (videos.length > 0) {
+      const selectedVideoStillExists = selectedVideo && videos.some(video => video.id === selectedVideo.id);
+      if (!selectedVideo || !selectedVideoStillExists) {
+        setSelectedVideo(videos[0]);
+      }
     }
   }, [videos, selectedVideo]);
   
   useEffect(() => {
     if (searchQuery.length >= 2) {
-      if (filteredVideos.length > 0) {
-        setSelectedVideo(filteredVideos[0]);
-      } else {
-        setSelectedVideo(null);
+      const isCurrentVideoInFiltered = selectedVideo && filteredVideos.some(video => video.id === selectedVideo.id);
+      
+      if (!isCurrentVideoInFiltered) {
+        if (filteredVideos.length > 0) {
+          setSelectedVideo(filteredVideos[0]);
+        } else {
+          setSelectedVideo(null);
+        }
       }
-    } else if (searchQuery.length <= 1 && filteredVideos.length > 0) {
+    } else if (searchQuery.length <= 1 && filteredVideos.length > 0 && !selectedVideo) {
       setSelectedVideo(filteredVideos[0]);
     }
-  }, [filteredVideos, searchQuery]);
+  }, [filteredVideos, searchQuery, selectedVideo]);
 
   const handleUpload = () => {
     setIsModalOpen(true);
