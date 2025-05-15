@@ -123,8 +123,11 @@ export default function VideosPage() {
   }, [fetchVideos, selectedTeam]);
 
   useEffect(() => {
-    if (videos.length > 0 && !selectedVideo) {
-      setSelectedVideo(videos[0]);
+    if (videos.length > 0) {
+      const selectedVideoStillExists = selectedVideo && videos.some(video => video.id === selectedVideo.id);
+      if (!selectedVideo || !selectedVideoStillExists) {
+        setSelectedVideo(videos[0]);
+      }
     }
   }, [videos, selectedVideo]);
 
