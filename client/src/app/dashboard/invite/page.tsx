@@ -164,16 +164,14 @@ export default function InvitePage() {
           </button>
         </div>
       ) : (
-        <div className="glass-card max-w-md w-full py-12">
-          <div className="text-center">
-            <p className="mb-6">You have no teams. Please create a team to get started.</p>
-            <a 
-              href="/dashboard/create_team" 
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-md shadow hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
-            >
-              Create Team
-            </a>
-          </div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="mb-6">You have no teams. Please create a team to get started.</p>
+          <a 
+            href="/dashboard/create_team" 
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-md shadow hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+          >
+            Create Team
+          </a>
         </div>
       )}
     </div>
