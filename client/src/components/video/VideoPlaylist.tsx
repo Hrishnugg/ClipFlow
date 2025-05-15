@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Search } from 'lucide-react';
 
 interface Video {
   id: string;
@@ -24,9 +25,11 @@ interface VideoPlaylistProps {
   isStudentView?: boolean; // Add prop to indicate Student View
   studentName?: string; // Add student name prop
   studentEmail?: string; // Add student email prop
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false, studentName, studentEmail }: VideoPlaylistProps) {
+export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, title = "Unreviewed Videos", isStudentView = false, studentName, studentEmail, searchQuery = "", onSearchChange }: VideoPlaylistProps) {
   if (videos.length === 0) {
     return <div className="p-4">No videos available</div>;
   }
@@ -47,6 +50,18 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
           <div>
             <h2 className="text-lg font-semibold text-gray-200">{studentName}</h2>
             <p className="text-sm text-gray-400">{studentEmail}</p>
+            {onSearchChange && (
+              <div className="relative w-full mt-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search videos..."
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="pl-10 w-full rounded-lg border border-gray-800 bg-gray-900/50 px-3 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                />
+              </div>
+            )}
           </div>
         ) : (
           <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
@@ -96,6 +111,11 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
           </button>
         ))}
       </div>
+      {searchQuery && searchQuery.length >= 2 && sortedVideos.length === 0 && (
+        <div className="p-8 text-center">
+          <p className="text-gray-400">No videos match your search query.</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -41,6 +41,7 @@ export default function StudentDetailPage() {
   const { user } = useAuth();
   const [student, setStudent] = useState<Student | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -119,10 +120,15 @@ export default function StudentDetailPage() {
   }, [user, studentId, refreshTrigger]);
 
   useEffect(() => {
-    if (videos.length > 0) {
-      setSelectedVideo(videos[0]);
+    const filtered = videos.filter(video => {
+      if (searchQuery.length < 2) return true;
+      return video.title.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+    
+    if (filtered.length > 0) {
+      setSelectedVideo(filtered[0]);
     }
-  }, [videos]);
+  }, [videos, searchQuery]);
 
   const handleSelectVideo = (video: Video) => {
     setSelectedVideo(video);
@@ -131,6 +137,11 @@ export default function StudentDetailPage() {
   const handleStudentUpdate = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  const filteredVideos = videos.filter(video => {
+    if (searchQuery.length < 2) return true;
+    return video.title.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const renderContent = () => {
     if (loading) {
@@ -255,12 +266,14 @@ export default function StudentDetailPage() {
           {/* Video Playlist (left sidebar) */}
           <div className="w-full lg:w-64 lg:min-w-64 h-64 lg:h-full overflow-y-auto p-0 lg:p-4">
             <VideoPlaylist 
-              videos={videos} 
+              videos={filteredVideos} 
               selectedVideoId={selectedVideo?.id || null} 
               onSelectVideo={handleSelectVideo}
               studentName={student?.name}
               studentEmail={student?.email}
               isStudentView={true}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
           </div>
           
