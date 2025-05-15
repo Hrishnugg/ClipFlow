@@ -236,11 +236,8 @@ export default function StudentDetailPage() {
                 <div className="flex-grow">
                   <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
                     <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
-                    <p className="text-gray-400 mb-4">
-                      No videos available for this student.
-                    </p>
-                    <p className="text-sm text-gray-400 mt-4">
-                      Upload and review videos to assign them to this student.
+                    <p className="text-gray-400">
+                      No videos available.
                     </p>
                   </div>
                 </div>
@@ -330,11 +327,8 @@ export default function StudentDetailPage() {
                 ) : (
                   <div className="w-full h-full p-4 bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow">
                     <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
-                    <p className="text-gray-400 mb-4">
-                      No videos available for this student.
-                    </p>
-                    <p className="text-sm text-gray-400 mt-4">
-                      Upload and review videos to assign them to this student.
+                    <p className="text-gray-400">
+                      No videos available.
                     </p>
                   </div>
                 )}
