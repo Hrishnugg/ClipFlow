@@ -60,7 +60,21 @@ export default function VideoPlaylist({ videos, selectedVideoId, onSelectVideo, 
             )}
           </div>
         ) : (
-          <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-200">{title}</h2>
+            {onSearchChange && (
+              <div className="relative w-full mt-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search videos..."
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="pl-10 w-full rounded-lg border border-gray-800 bg-gray-900/50 px-3 py-2 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
       <div className="divide-y divide-gray-800/50">
