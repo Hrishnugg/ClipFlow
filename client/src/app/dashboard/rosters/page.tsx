@@ -190,8 +190,8 @@ export default function Rosters() {
           </div>
         </div>
       ): rosters.length === 0 ? (
-        <div className="bg-gray-800 shadow-lg rounded-lg p-8 text-center">
-          <p className="mb-4">
+        <div className="text-center mt-8">
+          <p className="text-base">
             {selectedTeam 
               ? "No rosters found. Upload a roster to get started." 
               : "Please create and select a team before uploading a roster."}

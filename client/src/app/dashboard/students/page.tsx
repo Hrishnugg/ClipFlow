@@ -106,11 +106,13 @@ export default function StudentsPage() {
           </div>
         </div>
       ): students.length === 0 ? (
-        <p>
-          {selectedTeam 
-            ? "No students found. Upload a roster to add students." 
-            : "Please create a team and upload a roster to view students."}
-        </p>
+        <div className="text-center mt-8">
+          <p className="text-base">
+            {selectedTeam 
+              ? "No students found. Upload a roster to add students." 
+              : "Please create a team and upload a roster to view students."}
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {students.map((student) => (
