@@ -190,14 +190,12 @@ export default function Rosters() {
           </div>
         </div>
       ): rosters.length === 0 ? (
-        <div className="flex items-center justify-center min-h-[70vh]">
-          <div className="text-center">
-            <p className="mb-6">
-              {selectedTeam 
-                ? "No rosters found. Upload a roster to get started." 
-                : "Please create and select a team before uploading a roster."}
-            </p>
-          </div>
+        <div className="text-center mt-8">
+          <p className="text-base">
+            {selectedTeam 
+              ? "No rosters found. Upload a roster to get started." 
+              : "Please create and select a team before uploading a roster."}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
