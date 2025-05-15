@@ -15,7 +15,7 @@ export default function SignOutButton({ collapsed = false }: { collapsed?: boole
   };
 
   return (
-    <div className="flex justify-center w-full">
+    <div className={`w-full ${collapsed ? 'flex justify-center' : 'px-6'}`}>
       <button
         onClick={handleSignOut}
         className="flex items-center text-gray-400 hover:text-white transition-colors"
