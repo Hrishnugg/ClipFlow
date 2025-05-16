@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { UserData } from '@/firebase/firestore';
 
 export default function DashboardLayout({ 
   children 
@@ -14,7 +15,7 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
   const [, setSidebarCollapsed] = useState(false);
 
@@ -31,7 +32,7 @@ export default function DashboardLayout({
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
-            setUserData(userDoc.data());
+            setUserData(userDoc.data() as UserData);
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -106,10 +107,10 @@ export default function DashboardLayout({
     );
   }
 
-  const hasNoRoles = 
-    (!userData?.isCoach || userData.isCoach === false) && 
-    (!userData?.isStudent || userData.isStudent === false) && 
-    (!userData?.isParent || userData.isParent === false);
+  const hasNoRoles =   
+    (userData?.isCoach !== true) &&   
+    (userData?.isStudent !== true) &&   
+    (userData?.isParent !== true);
 
   if (hasNoRoles) {
     return (

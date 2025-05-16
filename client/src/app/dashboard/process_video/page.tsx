@@ -107,6 +107,7 @@ export default function ProcessVideo() {
   
   useEffect(() => {
     fetchVideos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps  
   }, [user, isProcessing, refreshTrigger]);
   
   useEffect(() => {
@@ -119,6 +120,7 @@ export default function ProcessVideo() {
     return () => {
       window.removeEventListener('team-selected', handleTeamChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps  
   }, []);
 
   const filteredVideos = videos.filter(video => {

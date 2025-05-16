@@ -117,6 +117,7 @@ export default function StudentDetailPage() {
     };
 
     fetchStudentDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, studentId, refreshTrigger]);
 
   useEffect(() => {

@@ -6,7 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
 import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
-import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, User, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, User } from 'lucide-react';
+import { TeamData } from '@/firebase/firestore';
 
 const SIDEBAR_EXPANDED_WIDTH = 'w-64';
 const SIDEBAR_COLLAPSED_WIDTH = 'w-22';
@@ -35,7 +36,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isTeamsExpanded, setIsTeamsExpanded] = useState(false);
-  const [teams, setTeams] = useState<any[]>([]);
+  const [teams, setTeams] = useState<TeamData[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<{isCoach?: boolean; isStudent?: boolean; isParent?: boolean}>({});
   const [selectedView, setSelectedView] = useState<string>('');
@@ -50,6 +51,7 @@ export default function Sidebar() {
     } else if (pathname === '/create_team') {
       setIsTeamsExpanded(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   const fetchTeams = useCallback(async () => {
@@ -96,8 +98,9 @@ export default function Sidebar() {
   
   useEffect(() => {
     if (user && teams.length === 1 && !selectedTeam) {
-      handleTeamSelect(teams[0].id);
+      handleTeamSelect(teams[0].id!);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, teams, selectedTeam]);
   
   useEffect(() => {
@@ -186,11 +189,7 @@ export default function Sidebar() {
       console.error('Error updating selected team:', error);
     }
   };
-  
-  const isTeamSelected = (teamId: string) => {
-    return selectedTeam === teamId;
-  };
-  
+
   const handleViewSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!user) return;
     
@@ -204,7 +203,7 @@ export default function Sidebar() {
       setSelectedView(newView);
       console.log('View selected:', newView);
       
-      let newTeams: any[] = [];
+      let newTeams: TeamData[] = [];
       if (newView === 'Student View' && user.email) {
         newTeams = await getTeamsForStudent(user.email);
       } else if (newView === 'Parent View' && user.email) {
@@ -214,8 +213,8 @@ export default function Sidebar() {
       }
       
       if (newTeams.length > 0) {
-        await updateUserSelectedTeam(user.uid, newTeams[0].id);
-        setSelectedTeam(newTeams[0].id);
+        await updateUserSelectedTeam(user.uid, newTeams[0].id!);
+        setSelectedTeam(newTeams[0].id!);
       } else {
         setSelectedTeam(null);
       }
@@ -361,7 +360,7 @@ export default function Sidebar() {
                   <BookOpen size={20} className="mr-3" />
                   <span>
                     {selectedTeam 
-                      ? (teams.find(team => team.id === selectedTeam)?.name?.length > 15 
+                      ? ((teams.find(team => team.id === selectedTeam)?.name?.length ?? 0) > 15 
                           ? teams.find(team => team.id === selectedTeam)?.name?.substring(0, 12) + '...' 
                           : teams.find(team => team.id === selectedTeam)?.name)
                       : "Teams"}
@@ -392,7 +391,7 @@ export default function Sidebar() {
                   {teams.map((team) => (
                     <li key={team.id} className="mb-2">
                       <div 
-                        onClick={() => handleTeamSelect(team.id)}
+                        onClick={() => handleTeamSelect(team.id!)}
                         className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
                       >
                         <span>{team.name}</span>

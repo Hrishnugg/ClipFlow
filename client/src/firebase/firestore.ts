@@ -423,6 +423,7 @@ export async function getTeamsForStudent(email: string): Promise<TeamData[]> {
       const rosterData = doc.data();
       const students = rosterData.students || [];
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any  
       const isStudentInRoster = students.some((student: any) => 
         student.email === email
       );
@@ -455,6 +456,7 @@ export async function getTeamsForParent(email: string): Promise<TeamData[]> {
       const rosterData = doc.data();
       const students = rosterData.students || [];
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const isParentInRoster = students.some((student: any) => 
         student.parentEmail === email
       );

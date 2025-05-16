@@ -6,7 +6,6 @@ import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContext';
 import { getUserSelectedTeam } from '../../../firebase/firestore';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 
 interface Student {
@@ -24,7 +23,6 @@ export default function StudentVideosPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     const fetchStudents = async () => {

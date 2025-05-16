@@ -44,7 +44,7 @@ export default function StudentVideoDetailPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [, setSelectedTeam] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -169,7 +169,7 @@ export default function StudentVideoDetailPage() {
     if (!student) {
       return (
         <div>
-          <p>Student not found or you don't have access to this student.</p>
+          <p>Student not found or you don&apos;t have access to this student.</p>
           <Link href="/dashboard/student_videos" className="text-[#2D9CDB] hover:text-blue-400 hover:underline mt-4 inline-block">
             Back to Student Videos
           </Link>

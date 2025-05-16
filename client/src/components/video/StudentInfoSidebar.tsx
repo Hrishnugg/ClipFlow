@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/firebase/config';
 import { ref, deleteObject } from 'firebase/storage';
@@ -167,7 +166,7 @@ export default function StudentInfoSidebar({ identifiedStudent, confidenceLevel,
       <h3 className="text-lg font-semibold mb-2 text-gray-200">Identified Student</h3>
       {duplicateStudent && identifiedStudent && (
         <div className="mb-2 p-2 bg-yellow-800 border-l-4 border-yellow-500 text-yellow-300">
-          <p className="text-sm">⚠️ Warning: Multiple students found with the name "{identifiedStudent}" in the roster.</p>
+          <p className="text-sm">⚠️ Warning: Multiple students found with the name &quot;{identifiedStudent}&quot; in the roster.</p>
         </div>
       )}
       <div className="mt-2">

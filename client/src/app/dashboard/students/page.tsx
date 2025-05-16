@@ -67,6 +67,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetchStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
   
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function StudentsPage() {
     return () => {
       window.removeEventListener('team-selected', handleTeamChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   useEffect(() => {

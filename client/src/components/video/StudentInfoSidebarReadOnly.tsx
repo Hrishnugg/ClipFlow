@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// import { getStudentNamesFromRoster } from '@/firebase/llm';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 
@@ -13,7 +12,6 @@ interface StudentInfoSidebarReadOnlyProps {
 
 export default function StudentInfoSidebarReadOnly({ 
   identifiedStudent, 
-  confidenceLevel, 
   rosterId
 }: StudentInfoSidebarReadOnlyProps) {
   const [studentNames, setStudentNames] = useState<string[]>([]);
