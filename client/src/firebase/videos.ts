@@ -52,7 +52,7 @@ export async function processVideo(
     const downloadURL = await getDownloadURL(snapshot.ref);
     
     const videoData = {
-      title: video.name.replace('.mp4', ''),
+      title: video.name.replace(/\.(mp4|mov)$/i, ''),
       asset: downloadURL,
       rosterId: rosterId, 
       isReviewed: false,
