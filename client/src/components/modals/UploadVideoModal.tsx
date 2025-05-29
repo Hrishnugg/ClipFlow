@@ -93,13 +93,13 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
           if (
             zipEntry.dir ||
             relativePath.startsWith('__MACOSX/') ||
-            !relativePath.toLowerCase().endsWith('.mp4')
+            !relativePath.toLowerCase().endsWith('.mp4') && !relativePath.toLowerCase().endsWith('.mov')
           ) {
             return;
           }
 
           const promise = zipEntry.async('blob').then(blob => {
-            const fileName = relativePath.split('/').pop() || 'unknown.mp4';
+            const fileName = relativePath.split('/').pop() || 'unknown_video';
             videoFiles.push({
               name: fileName,
               data: blob
@@ -114,7 +114,8 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
         setProcessingCount({ total: videoFiles.length, current: 0 });
 
         for (const videoFile of videoFiles) {
-          const file = new File([videoFile.data], videoFile.name, { type: 'video/mp4' });
+          const mimeType = videoFile.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
+          const file = new File([videoFile.data], videoFile.name, { type: mimeType });
           const selectedTeam = await getUserSelectedTeam(user?.uid || '');
           await processVideo(file, selectedRosterId, user?.uid || '', selectedTeam || undefined);
 
@@ -203,7 +204,7 @@ export default function UploadVideoModal({ isOpen, onClose, onProcessingStatusCh
               </p>
             )}
             <p className="mt-1 text-xs text-gray-400">
-              ZIP file should contain MP4 videos only.
+              ZIP file should contain MP4 or MOV videos only.
             </p>
           </div>
         </div>
