@@ -478,3 +478,46 @@ export async function getTeamsForParent(email: string): Promise<TeamData[]> {
     return [];
   }
 }
+
+export const verifyParentStudentAccess = async (
+  studentId: string, 
+  userEmail: string, 
+  selectedTeam: string
+): Promise<boolean> => {
+  try {
+    const studentRef = doc(db, 'students', studentId);
+    const studentSnap = await getDoc(studentRef);
+    
+    if (!studentSnap.exists()) {
+      return false;
+    }
+    
+    const studentData = studentSnap.data();
+    const teamIDs = Array.isArray(studentData.teamID) ? studentData.teamID : [studentData.teamID];
+    
+    if (!teamIDs.includes(selectedTeam)) {
+      return false;
+    }
+    
+    const rostersRef = collection(db, 'rosters');
+    const rostersQuery = query(rostersRef, where('teamID', '==', selectedTeam));
+    const rostersSnapshot = await getDocs(rostersQuery);
+    
+    for (const rosterDoc of rostersSnapshot.docs) {
+      const rosterData = rosterDoc.data();
+      const rosterStudents = rosterData.students || [];
+      
+      for (const rosterStudent of rosterStudents) {
+        if (rosterStudent.email === studentData.email && 
+            rosterStudent.parentEmail === userEmail) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error verifying parent-student access:', error);
+    return false;
+  }
+};
