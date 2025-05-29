@@ -100,7 +100,7 @@ export default function DashboardLayout({
               const hasAccess = await verifyParentStudentAccess(studentId, user.email!, selectedTeam);
               if (!hasAccess) {
                 console.log(`Redirecting ${userSelectedView} from unauthorized student page`);
-                router.push('/dashboard/student_videos');
+                router.push('/dashboard');
                 return;
               }
             }
