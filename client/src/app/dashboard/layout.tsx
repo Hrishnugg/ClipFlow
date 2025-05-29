@@ -75,6 +75,18 @@ export default function DashboardLayout({
           console.log(`Redirecting ${userSelectedView} from restricted page`);
           router.push('/dashboard');
         }
+        
+        if (userSelectedView !== 'Student View' && currentPath === '/dashboard/videos') {
+          console.log(`Redirecting ${userSelectedView} from restricted videos page`);
+          router.push('/dashboard');
+        }
+        
+        if (userSelectedView !== 'Parent View' && 
+            (currentPath === '/dashboard/student_videos' || 
+             currentPath.startsWith('/dashboard/student_videos/'))) {
+          console.log(`Redirecting ${userSelectedView} from restricted student videos page`);
+          router.push('/dashboard');
+        }
       }
     };
     
