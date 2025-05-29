@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import { UserData } from '@/firebase/firestore';
+import { UserData, getUserSelectedTeam, verifyParentStudentAccess } from '@/firebase/firestore';
 
 export default function DashboardLayout({ 
   children 
@@ -74,6 +74,37 @@ export default function DashboardLayout({
              (currentPath.startsWith('/dashboard/students/') && !currentPath.startsWith('/dashboard/student_videos')))) {
           console.log(`Redirecting ${userSelectedView} from restricted page`);
           router.push('/dashboard');
+        }
+        
+        if (userSelectedView !== 'Student View' && currentPath === '/dashboard/videos') {
+          console.log(`Redirecting ${userSelectedView} from restricted videos page`);
+          router.push('/dashboard');
+        }
+        
+        if (userSelectedView !== 'Parent View' && 
+            (currentPath === '/dashboard/student_videos' || 
+             currentPath.startsWith('/dashboard/student_videos/'))) {
+          console.log(`Redirecting ${userSelectedView} from restricted student videos page`);
+          router.push('/dashboard');
+        }
+        
+        if (userSelectedView === 'Parent View' && 
+            currentPath.startsWith('/dashboard/student_videos/') && 
+            currentPath !== '/dashboard/student_videos') {
+          const studentIdMatch = currentPath.match(/\/dashboard\/student_videos\/([^\/]+)$/);
+          if (studentIdMatch) {
+            const studentId = studentIdMatch[1];
+            const selectedTeam = await getUserSelectedTeam(user.uid);
+            
+            if (selectedTeam) {
+              const hasAccess = await verifyParentStudentAccess(studentId, user.email!, selectedTeam);
+              if (!hasAccess) {
+                console.log(`Redirecting ${userSelectedView} from unauthorized student page`);
+                router.push('/dashboard');
+                return;
+              }
+            }
+          }
         }
       }
     };

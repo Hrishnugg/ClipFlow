@@ -62,8 +62,8 @@ export default function StudentVideoDetailPage() {
           const teamIDs = Array.isArray(data.teamID) ? data.teamID : [data.teamID];
           
           if (!teamIDs.includes(selectedTeam)) {
-            console.error('Unauthorized access to student');
-            router.push('/dashboard/student_videos');
+            //console.error('Unauthorized access to student');
+            router.push('/dashboard');
             return;
           }
           
