@@ -11,6 +11,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.selectedView == "Coach View";
     }
     
+    match /rosters/{rosterId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.selectedView == "Coach View";
+    }
+    
+    match /students/{studentId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.selectedView == "Coach View";
+    }
+    
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
