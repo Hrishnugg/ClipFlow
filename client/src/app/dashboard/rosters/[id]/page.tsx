@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
-import { getUserSelectedTeam } from '@/firebase/firestore';
+import { getUserSelectedTeam, getTeamById } from '@/firebase/firestore';
 import { Search } from 'lucide-react';
 
 interface Student {
@@ -45,7 +45,14 @@ export default function RosterDetail() {
         
         if (data.teamID !== selectedTeam) {
           console.error('Unauthorized access to roster');
-          router.push('/dashboard/rosters');
+          router.push('/dashboard');
+          return;
+        }
+        
+        const team = await getTeamById(selectedTeam!);
+        if (!team || !team.members.includes(user.email!)) {
+          console.error('User is not a coach on this team');
+          router.push('/dashboard');
           return;
         }
         
@@ -58,7 +65,7 @@ export default function RosterDetail() {
         });
       } else {
         console.error('Roster not found');
-        router.push('/dashboard/rosters');
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Error fetching roster details:', error);
