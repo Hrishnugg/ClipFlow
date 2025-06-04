@@ -222,24 +222,26 @@ export default function Rosters() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredRosters.map((roster) => (
-            <Link 
-              href={`/dashboard/rosters/${roster.id}`} 
-              key={roster.id}
-              className="block"
-            >
-              <div className="glass-card hover-lift h-full">
-                <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
-                <p className="text-gray-400">{roster.students.length} students</p>
+        <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredRosters.map((roster) => (
+              <Link 
+                href={`/dashboard/rosters/${roster.id}`} 
+                key={roster.id}
+                className="block"
+              >
+                <div className="glass-card hover-lift h-full">
+                  <h2 className="text-xl font-semibold mb-2">{roster.name}</h2>
+                  <p className="text-gray-400">{roster.students.length} students</p>
+                </div>
+              </Link>
+            ))}
+            {searchQuery.length >= 2 && filteredRosters.length === 0 && (
+              <div className="col-span-full text-center p-8">
+                <p className="text-gray-400">No rosters match your search query.</p>
               </div>
-            </Link>
-          ))}
-          {searchQuery.length >= 2 && filteredRosters.length === 0 && (
-            <div className="col-span-full text-center p-8">
-              <p className="text-gray-400">No rosters match your search query.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
       
