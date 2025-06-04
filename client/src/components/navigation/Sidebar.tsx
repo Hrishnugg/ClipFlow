@@ -307,8 +307,8 @@ export default function Sidebar() {
           </div>
         </div>
       )}
-      <div className={`py-4 ${isCollapsed ? 'px-3 justify-center' : 'px-6 justify-start'} flex items-center border-b border-gray-800/50`}>
-        {!isCollapsed ? (
+      <div className={`py-4 ${isCollapsed && !isMobile ? 'px-3 justify-center' : isMobile ? 'px-6 justify-center' : 'px-6 justify-start'} flex items-center border-b border-gray-800/50`}>
+        {(!isCollapsed || isMobile) ? (
           <Link href="/dashboard" className="flex items-center">
             <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               ClipFlow
