@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import { useAuth } from '@/context/AuthContext';
 import { getTeamsForUser, updateUserSelectedTeam, getUserSelectedTeam, getUser, updateUserSelectedView, getTeamsForStudent, getTeamsForParent } from '@/firebase/firestore';
-import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, BookOpen, FileText, User, Menu, X } from 'lucide-react';
 import { TeamData } from '@/firebase/firestore';
 
 const SIDEBAR_EXPANDED_WIDTH = 'w-64';
@@ -14,22 +14,46 @@ const SIDEBAR_COLLAPSED_WIDTH = 'w-22';
 
 const useSidebarCollapse = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
-    const storedState = localStorage.getItem('sidebarCollapsed');
-    if (storedState) {
-      setIsCollapsed(storedState === 'true');
-    }
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  useEffect(() => {
+    if (!isMobile) {
+      const storedState = localStorage.getItem('sidebarCollapsed');
+      if (storedState) {
+        setIsCollapsed(storedState === 'true');
+      }
+    }
+  }, [isMobile]);
 
   const toggleCollapse = useCallback(() => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem('sidebarCollapsed', newState.toString());
-    
-  }, [isCollapsed]);
+    if (isMobile) {
+      setIsMobileMenuOpen(!isMobileMenuOpen);
+    } else {
+      const newState = !isCollapsed;
+      setIsCollapsed(newState);
+      localStorage.setItem('sidebarCollapsed', newState.toString());
+    }
+  }, [isCollapsed, isMobile, isMobileMenuOpen]);
 
-  return { isCollapsed, toggleCollapse };
+  const closeMobileMenu = useCallback(() => {
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isMobile]);
+
+  return { isCollapsed, toggleCollapse, isMobile, isMobileMenuOpen, closeMobileMenu };
 };
 
 export default function Sidebar() {
@@ -41,7 +65,7 @@ export default function Sidebar() {
   const [userRoles, setUserRoles] = useState<{isCoach?: boolean; isStudent?: boolean; isParent?: boolean}>({});
   const [selectedView, setSelectedView] = useState<string>('');
   const [isViewChanging, setIsViewChanging] = useState(false);
-  const { isCollapsed, toggleCollapse } = useSidebarCollapse();
+  const { isCollapsed, toggleCollapse, isMobile, isMobileMenuOpen, closeMobileMenu } = useSidebarCollapse();
   const { user } = useAuth();
   
   useEffect(() => {
@@ -246,7 +270,35 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50 transition-all duration-300 ease-in-out z-40`}>
+    <>
+      {/* Mobile hamburger button */}
+      {isMobile && (
+        <button
+          onClick={toggleCollapse}
+          className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 rounded-lg bg-gray-900/80 backdrop-blur-lg border border-gray-800/50 text-gray-300 hover:text-white hover:bg-gray-800/80 transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      )}
+
+      {/* Mobile backdrop */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${isMobile 
+          ? `fixed inset-y-0 left-0 w-full transform transition-transform duration-300 ease-in-out z-40 ${
+              isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`
+          : `${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH} h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out z-40`
+        } 
+        flex flex-col bg-gray-900/60 backdrop-blur-lg border-r border-gray-800/50
+      `}>
       {isViewChanging && (
         <div className="absolute inset-0 bg-gray-900 z-50 flex items-center justify-center">
           <div className="flex flex-col items-center">
@@ -275,11 +327,12 @@ export default function Sidebar() {
           <li className="mb-2">
             <Link 
               href="/dashboard" 
-              className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-200`}
-              title={isCollapsed ? "Dashboard" : undefined}
+              className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard')} transition-colors text-gray-200`}
+              title={isCollapsed && !isMobile ? "Dashboard" : undefined}
+              onClick={closeMobileMenu}
             >
-              <Home size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-              {!isCollapsed && <span>Dashboard</span>}
+              <Home size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+              {(!isCollapsed || isMobile) && <span>Dashboard</span>}
             </Link>
           </li>
           {selectedView !== 'Student View' && selectedView !== 'Parent View' && (
@@ -287,41 +340,45 @@ export default function Sidebar() {
               <li className="mb-2">
                 <Link 
                   href="/dashboard/rosters" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/rosters')} transition-colors text-gray-200`}
-                  title={isCollapsed ? "Rosters" : undefined}
+                  className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/rosters')} transition-colors text-gray-200`}
+                  title={isCollapsed && !isMobile ? "Rosters" : undefined}
+                  onClick={closeMobileMenu}
                 >
-                  <FileText size={24} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                  {!isCollapsed && <span>Rosters</span>}
+                  <FileText size={24} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                  {(!isCollapsed || isMobile) && <span>Rosters</span>}
                 </Link>
               </li>
               <li className="mb-2">
                 <Link 
                   href="/dashboard/students" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/students')} transition-colors text-gray-200`}
-                  title={isCollapsed ? "Students" : undefined}
+                  className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/students')} transition-colors text-gray-200`}
+                  title={isCollapsed && !isMobile ? "Students" : undefined}
+                  onClick={closeMobileMenu}
                 >
-                  <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                  {!isCollapsed && <span>Students</span>}
+                  <User size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                  {(!isCollapsed || isMobile) && <span>Students</span>}
                 </Link>
               </li>
               <li className="mb-2">
                 <Link 
                   href="/dashboard/process_video" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/process_video')} transition-colors text-gray-200`}
-                  title={isCollapsed ? "Process Video" : undefined}
+                  className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/process_video')} transition-colors text-gray-200`}
+                  title={isCollapsed && !isMobile ? "Process Video" : undefined}
+                  onClick={closeMobileMenu}
                 >
-                  <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                  {!isCollapsed && <span>Process Video</span>}
+                  <FileText size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                  {(!isCollapsed || isMobile) && <span>Process Video</span>}
                 </Link>
               </li>
               <li className="mb-2">
                 <Link 
                   href="/dashboard/invite" 
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/invite')} transition-colors text-gray-200`}
-                  title={isCollapsed ? "Invite" : undefined}
+                  className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/invite')} transition-colors text-gray-200`}
+                  title={isCollapsed && !isMobile ? "Invite" : undefined}
+                  onClick={closeMobileMenu}
                 >
-                  <User size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                  {!isCollapsed && <span>Invite</span>}
+                  <User size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                  {(!isCollapsed || isMobile) && <span>Invite</span>}
                 </Link>
               </li>
             </>
@@ -330,11 +387,12 @@ export default function Sidebar() {
             <li className="mb-2">
               <Link 
                 href="/dashboard/videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-200`}
-                title={isCollapsed ? "Videos" : undefined}
+                className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/videos')} transition-colors text-gray-200`}
+                title={isCollapsed && !isMobile ? "Videos" : undefined}
+                onClick={closeMobileMenu}
               >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && <span>Videos</span>}
+                <FileText size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                {(!isCollapsed || isMobile) && <span>Videos</span>}
               </Link>
             </li>
           )}
@@ -342,16 +400,17 @@ export default function Sidebar() {
             <li className="mb-2">
               <Link 
                 href="/dashboard/student_videos" 
-                className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-200`}
-                title={isCollapsed ? "Student Videos" : undefined}
+                className={`flex items-center ${isCollapsed && !isMobile ? 'justify-center' : ''} px-6 py-3 rounded-lg ${isActive('/dashboard/student_videos')} transition-colors text-gray-200`}
+                title={isCollapsed && !isMobile ? "Student Videos" : undefined}
+                onClick={closeMobileMenu}
               >
-                <FileText size={20} className={`${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && <span>Student Videos</span>}
+                <FileText size={20} className={`${isCollapsed && !isMobile ? '' : 'mr-3'}`} />
+                {(!isCollapsed || isMobile) && <span>Student Videos</span>}
               </Link>
             </li>
           )}
           <li className="mb-2">
-            {!isCollapsed && (
+            {(!isCollapsed || isMobile) && (
               <div 
                 onClick={toggleTeamsExpand}
                 className={`flex items-center justify-between px-6 py-3 cursor-pointer transition-colors rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
@@ -369,7 +428,7 @@ export default function Sidebar() {
                 <span className="text-xs">{isTeamsExpanded ? '▼' : '▶'}</span>
               </div>
             )}
-            {!isCollapsed && (
+            {(!isCollapsed || isMobile) && (
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   isTeamsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
@@ -381,6 +440,7 @@ export default function Sidebar() {
                       <div 
                         onClick={() => {
                           router.push("/dashboard/create_team");
+                          closeMobileMenu();
                         }}
                         className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 ${isActive('/dashboard/create_team')}`}
                       >
@@ -391,7 +451,10 @@ export default function Sidebar() {
                   {teams.map((team) => (
                     <li key={team.id} className="mb-2">
                       <div 
-                        onClick={() => handleTeamSelect(team.id!)}
+                        onClick={() => {
+                          handleTeamSelect(team.id!);
+                          closeMobileMenu();
+                        }}
                         className={`flex items-center justify-between px-6 py-2 transition-colors cursor-pointer rounded-lg text-gray-200 hover:bg-gray-800/30 hover:text-white`}
                       >
                         <span>{team.name}</span>
@@ -420,8 +483,8 @@ export default function Sidebar() {
         </button>
       </div>
       
-      <div className={`p-4 border-t border-gray-800/50 ${isCollapsed ? 'items-center' : ''}`}>
-        {(userRoles.isCoach || userRoles.isStudent || userRoles.isParent) && !isCollapsed && (
+      <div className={`p-4 border-t border-gray-800/50 ${isCollapsed && !isMobile ? 'items-center' : ''}`}>
+        {(userRoles.isCoach || userRoles.isStudent || userRoles.isParent) && (!isCollapsed || isMobile) && (
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2 text-gray-300">
               Select View
@@ -444,8 +507,9 @@ export default function Sidebar() {
           </div>
         )}
         
-        <SignOutButton collapsed={isCollapsed} />
+        <SignOutButton collapsed={isCollapsed && !isMobile} />
       </div>
     </div>
+    </>
   );
 }
