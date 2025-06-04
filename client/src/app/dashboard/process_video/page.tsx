@@ -225,9 +225,9 @@ export default function ProcessVideo() {
         </div>
         
         {/* Main content area */}
-        <div className="flex-1 px-6 py-4 overflow-y-auto">
-          {/* Video player */}
-          <div className="mb-4">
+        <div className="flex-1 px-6 py-4 flex flex-col space-y-4">
+          {/* Fixed Video Container */}
+          <div className="w-full" style={{ maxHeight: '60vh' }}>
             {selectedVideo ? (
               <VideoPlayer
                 videoUrl={selectedVideo?.asset || null}
@@ -248,12 +248,12 @@ export default function ProcessVideo() {
             )}
           </div>
           
-          {/* Transcript section */}
-          <div>
+          {/* Fixed Transcript Container */}
+          <div className="w-full" style={{ height: '30vh', minHeight: '200px' }}>
             {selectedVideo ? (
               <TranscriptSection transcript={selectedVideo?.transcript || null} />
             ) : (
-              <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg p-4">
+              <div className="bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg p-4 h-full">
                 <h3 className="text-lg font-medium mb-2 text-gray-200">Transcript</h3>
                 <p className="text-gray-400 italic">No transcript available.</p>
               </div>
