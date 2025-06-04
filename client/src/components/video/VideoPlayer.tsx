@@ -18,6 +18,7 @@ export default function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   } | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleVideoReady = useCallback((player: any) => {
     try {
       const internalPlayer = player.getInternalPlayer();
