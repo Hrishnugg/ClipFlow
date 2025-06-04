@@ -136,7 +136,7 @@ export default function RosterDetail() {
               </div>
               {/* Mobile Card Layout */}
               <div className="md:hidden">
-                <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+                <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
                   <div className="grid grid-cols-1 gap-4 p-4">
                     {filteredStudents.map((student, index) => (
                       <div key={index} className="glass-card hover-lift">
