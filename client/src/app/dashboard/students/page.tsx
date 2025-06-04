@@ -140,24 +140,26 @@ export default function StudentsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredStudents.map((student) => (
-            <Link 
-              href={`/dashboard/students/${student.id}`} 
-              key={student.id}
-              className="block"
-            >
-              <div className="glass-card hover-lift h-full">
-                <h2 className="text-lg font-semibold mb-2">{student.name}</h2>
-                <p className="text-gray-400 text-sm">{student.email}</p>
+        <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredStudents.map((student) => (
+              <Link 
+                href={`/dashboard/students/${student.id}`} 
+                key={student.id}
+                className="block"
+              >
+                <div className="glass-card hover-lift h-full">
+                  <h2 className="text-lg font-semibold mb-2">{student.name}</h2>
+                  <p className="text-gray-400 text-sm">{student.email}</p>
+                </div>
+              </Link>
+            ))}
+            {searchQuery.length >= 2 && filteredStudents.length === 0 && (
+              <div className="col-span-full text-center p-8">
+                <p className="text-gray-400">No students match your search query.</p>
               </div>
-            </Link>
-          ))}
-          {searchQuery.length >= 2 && filteredStudents.length === 0 && (
-            <div className="col-span-full text-center p-8">
-              <p className="text-gray-400">No students match your search query.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
