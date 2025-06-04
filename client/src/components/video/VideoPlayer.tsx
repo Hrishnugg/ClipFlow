@@ -95,11 +95,15 @@ export default function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   return (
     <div className="w-full flex flex-col">
       <div 
-        className="bg-black rounded-lg overflow-hidden mx-auto relative"
-        style={getVideoContainerStyle()}
+        className="rounded-lg overflow-hidden mx-auto relative"
+        style={{
+          ...getVideoContainerStyle(),
+          position: 'relative',
+          backgroundColor: 'transparent'
+        }}
       >
         {!isVideoReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-20">
             <div className="text-white text-sm">Loading video...</div>
           </div>
         )}
@@ -113,6 +117,22 @@ export default function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
           onError={(error) => {
             console.error('Video playback error:', error);
             setIsVideoReady(true);
+          }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }}
+          config={{
+            file: {
+              attributes: {
+                style: {
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }
+              }
+            }
           }}
         />
       </div>
