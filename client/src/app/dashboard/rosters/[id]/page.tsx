@@ -136,31 +136,33 @@ export default function RosterDetail() {
               </div>
               {/* Mobile Card Layout */}
               <div className="md:hidden">
-                <div className="grid grid-cols-1 gap-4 p-4">
-                  {filteredStudents.map((student, index) => (
-                    <div key={index} className="glass-card hover-lift">
-                      <div className="flex items-center mb-3">
-                        <div className="h-10 w-10 rounded-full bg-gray-500 flex items-center justify-center text-white mr-3">
-                          {student.name.charAt(0)}
+                <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+                  <div className="grid grid-cols-1 gap-4 p-4">
+                    {filteredStudents.map((student, index) => (
+                      <div key={index} className="glass-card hover-lift">
+                        <div className="flex items-center mb-3">
+                          <div className="h-10 w-10 rounded-full bg-gray-500 flex items-center justify-center text-white mr-3">
+                            {student.name.charAt(0)}
+                          </div>
+                          <h3 className="text-lg font-semibold text-white">{student.name}</h3>
                         </div>
-                        <h3 className="text-lg font-semibold text-white">{student.name}</h3>
+                        <div className="space-y-2">
+                          <p className="text-gray-400 text-sm">
+                            <span className="font-medium">Student Email:</span> {student.email}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            <span className="font-medium">Parent Email:</span> {student.parentEmail}
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <p className="text-gray-400 text-sm">
-                          <span className="font-medium">Student Email:</span> {student.email}
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          <span className="font-medium">Parent Email:</span> {student.parentEmail}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {searchQuery.length >= 2 && filteredStudents.length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-gray-400">No students match your search query.</p>
+                    ))}
                   </div>
-                )}
+                  {searchQuery.length >= 2 && filteredStudents.length === 0 && (
+                    <div className="p-8 text-center">
+                      <p className="text-gray-400">No students match your search query.</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Desktop Table Layout */}
