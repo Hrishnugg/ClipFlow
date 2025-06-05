@@ -41,7 +41,7 @@ export default function ConfirmationModal({
           </button>
           <button
             onClick={onConfirm}
-            className="relative inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-red-600 to-orange-500 px-6 py-2 font-medium text-white transition-all duration-300 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="relative inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-r from-red-600 to-orange-500 px-6 py-3 font-medium text-white transition-all duration-300 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             {confirmButtonText}
           </button>
