@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import UploadVideoModal from '../../../components/modals/UploadVideoModal';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../../firebase/config';
+import ConfirmationModal from '../../../components/modals/ConfirmationModal';
+import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { db, storage } from '../../../firebase/config';
+import { ref, deleteObject } from 'firebase/storage';
 import { useAuth } from '../../../context/AuthContext';
 import { getUserSelectedTeam } from '../../../firebase/firestore';
 import VideoPlaylist from '../../../components/video/VideoPlaylist';
@@ -29,6 +31,8 @@ interface Video {
 
 export default function ProcessVideo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
@@ -174,6 +178,72 @@ export default function ProcessVideo() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleDeleteAll = () => {
+    setIsConfirmationOpen(true);
+  };
+
+  const closeConfirmation = () => {
+    setIsConfirmationOpen(false);
+  };
+
+  const confirmDeleteAll = async () => {
+    if (isDeleting || !user) return;
+    
+    setIsDeleting(true);
+    setIsConfirmationOpen(false);
+    
+    try {
+      const videosQuery = query(
+        collection(db, 'videos'),
+        where('user_uid', '==', user.uid),
+        where('isReviewed', '==', false)
+      );
+      
+      const querySnapshot = await getDocs(videosQuery);
+      
+      if (querySnapshot.empty) {
+        setIsDeleting(false);
+        return;
+      }
+      
+      const deletePromises = querySnapshot.docs.map(async (document) => {
+        try {
+          const videoRef = doc(db, 'videos', document.id);
+          const videoDoc = await getDoc(videoRef);
+          
+          if (videoDoc.exists()) {
+            const videoData = videoDoc.data();
+            const assetUrl = videoData.asset;
+            
+            await deleteDoc(videoRef);
+            
+            if (assetUrl) {
+              const filePathMatch = assetUrl.match(/\/o\/([^?]+)/);
+              if (filePathMatch && filePathMatch[1]) {
+                const filePath = decodeURIComponent(filePathMatch[1]);
+                const storageRef = ref(storage, filePath);
+                await deleteObject(storageRef);
+              }
+            }
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error('Error deleting video:', error);
+          throw error;
+        }
+      });
+      
+      await Promise.allSettled(deletePromises);
+      
+      handleStudentUpdate(); // Trigger refresh
+    } catch (error) {
+      console.error('Error deleting all videos:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -288,6 +358,8 @@ export default function ProcessVideo() {
               <VideoActionsPanel 
                 userUid={user?.uid || ''} 
                 onUpdate={handleStudentUpdate}
+                onDeleteAll={handleDeleteAll}
+                isDeleting={isDeleting}
                 allVideosHaveIdentifiedStudents={filteredVideos.every(video => video.identifiedStudent !== "")}
               />
             </div>
@@ -305,6 +377,15 @@ export default function ProcessVideo() {
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
         onProcessingStatusChange={handleProcessingStatusChange}
+      />
+      
+      <ConfirmationModal
+        isOpen={isConfirmationOpen}
+        onClose={closeConfirmation}
+        onConfirm={confirmDeleteAll}
+        title="Delete All Videos"
+        message="Are you sure you want to delete all unreviewed videos? This action cannot be undone."
+        confirmButtonText="Delete All"
       />
     </div>
   );

@@ -24,24 +24,24 @@ export default function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+      <div className="glass-card w-full max-w-md relative">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         
         <div className="mb-6">
           <p className="text-gray-300">{message}</p>
         </div>
         
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-700 text-gray-200 rounded hover:bg-gray-600"
+            className="relative inline-flex h-10 items-center justify-center rounded-lg border border-gray-700 bg-gray-800/50 backdrop-blur-sm px-6 py-2 font-medium text-white transition-all duration-300 hover:bg-gray-700/50 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
           >
             {cancelButtonText}
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="relative inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-r from-red-600 to-orange-500 px-6 py-3 font-medium text-white transition-all duration-300 hover:from-red-700 hover:to-orange-600 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             {confirmButtonText}
           </button>

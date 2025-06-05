@@ -1,22 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { collection, query, where, getDocs, writeBatch, doc, getDoc, deleteDoc } from 'firebase/firestore';
-import { db, storage } from '../../firebase/config';
-import { ref, deleteObject } from 'firebase/storage';
-import ConfirmationModal from '../../components/modals/ConfirmationModal';
+import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+
 import { formatVideoTitle } from '../../utils/formatting';
 
 interface VideoActionsPanelProps {
   userUid: string;
   onUpdate: () => void;
+  onDeleteAll: () => void;
+  isDeleting: boolean;
   allVideosHaveIdentifiedStudents: boolean;
 }
 
-export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIdentifiedStudents }: VideoActionsPanelProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
+export default function VideoActionsPanel({ userUid, onUpdate, onDeleteAll, isDeleting, allVideosHaveIdentifiedStudents }: VideoActionsPanelProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSaveAll = async () => {
@@ -68,73 +67,11 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
     }
   };
   
-  const handleDeleteAll = async () => {
-    setIsConfirmationOpen(true);
+  const handleDeleteAll = () => {
+    onDeleteAll();
   };
   
-  const confirmDeleteAll = async () => {
-    if (isDeleting) return;
-    
-    setIsDeleting(true);
-    setErrorMessage(null);
-    setIsConfirmationOpen(false);
-    
-    try {
-      const videosQuery = query(
-        collection(db, 'videos'),
-        where('user_uid', '==', userUid),
-        where('isReviewed', '==', false)
-      );
-      
-      const querySnapshot = await getDocs(videosQuery);
-      
-      if (querySnapshot.empty) {
-        setIsDeleting(false);
-        return;
-      }
-      
-      const deletePromises = querySnapshot.docs.map(async (document) => {
-        try {
-          const videoRef = doc(db, 'videos', document.id);
-          const videoDoc = await getDoc(videoRef);
-          
-          if (videoDoc.exists()) {
-            const videoData = videoDoc.data();
-            const assetUrl = videoData.asset;
-            
-            await deleteDoc(videoRef);
-            
-            if (assetUrl) {
-              const filePathMatch = assetUrl.match(/\/o\/([^?]+)/);
-              if (filePathMatch && filePathMatch[1]) {
-                const filePath = decodeURIComponent(filePathMatch[1]);
-                const storageRef = ref(storage, filePath);
-                await deleteObject(storageRef);
-              }
-            }
-            return true;
-          }
-          return false;
-        } catch (error) {
-          console.error('Error deleting video:', error);
-          throw error;
-        }
-      });
-      
-      await Promise.allSettled(deletePromises);
-      
-      onUpdate(); // Trigger refresh
-    } catch (error) {
-      console.error('Error deleting all videos:', error);
-      setErrorMessage('There was an error deleting some videos. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-  
-  const closeConfirmation = () => {
-    setIsConfirmationOpen(false);
-  };
+
 
   return (
     <div className="w-full bg-transparent backdrop-blur-lg border border-gray-800/50 rounded-lg shadow p-4 mt-2">
@@ -168,14 +105,7 @@ export default function VideoActionsPanel({ userUid, onUpdate, allVideosHaveIden
         </div>
       )}
       
-      <ConfirmationModal
-        isOpen={isConfirmationOpen}
-        onClose={closeConfirmation}
-        onConfirm={confirmDeleteAll}
-        title="Delete All Videos"
-        message="Are you sure you want to delete all unreviewed videos? This action cannot be undone."
-        confirmButtonText="Delete All"
-      />
+
     </div>
   );
 }
