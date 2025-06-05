@@ -17,6 +17,11 @@ export async function processVideo(
     const snapshot = await uploadBytes(storageRef, video);
     const downloadURL = await getDownloadURL(snapshot.ref);
     
+    const transcodingResult = await transcodeVideo(downloadURL, storageRef.fullPath);
+    if (!transcodingResult.success) {
+      console.warn('Transcoding failed, proceeding with original video:', transcodingResult.error);
+    }
+    
     const transcriptionResult = await transcribeVideo(downloadURL);
     const transcript = transcriptionResult.success ? transcriptionResult.transcript : '';
     
@@ -78,6 +83,28 @@ export async function processVideo(
     };
   }
 }
+/**
+ * Transcode a video using Google Transcoder API for cross-browser compatibility
+ */
+async function transcodeVideo(videoUrl: string, storagePath: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/transcode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoUrl, storagePath })
+    });
+    
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error transcoding video:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown transcoding error'
+    };
+  }
+}
+
 /**
  * Transcribe a video using AssemblyAI
  */
