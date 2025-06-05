@@ -12,8 +12,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const inputUri = `gs://clipflow-app.appspot.com/${storagePath}`;
+    const inputUri = `gs://clipflow-app.firebasestorage.app/${storagePath}`;
+    console.log(inputUri);
     const outputUri = inputUri.replace(/\.[^/.]+$/, '.mp4');
+    console.log(outputUri);
 
     const jobResult = await createTranscodingJob(inputUri, outputUri);
     

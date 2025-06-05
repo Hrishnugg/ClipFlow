@@ -28,13 +28,13 @@ export async function createTranscodingJob(
     const authClient = await auth.getClient();
     const projectNumber = await auth.getProjectId();
 
-    const outputUri = inputUri.substring(0, inputUri.lastIndexOf('/') + 1); // directory
-    const outputFileName = inputUri.replace(/^.*\//, '').replace(/\.[^/.]+$/, '.mp4'); // file name
+    //const url = `https://transcoder.googleapis.com/v1/projects/${projectNumber}/locations/${location}/jobs`;
 
-    const url = `https://transcoder.googleapis.com/v1/projects/${projectNumber}/locations/${location}/jobs`;
+    const outputUri = inputUri.replace(/\/[^/]+$/, '/'); // directory only
+    const outputFileName = inputUri.replace(/^.*\//, '').replace(/\.[^/.]+$/, '.mp4'); // "video.mp4"
 
     const jobConfig = {
-      inputUri,
+      inputUri: inputUri,
       outputUri,
       config: {
         elementaryStreams: [
@@ -46,42 +46,42 @@ export async function createTranscodingJob(
                 widthPixels: 1280,
                 bitrateBps: 2500000,
                 frameRate: 30,
-                profile: 'high',
-              },
-            },
+                profile: 'high'
+              }
+            }
           },
           {
             key: 'audio-stream0',
             audioStream: {
               codec: 'aac',
-              bitrateBps: 128000,
-            },
-          },
+              bitrateBps: 128000
+            }
+          }
         ],
         muxStreams: [
           {
             key: 'sd-mp4',
             container: 'ts',
-            fileName: outputFileName, // ✅ this is now "filename.mp4"
+            fileName: inputUri.replace(/^.*\//, '').replace(/\.[^/.]+$/, '.mp4'),
             elementaryStreams: ['video-stream0', 'audio-stream0'],
             segmentSettings: {
-              segmentDuration: '6s',
-            },
-          },
+              segmentDuration: '6s'
+            }
+          }
         ],
         adBreaks: [],
         manifests: [
           {
             fileName: 'manifest.m3u8',
             type: 'HLS',
-            muxStreams: ['sd-mp4'],
-          },
-        ],
-      },
+            muxStreams: ['sd-mp4']
+          }
+        ]
+      }
     };
 
     const response = await authClient.request({
-      url,
+      url: `https://transcoder.googleapis.com/v1/projects/${projectNumber}/locations/${location}/jobs`,
       method: 'POST',
       data: jobConfig,
       headers: {
