@@ -1,5 +1,5 @@
 import { collection, addDoc, getDocs, query, limit } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config';
 import { identifyStudentViaLLM, getStudentNamesFromRoster } from './llm';
 
@@ -13,7 +13,11 @@ export async function processVideo(
   teamID?: string
 ): Promise<{ success: boolean; videoId?: string; error?: string }> {
   try {
-    const transcriptionResult = await transcribeVideo(video);
+    const storageRef = ref(storage, `videos/${Date.now()}_${video.name}`);
+    const snapshot = await uploadBytes(storageRef, video);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    const transcriptionResult = await transcribeVideo(downloadURL);
     const transcript = transcriptionResult.success ? transcriptionResult.transcript : '';
     
     let identifiedStudent = '';
@@ -47,10 +51,6 @@ export async function processVideo(
       }
     }
     
-    const storageRef = ref(storage, `videos/${Date.now()}_${video.name}`);
-    const snapshot = await uploadBytes(storageRef, video);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    
     const videoData = {
       title: video.name.replace(/\.(mp4|mov)$/i, ''),
       asset: downloadURL,
@@ -82,12 +82,9 @@ export async function processVideo(
  * Transcribe a video using AssemblyAI
  */
 export async function transcribeVideo(
-  video: File
+  videoUrl: string
 ): Promise<{ success: boolean; transcript?: string; error?: string }> {
   try {
-    const tempStorageRef = ref(storage, `temp_transcription/${Date.now()}_${video.name}`);
-    const snapshot = await uploadBytes(tempStorageRef, video);
-    const videoUrl = await getDownloadURL(snapshot.ref);
     
     const { AssemblyAI } = await import('assemblyai');
     const apiKey = process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY;
@@ -103,12 +100,6 @@ export async function transcribeVideo(
     const result = await client.transcripts.transcribe({
       audio: videoUrl,
     });
-    
-    try {
-      await deleteObject(tempStorageRef);
-    } catch (deleteError) {
-      console.warn('Could not delete temporary transcription file:', deleteError);
-    }
     
     return { success: true, transcript: result.text || '' };
   } catch (error) {
